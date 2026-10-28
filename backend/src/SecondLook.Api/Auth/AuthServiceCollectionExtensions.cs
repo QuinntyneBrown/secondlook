@@ -49,6 +49,15 @@ public static class AuthServiceCollectionExtensions
                 // A valid signature is not enough: the user must still exist and be active (L2-069 AC4).
                 o.Events = new JwtBearerEvents
                 {
+                    // Browsers cannot set headers on a WebSocket, so the signalling path alone accepts the token in the query (ADR 0012).
+                    OnMessageReceived = context =>
+                    {
+                        var path = context.Request.Path.Value ?? "";
+                        if (path.StartsWith("/api/calls/", StringComparison.Ordinal) && path.EndsWith("/ws", StringComparison.Ordinal)
+                            && context.Request.Query["access_token"] is { Count: > 0 } token)
+                            context.Token = token;
+                        return Task.CompletedTask;
+                    },
                     OnTokenValidated = async context =>
                     {
                         var sub = context.Principal?.FindFirst("sub")?.Value;

@@ -1,3 +1,4 @@
+using SecondLook.Api.Calls;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Api.Accounts;
 using SecondLook.Api.Auth;
@@ -12,6 +13,8 @@ using SecondLook.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSecondLookAuth(builder.Configuration);
+builder.Services.AddSingleton<SecondLook.Api.Calls.CallHub>();
+builder.Services.AddSingleton<SecondLook.Application.Abstractions.ICallChannel>(sp => sp.GetRequiredService<SecondLook.Api.Calls.CallHub>());
 builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<SecondLook.Application.Accounts.RegisterCommand>());
 var origins = builder.Configuration.GetSection("SecondLook:Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
@@ -39,6 +42,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStatusCodePages();
 app.UseCors();
+app.UseWebSockets();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformEndpoints();
@@ -48,6 +52,7 @@ app.MapAvailabilityEndpoints();
 app.MapVehicleEndpoints();
 app.MapPaymentEndpoints();
 app.MapBookingEndpoints();
+app.MapCallEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

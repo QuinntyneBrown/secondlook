@@ -1,0 +1,20 @@
+# ADR 0012: Live video inspection transport, session authorization and call lifecycle
+
+## Status
+Accepted (J10)
+
+## Context
+`L1-009` and `L2-039` to `L2-044` describe the lobby, the live call, connection problems, ending and banners. The designs leave the video provider, signalling channel and recording store as `<TO SUPPLY>`. J10 needs real transport and real authorization, testable with two participant sessions and synthetic media devices, with no external service.
+
+## Decision
+- **Media: browser-native WebRTC, peer to peer (mesh).** No vendor SDK. Each pair of participants has one `RTCPeerConnection`; the call has at most the buyer, the assigned mechanic and the assigned body shop (three people, three connections). ICE servers are configuration (`SecondLook:Calls:IceServers`, empty by default so local and CI calls use host candidates). **No TURN server is provided**, so some networks (symmetric NAT, strict firewalls) will not connect; adding TURN is configuration plus infrastructure, tracked as a deferral.
+- **Signalling: a WebSocket on the API**, `GET /api/calls/{inspectionId}/ws`. It relays offers, answers and ICE candidates between the participants of one inspection and announces `welcome`, `peer-joined`, `peer-left`, `changed` and `ended`. Presence and relay live in an in-memory hub, so **one API instance** carries a call; scaling out needs a backplane (deferred).
+- **Authorization:** only the inspection's buyer and its assigned mechanic and body shop may read, join or end a call. Anyone else, including another buyer or an unassigned provider, gets 404 (never 403) so the inspection's existence is not leaked; an unauthenticated request gets 401. Browsers cannot set headers on a WebSocket, so the JWT may be sent as `access_token` in the query string **for the signalling path only**; every other endpoint still requires the header.
+- **When a call can be joined:** from 15 minutes before the booked start (`L2` call opens note and the confirmation copy) until it is ended. Earlier: 409 with `opensAt`. A cancelled inspection cannot be joined. An ended call can still be read and shows its summary.
+- **Lifecycle:** `GET /api/calls/{id}` reads the lobby state without joining; `POST /api/calls/{id}/join` creates the `CallSession` on the first join (idempotent, `StartedAt` from the clock) and returns the state; the signalling socket requires a session that has not ended. `POST /api/calls/{id}/end` by the buyer or the mechanic ends it for everyone once (idempotent), closes every socket with an `ended` message. The inspection's own status is not changed by a call in J10.
+- **Presence and reconnection:** a participant is "here" while a socket is open. A new socket for the same user replaces the old one without announcing a departure, so a reconnect keeps the participant's place. The client retries with a short back-off (about six seconds in total) and then reports "Disconnected" with a "Rejoin the call" action. Peers recreate the media connection when a participant (re)joins.
+- **Inspection actions:** the mechanic advances the checklist (`POST /api/calls/{id}/checklist/advance`, six fixed items, one is "Now") and adds notes (`POST /api/calls/{id}/notes`, 1 to 500 characters). The buyer cannot (403). Both are persisted and pushed to the others as `changed`.
+- **Not in J10 (deferred and disclosed):** recording and its banners and lobby note (`L2-039` AC2, `L2-044` AC2 and AC5: nothing is recorded, so nothing claims it); the seller joining from a text link (the seller always shows "Not joined"); the "weak connection" and "text him again" banners (`L2-044` AC3 and AC4); estimates after the call (J11).
+
+## Consequences
+The call works with no third-party media service and is testable end to end with Chromium's fake media devices. Reliability on restrictive networks and multi-instance hosting are known gaps with named fixes (TURN, a signalling backplane).

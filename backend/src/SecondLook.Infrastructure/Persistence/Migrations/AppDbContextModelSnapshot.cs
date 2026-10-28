@@ -75,6 +75,67 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                     b.ToTable("SlotReservations");
                 });
 
+            modelBuilder.Entity("SecondLook.Domain.Calls.CallNote", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("CallSessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("CreatedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CallSessionId");
+
+                    b.ToTable("CallNotes");
+                });
+
+            modelBuilder.Entity("SecondLook.Domain.Calls.CallSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ChecklistIndex")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("EndedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("EndedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("InspectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("StartedAt")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InspectionId")
+                        .IsUnique();
+
+                    b.ToTable("CallSessions");
+                });
+
             modelBuilder.Entity("SecondLook.Domain.Inspections.Inspection", b =>
                 {
                     b.Property<Guid>("Id")

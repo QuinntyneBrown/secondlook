@@ -1,3 +1,4 @@
+using SecondLook.Domain.Calls;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
 using SecondLook.Domain.Availability;
@@ -19,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<PricingWindow> PricingWindows => Set<PricingWindow>();
     public DbSet<Inspection> Inspections => Set<Inspection>();
+    public DbSet<CallSession> CallSessions => Set<CallSession>();
+    public DbSet<CallNote> CallNotes => Set<CallNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -117,6 +120,21 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.HasIndex(i => i.CheckoutId).IsUnique();
             e.HasIndex(i => i.BuyerId);
             e.HasIndex(i => i.MechanicId);
+        });
+        modelBuilder.Entity<CallSession>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.Property(c => c.StartedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(c => c.EndedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.HasIndex(c => c.InspectionId).IsUnique();
+        });
+        modelBuilder.Entity<CallNote>(e =>
+        {
+            e.HasKey(n => n.Id);
+            e.Property(n => n.AuthorName).HasMaxLength(100).IsRequired();
+            e.Property(n => n.Text).HasMaxLength(500).IsRequired();
+            e.Property(n => n.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(n => n.CallSessionId);
         });
     }
 }

@@ -1,3 +1,4 @@
+using SecondLook.Domain.Calls;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Domain.Availability;
 using SecondLook.Domain.Inspections;
@@ -18,6 +19,8 @@ public interface IAppDbContext
     DbSet<Payment> Payments { get; }
     DbSet<PricingWindow> PricingWindows { get; }
     DbSet<Inspection> Inspections { get; }
+    DbSet<CallSession> CallSessions { get; }
+    DbSet<CallNote> CallNotes { get; }
     Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker ChangeTracker { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
