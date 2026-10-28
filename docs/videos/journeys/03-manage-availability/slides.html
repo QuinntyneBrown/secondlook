@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 03 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="03" data-video-title="Manage availability" data-parts="Introduction|Saving availability|What buyers see|Booked times|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 03</div>
+  <h1>Manage availability</h1>
+  <p class="lead">Save times, see free slots, protect booked ones, on the real stack</p>
+</section>
+
+<section id="app" data-part="1" data-cue="The mechanic signs in and opens their availability." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Add, refuse overlap, edit</h3>
+    <p class="muted">Chromium against the real API. Times are entered in Eastern Time.</p>
+  </aside>
+</section>
+
+<section id="slots" data-part="2" data-cue="Now the buyer's side." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Free slots only</h3>
+    <p class="muted">Deactivating the mechanic removes their slots; approving restores them.</p>
+  </aside>
+</section>
+
+<section id="booked" data-part="3" data-cue="Booked times are protected too.">
+  <h2>Booked times are protected</h2>
+  <ul class="recap">
+    <li>A slot can be reserved once, even under concurrent requests</li>
+    <li>A window cannot be removed or shrunk over a booked slot</li>
+    <li>Covered by automated tests; booking journeys will use them</li>
+  </ul>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Approved providers only, and only their own windows</li>
+    <li>No overlaps; Eastern Time in, UTC stored</li>
+    <li>Buyers see free slots from approved providers</li>
+  </ul>
+  <p class="small muted">Next: Journey 04, manage vehicles</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
