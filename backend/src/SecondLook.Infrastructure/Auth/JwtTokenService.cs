@@ -7,8 +7,10 @@ using SecondLook.Domain.Users;
 namespace SecondLook.Infrastructure.Auth;
 
 /// <summary>Issues local JWTs with the claims the API validates ("sub", "role").</summary>
-public sealed class JwtTokenService(IConfiguration configuration)
+public sealed class JwtTokenService(IConfiguration configuration) : SecondLook.Application.Accounts.IAccessTokenIssuer
 {
+    public string Issue(User user) => Issue(user, null);
+
     public string Issue(User user, TimeSpan? lifetime = null)
     {
         var jwt = configuration.GetSection("SecondLook:Jwt");

@@ -7,6 +7,7 @@ namespace SecondLook.Infrastructure.Persistence;
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<AccountToken> AccountTokens => Set<AccountToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,6 +19,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
             e.Property(u => u.PasswordHash).HasMaxLength(512);
             e.HasIndex(u => u.Email).IsUnique();
+        });
+        modelBuilder.Entity<AccountToken>(e =>
+        {
+            e.HasKey(t => t.Id);
+            e.Property(t => t.Purpose).HasMaxLength(40).IsRequired();
+            e.Property(t => t.TokenHash).HasMaxLength(100).IsRequired();
+            e.Property(t => t.ExpiresAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(t => t.UsedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.HasIndex(t => t.TokenHash).IsUnique();
         });
     }
 }

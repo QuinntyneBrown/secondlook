@@ -22,7 +22,7 @@ public abstract record RegisterResult
     public sealed record Invalid(IReadOnlyDictionary<string, string[]> Errors) : RegisterResult;
 }
 
-public sealed class RegisterHandler(IAppDbContext db, IPasswordHasher hasher) : IRequestHandler<RegisterCommand, RegisterResult>
+public sealed class RegisterHandler(IAppDbContext db, IPasswordHasher hasher, AccountTokens tokens) : IRequestHandler<RegisterCommand, RegisterResult>
 {
     public static bool IsValidEmail(string? email) =>
         !string.IsNullOrWhiteSpace(email) && MailAddress.TryCreate(email, out var a) && a.Address == email && email.Contains('.', StringComparison.Ordinal) && !email.EndsWith('.');
@@ -52,6 +52,7 @@ public sealed class RegisterHandler(IAppDbContext db, IPasswordHasher hasher) : 
         };
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
+        await tokens.SendAsync(user, AccountTokens.VerifyEmail, ct);
         return new RegisterResult.Created(user.Id, email);
     }
 }

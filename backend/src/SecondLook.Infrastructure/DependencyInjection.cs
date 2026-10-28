@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SecondLook.Application.Abstractions;
@@ -19,6 +20,11 @@ public static class DependencyInjection
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddSingleton<SecondLook.Application.Accounts.IPasswordHasher, SecondLook.Infrastructure.Auth.IdentityPasswordHasher>();
+        services.AddSingleton<SecondLook.Application.Accounts.LocalMailbox>();
+        services.AddSingleton<SecondLook.Application.Accounts.IEmailSender>(sp => sp.GetRequiredService<SecondLook.Application.Accounts.LocalMailbox>());
+        services.AddScoped<SecondLook.Application.Accounts.IAccessTokenIssuer, SecondLook.Infrastructure.Auth.JwtTokenService>();
+        services.AddScoped<SecondLook.Application.Accounts.AccountTokens>();
+        services.TryAddSingleton(TimeProvider.System);
         return services;
     }
 }
