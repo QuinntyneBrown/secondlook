@@ -39,6 +39,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformEndpoints();
 app.MapAuthEndpoints();
+app.MapAdminProviderEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

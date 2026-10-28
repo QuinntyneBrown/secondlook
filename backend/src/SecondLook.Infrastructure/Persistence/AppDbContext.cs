@@ -18,6 +18,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(u => u.DisplayName).HasMaxLength(200).IsRequired();
             e.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
             e.Property(u => u.PasswordHash).HasMaxLength(512);
+            e.Property(u => u.ApprovalStatus).HasConversion<string>().HasMaxLength(20);
+            e.Property(u => u.LicenceNumber).HasMaxLength(60);
+            e.Property(u => u.Location).HasMaxLength(200);
+            e.Ignore(u => u.IsProvider).Ignore(u => u.IsApproved).Ignore(u => u.CanTakeInspections);
             e.HasIndex(u => u.Email).IsUnique();
         });
         modelBuilder.Entity<AccountToken>(e =>

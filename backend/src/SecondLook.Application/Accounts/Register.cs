@@ -48,7 +48,7 @@ public sealed class RegisterHandler(IAppDbContext db, IPasswordHasher hasher, Ac
             DisplayName = c.FullName!.Trim(),
             Role = role!.Value,
             PasswordHash = hasher.Hash(c.Password!),
-            IsApproved = role == UserRole.Buyer,
+            ApprovalStatus = role == UserRole.Buyer ? ApprovalStatus.Approved : ApprovalStatus.Pending,
         };
         db.Users.Add(user);
         await db.SaveChangesAsync(ct);
