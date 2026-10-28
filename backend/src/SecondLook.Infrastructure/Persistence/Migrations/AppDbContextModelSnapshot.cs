@@ -94,6 +94,13 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("BuyerId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long?>("CancelledAt")
+                        .HasColumnType("bigint");
+
                     b.Property<Guid>("CheckoutId")
                         .HasColumnType("uniqueidentifier");
 
@@ -115,6 +122,15 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("PaymentId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("RefundSettled")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RefundedCents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RetainedCents")
+                        .HasColumnType("int");
 
                     b.Property<string>("Review")
                         .IsRequired()
