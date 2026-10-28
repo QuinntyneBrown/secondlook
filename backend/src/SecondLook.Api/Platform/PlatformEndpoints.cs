@@ -29,6 +29,11 @@ public static class PlatformEndpoints
         {
             group.MapGet("/diagnostics/fault", () => { throw new InvalidOperationException("deliberate platform fault"); })
                 .RequireAuthorization(Policies.Admin);
+
+            // The local mail adapter keeps mail in memory; e2e and demos read the emailed link here.
+            group.MapGet("/diagnostics/mailbox", (string email, string purpose, SecondLook.Application.Accounts.LocalMailbox mailbox) =>
+                    Results.Ok(new { token = mailbox.LastTokenFor(email, purpose) }))
+                .AllowAnonymous();
         }
         return app;
     }
