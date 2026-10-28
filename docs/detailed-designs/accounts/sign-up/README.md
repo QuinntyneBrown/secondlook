@@ -82,3 +82,7 @@ The handler creates the account and sends the link, or returns the email-taken r
 The page checks the values first and shows the summary; the server validator repeats the rules and returns field errors in the same shape.
 
 ![Sequence diagram for validating sign-up values](diagrams/sequence-validate-sign-up.png)
+
+## Implementation (J01)
+
+`POST /api/auth/register` `{fullName,email,password,acceptedTerms,role?}` returns 201 `{userId,email,verificationRequired}`; 400 validation problem with `fullName`, `email`, `password`, `acceptedTerms` or `role` errors; 409 `Account exists`. Passwords are hashed with ASP.NET Core Identity's `PasswordHasher`; email is lower-cased and unique. The unchecked-terms rule reports "Agree to the Terms and Privacy policy to continue." only when the other fields are valid. Mechanic and body shop registrations are created with `IsApproved = false`; `Admin` cannot be self-registered.
