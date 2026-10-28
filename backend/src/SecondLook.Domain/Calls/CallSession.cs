@@ -6,9 +6,6 @@ public sealed class CallSession
     /// <summary>The fixed inspection checklist, in order (L2-041).</summary>
     public static readonly string[] Checklist = ["Brakes", "Tires", "Suspension", "Steering", "Lights, horn, wipers", "Body panels"];
 
-    /// <summary>A call opens this long before the booked start.</summary>
-    public static readonly TimeSpan OpensBefore = TimeSpan.FromMinutes(15);
-
     public Guid Id { get; set; }
     public Guid InspectionId { get; set; }
     public DateTimeOffset StartedAt { get; set; }

@@ -13,6 +13,7 @@ using SecondLook.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSecondLookAuth(builder.Configuration);
+builder.Services.AddSingleton(new SecondLook.Application.Calls.CallOptions(TimeSpan.FromMinutes(builder.Configuration.GetValue("SecondLook:Calls:OpensBeforeMinutes", 15))));
 builder.Services.AddSingleton<SecondLook.Api.Calls.CallHub>();
 builder.Services.AddSingleton<SecondLook.Application.Abstractions.ICallChannel>(sp => sp.GetRequiredService<SecondLook.Api.Calls.CallHub>());
 builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<SecondLook.Application.Accounts.RegisterCommand>());

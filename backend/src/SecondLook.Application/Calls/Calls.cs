@@ -8,6 +8,9 @@ using SecondLook.Domain.Users;
 
 namespace SecondLook.Application.Calls;
 
+/// <summary>How long before the booked start a call can be joined (`SecondLook:Calls:OpensBeforeMinutes`, default 15).</summary>
+public sealed record CallOptions(TimeSpan OpensBefore);
+
 public sealed record ParticipantDto(Guid? UserId, string Name, string Role, bool Here);
 public sealed record ChecklistItemDto(string Name, string State);
 public sealed record NoteDto(string Author, string Text, DateTimeOffset At);
@@ -36,7 +39,7 @@ internal static class CallMapper
     public static async Task<Inspection?> ParticipantInspectionAsync(IAppDbContext db, ICurrentUser caller, Guid id, CancellationToken ct) =>
         caller.Role is UserRole.Admin ? null : await db.Inspections.ForCaller(caller).FirstOrDefaultAsync(i => i.Id == id, ct);
 
-    public static async Task<CallStateDto> StateAsync(IAppDbContext db, ICallChannel channel, ICurrentUser caller, Inspection i, CancellationToken ct)
+    public static async Task<CallStateDto> StateAsync(IAppDbContext db, ICallChannel channel, ICurrentUser caller, CallOptions options, Inspection i, CancellationToken ct)
     {
         var session = await db.CallSessions.FirstOrDefaultAsync(s => s.InspectionId == i.Id, ct);
         var ids = new[] { i.BuyerId, i.MechanicId, i.BodyShopId }.Where(x => x != null).Select(x => x!.Value).ToList();
@@ -57,25 +60,25 @@ internal static class CallMapper
 
         var status = session is null ? "NotStarted" : session.EndedAt is null ? "Live" : "Ended";
         int? duration = session?.EndedAt is { } end ? (int)(end - session.StartedAt).TotalSeconds : null;
-        return new CallStateDto(i.Id, status, i.StartUtc, i.StartUtc - CallSession.OpensBefore, session?.StartedAt, session?.EndedAt, duration, i.Vin, you, people, checklist, notes);
+        return new CallStateDto(i.Id, status, i.StartUtc, i.StartUtc - options.OpensBefore, session?.StartedAt, session?.EndedAt, duration, i.Vin, you, people, checklist, notes);
     }
 }
 
 public sealed record GetCallQuery(Guid InspectionId) : IRequest<CallResult>;
 
 /// <summary>The lobby's view of a call; reading it never joins.</summary>
-public sealed class GetCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel) : IRequestHandler<GetCallQuery, CallResult>
+public sealed class GetCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, CallOptions options) : IRequestHandler<GetCallQuery, CallResult>
 {
     public async Task<CallResult> Handle(GetCallQuery q, CancellationToken ct) =>
         await CallMapper.ParticipantInspectionAsync(db, caller, q.InspectionId, ct) is { } i
-            ? new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, i, ct))
+            ? new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, options, i, ct))
             : new CallResult.NotFound();
 }
 
 public sealed record JoinCallCommand(Guid InspectionId) : IRequest<CallResult>;
 
 /// <summary>Creates the call on the first join and returns its state; joining again changes nothing (ADR 0012).</summary>
-public sealed class JoinCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, TimeProvider clock) : IRequestHandler<JoinCallCommand, CallResult>
+public sealed class JoinCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, CallOptions options, TimeProvider clock) : IRequestHandler<JoinCallCommand, CallResult>
 {
     public async Task<CallResult> Handle(JoinCallCommand c, CancellationToken ct)
     {
@@ -87,7 +90,7 @@ public sealed class JoinCallHandler(IAppDbContext db, ICurrentUser caller, ICall
         if (session is null)
         {
             var now = clock.GetUtcNow();
-            var opens = i.StartUtc - CallSession.OpensBefore;
+            var opens = i.StartUtc - options.OpensBefore;
             if (now < opens) return new CallResult.NotYetOpen(opens);
             db.CallSessions.Add(new CallSession { Id = Guid.NewGuid(), InspectionId = i.Id, StartedAt = DateTimeOffset.FromUnixTimeMilliseconds(now.ToUnixTimeMilliseconds()) });
             try
@@ -100,7 +103,7 @@ public sealed class JoinCallHandler(IAppDbContext db, ICurrentUser caller, ICall
                 db.ChangeTracker.Clear();
             }
         }
-        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, i, ct));
+        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, options, i, ct));
     }
 }
 
@@ -130,7 +133,7 @@ public sealed class OpenSocketHandler(IAppDbContext db, ICurrentUser caller) : I
 public sealed record EndCallCommand(Guid InspectionId) : IRequest<CallResult>;
 
 /// <summary>Ends the call for everyone once; a repeated request returns the ended call (L2-043).</summary>
-public sealed class EndCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, TimeProvider clock) : IRequestHandler<EndCallCommand, CallResult>
+public sealed class EndCallHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, CallOptions options, TimeProvider clock) : IRequestHandler<EndCallCommand, CallResult>
 {
     public async Task<CallResult> Handle(EndCallCommand c, CancellationToken ct)
     {
@@ -147,14 +150,14 @@ public sealed class EndCallHandler(IAppDbContext db, ICurrentUser caller, ICallC
         if (won > 0) await channel.EndAsync(i.Id, ct);
         db.ChangeTracker.Clear();
         var fresh = await db.Inspections.FirstAsync(x => x.Id == i.Id, ct);
-        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, fresh, ct));
+        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, options, fresh, ct));
     }
 }
 
 public sealed record AdvanceChecklistCommand(Guid InspectionId) : IRequest<CallResult>;
 
 /// <summary>The mechanic moves the checklist to the next item; the buyer and body shop cannot.</summary>
-public sealed class AdvanceChecklistHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel) : IRequestHandler<AdvanceChecklistCommand, CallResult>
+public sealed class AdvanceChecklistHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, CallOptions options) : IRequestHandler<AdvanceChecklistCommand, CallResult>
 {
     public async Task<CallResult> Handle(AdvanceChecklistCommand c, CancellationToken ct)
     {
@@ -170,13 +173,13 @@ public sealed class AdvanceChecklistHandler(IAppDbContext db, ICurrentUser calle
             .ExecuteUpdateAsync(set => set.SetProperty(s => s.ChecklistIndex, s => s.ChecklistIndex + 1), ct);
         if (moved > 0) await channel.NotifyChangedAsync(i.Id, ct);
         db.ChangeTracker.Clear();
-        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, i, ct));
+        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, options, i, ct));
     }
 }
 
 public sealed record AddNoteCommand(Guid InspectionId, string? Text) : IRequest<CallResult>;
 
-public sealed class AddNoteHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, TimeProvider clock) : IRequestHandler<AddNoteCommand, CallResult>
+public sealed class AddNoteHandler(IAppDbContext db, ICurrentUser caller, ICallChannel channel, CallOptions options, TimeProvider clock) : IRequestHandler<AddNoteCommand, CallResult>
 {
     public const int MaxLength = 500;
 
@@ -195,6 +198,6 @@ public sealed class AddNoteHandler(IAppDbContext db, ICurrentUser caller, ICallC
         db.CallNotes.Add(new CallNote { Id = Guid.NewGuid(), CallSessionId = session.Id, AuthorId = caller.Id, AuthorName = name, Text = text, CreatedAt = clock.GetUtcNow() });
         await db.SaveChangesAsync(ct);
         await channel.NotifyChangedAsync(i.Id, ct);
-        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, i, ct));
+        return new CallResult.Ok(await CallMapper.StateAsync(db, channel, caller, options, i, ct));
     }
 }
