@@ -71,9 +71,9 @@ public class RegistrationTests : IClassFixture<ApiFactory>
     [InlineData("BodyShop")]
     public async Task Provider_registration_is_pending_approval(string role)
     {
-        (await Register(Valid($"{role.ToLowerInvariant()}@example.test", role))).StatusCode.Should().Be(HttpStatusCode.Created);
+        (await Register(Valid($"pending-{role.ToLowerInvariant()}@example.test", role))).StatusCode.Should().Be(HttpStatusCode.Created);
         using var scope = _factory.Services.CreateScope();
-        var user = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users.SingleAsync(u => u.Email == $"{role.ToLowerInvariant()}@example.test");
+        var user = await scope.ServiceProvider.GetRequiredService<AppDbContext>().Users.SingleAsync(u => u.Email == $"pending-{role.ToLowerInvariant()}@example.test");
         user.Role.ToString().Should().Be(role);
         user.IsApproved.Should().BeFalse();
     }
