@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 07 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="07" data-video-title="Reschedule or cancel a booking" data-parts="Introduction|Rescheduling and cancelling|Staying consistent|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 07</div>
+  <h1>Reschedule or cancel a booking</h1>
+  <p class="lead">Move or cancel a call; slots stay consistent and refunds happen once</p>
+</section>
+
+<section id="app" data-part="1" data-cue="The buyer opens a booked inspection and chooses reschedule." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Reschedule, undo, cancel</h3>
+    <p class="muted">Local payment adapter: no real refund.</p>
+  </aside>
+</section>
+
+<section id="consistent" data-part="2" data-cue="Moving and cancelling are safe under pressure." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>One refund, one slot</h3>
+    <p class="muted">A conditional update picks the single winner.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="3" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Reschedule keeps the mechanic and frees the old time</li>
+    <li>Cancel needs a reason, releases the slot and refunds once</li>
+    <li>Under 2 hours: $25 fee. After the call starts: no change</li>
+  </ul>
+  <p class="small muted">Next: Journey 08, add an additional vehicle</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
