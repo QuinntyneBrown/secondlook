@@ -16,6 +16,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(u => u.Email).HasMaxLength(256).IsRequired();
             e.Property(u => u.DisplayName).HasMaxLength(200).IsRequired();
             e.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
+            e.Property(u => u.PasswordHash).HasMaxLength(512);
             e.HasIndex(u => u.Email).IsUnique();
         });
     }

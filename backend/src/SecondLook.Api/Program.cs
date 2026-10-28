@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SecondLook.Api.Accounts;
 using SecondLook.Api.Auth;
 using SecondLook.Api.Platform;
 using SecondLook.Infrastructure;
@@ -7,6 +8,7 @@ using SecondLook.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSecondLookAuth(builder.Configuration);
+builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<SecondLook.Application.Accounts.RegisterCommand>());
 var origins = builder.Configuration.GetSection("SecondLook:Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
 builder.Services.AddEndpointsApiExplorer();
@@ -36,6 +38,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapPlatformEndpoints();
+app.MapAuthEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

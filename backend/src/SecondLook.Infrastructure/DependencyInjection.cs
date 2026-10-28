@@ -18,6 +18,7 @@ public static class DependencyInjection
             else o.UseSqlServer(connection, s => s.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddSingleton<SecondLook.Application.Accounts.IPasswordHasher, SecondLook.Infrastructure.Auth.IdentityPasswordHasher>();
         return services;
     }
 }
