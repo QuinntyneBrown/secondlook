@@ -1,0 +1,10 @@
+@use '../../components/src/lib/styles/tokens';
+
+body {
+  margin: 0;
+  background: var(--colorNeutralBackground2);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyBase);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+}

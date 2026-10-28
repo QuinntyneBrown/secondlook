@@ -1,13 +1,11 @@
 // Token pipeline: renders the TypeScript theme in
-// projects/components/src/lib/tokens/ into the three generated files the rest
+// projects/components/src/lib/tokens/ into the two generated files the rest
 // of the repository consumes —
 //
 //   src/lib/styles/_tokens.scss   the `:root` custom properties (+ responsive retunes and
 //                                 the dark theme under prefers-color-scheme: dark and the
 //                                 zeroed durations under prefers-reduced-motion: reduce)
 //   src/lib/tokens/tokens.ts      the typed `tokens` object (`var(--name)` per key)
-//   ../marketing/assets/tokens.css  the same custom properties as plain CSS for the
-//                                 static marketing site, which has no build (ADR-018)
 //
 // Usage (from frontend/):  npm run tokens          regenerate
 //                          npm run tokens:check    fail if any file is stale (CI)
@@ -31,7 +29,6 @@ registerHooks({
 
 const here = dirname(fileURLToPath(import.meta.url));
 const lib = resolve(here, '../projects/components/src/lib');
-const marketingTokens = resolve(here, '../../marketing/assets/tokens.css');
 const load = (path) => import(pathToFileURL(resolve(lib, path)).href);
 
 const { secondlookLightTheme, responsiveOverrides, darkSchemeOverride, reducedMotionOverride } =
@@ -64,18 +61,6 @@ const scss = `${banner('//')}
 ${themeCss}
 `;
 
-const css = `/*
-${banner(' *')}
- *
- * The static marketing site (marketing/, ADR-018) reads these by role, exactly
- * as the components do: var(--colorBrandBackground) for a fill,
- * var(--colorNeutralForeground2) for soft text. Never copy a hex value into
- * secondlook.css.
- */
-
-${themeCss}
-`;
-
 const ts = `${banner('//')}
 
 import type { Theme } from './types';
@@ -91,7 +76,6 @@ ${Object.keys(secondlookLightTheme)
 const outputs = [
   [resolve(lib, 'styles/_tokens.scss'), scss],
   [resolve(lib, 'tokens/tokens.ts'), ts],
-  [marketingTokens, css],
 ];
 
 // Format each output with the Prettier config that applies to it (frontend/ or
