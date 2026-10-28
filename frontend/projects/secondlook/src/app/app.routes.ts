@@ -8,6 +8,7 @@ import { ResetPasswordPage } from './pages/reset-password-page';
 import { SignInPage } from './pages/sign-in-page';
 import { SignUpPage } from './pages/sign-up-page';
 import { SystemPage } from './pages/system-page';
+import { VehiclesPage } from './pages/vehicles-page';
 import { VerifyEmailPage } from './pages/verify-email-page';
 import { Session } from './session';
 
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordPage },
   { path: 'inspections', component: InspectionsPage, canActivate: [signedIn] },
   { path: 'availability', component: AvailabilityPage, canActivate: [signedIn] },
+  { path: 'vehicles', component: VehiclesPage, canActivate: [signedIn] },
   { path: 'forbidden', component: SystemPage, data: { state: 'forbidden' } },
   { path: 'offline', component: SystemPage, data: { state: 'offline' } },
   { path: 'maintenance', component: SystemPage, data: { state: 'maintenance' } },

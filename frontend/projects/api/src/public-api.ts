@@ -25,3 +25,9 @@ export {
   type AvailabilityApi,
   type AvailabilityWindow,
 } from './lib/availability-api';
+export {
+  VEHICLES_API,
+  type Vehicle,
+  type VehicleInput,
+  type VehiclesApi,
+} from './lib/vehicles-api';
