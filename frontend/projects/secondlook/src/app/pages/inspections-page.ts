@@ -50,20 +50,32 @@ type View = 'loading' | 'ready' | 'failed';
       </div>
     } @else {
       <div role="tablist" aria-label="Inspections">
-        <button role="tab" type="button" aria-selected="true">
-          Active {{ inspections().length }}
+        <button
+          role="tab"
+          type="button"
+          [attr.aria-selected]="tab() === 'active'"
+          (click)="tab.set('active')"
+        >
+          Active {{ active().length }}
         </button>
-        <button role="tab" type="button" aria-selected="false">Past</button>
+        <button
+          role="tab"
+          type="button"
+          [attr.aria-selected]="tab() === 'past'"
+          (click)="tab.set('past')"
+        >
+          Past
+        </button>
       </div>
       <ul [attr.aria-busy]="view() === 'loading' ? 'true' : null">
-        @for (i of inspections(); track i.id) {
+        @for (i of shown(); track i.id) {
           <li>
             <a [routerLink]="['/inspections', i.id]">{{ i.vehicle.vin }}</a>
             <span class="meta"
               >{{ reviewLabel(i) }} · {{ i.mechanicName }} ·
               {{ '$' + i.vehicle.askingPrice.toLocaleString('en-CA') }}</span
             >
-            <span class="chip">{{ callTime(i) }}</span>
+            <span class="chip">{{ i.status === 'Cancelled' ? 'Cancelled' : callTime(i) }}</span>
           </li>
         }
       </ul>
@@ -167,11 +179,20 @@ export class InspectionsPage {
 
   protected readonly view = signal<View>('loading');
   protected readonly inspections = signal<Inspection[]>([]);
+  protected readonly tab = signal<'active' | 'past'>('active');
+  protected readonly active = computed(() =>
+    this.inspections().filter((i) => i.status !== 'Cancelled'),
+  );
+  protected readonly shown = computed(() =>
+    this.tab() === 'active'
+      ? this.active()
+      : this.inspections().filter((i) => i.status === 'Cancelled'),
+  );
   protected readonly callTime = (i: Inspection) => callTime(i.start);
   protected readonly subtitle = computed(() => {
     if (this.view() === 'loading') return 'Loading your inspections';
-    const n = this.inspections().length;
-    return n === 0 ? 'Nothing booked yet' : `${n} active`;
+    const n = this.active().length;
+    return this.inspections().length === 0 ? 'Nothing booked yet' : `${n} active`;
   });
 
   constructor() {

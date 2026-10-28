@@ -93,3 +93,9 @@ The worker releases holds whose `ExpiresAt` has passed, so the slot becomes avai
 Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
 
 `POST /api/bookings/holds` `{providerId,start}` (role Buyer) holds a free slot for 10 minutes (201 `{holdId,expiresAt,...}`; 409 "We couldn’t hold that slot" when it is held, booked or not offered). A buyer has one active hold; a new one releases the old. `GET /api/slots` lists only free slots (L2-061). The schedule step groups slots by Eastern day.
+
+## Implementation (J07)
+
+Decisions are in ADR 0009. Mocks reused: `inspection-detail`, `dialogs/reschedule` and `dialogs/cancel-inspection`.
+
+Rescheduling reuses the slot reservation rules: the new slot is reserved as Booked first and the old reservation is deleted only after the inspection has moved (ADR 0009).

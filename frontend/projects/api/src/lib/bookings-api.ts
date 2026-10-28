@@ -39,7 +39,17 @@ export interface Inspection {
   amountCents: number;
   vehicle: InspectionVehicle;
   createdAt: string;
+  cardLast4: string | null;
+  /** What cancelling now would refund, in cents. */
+  refundPreviewCents: number;
+  cancelledAt: string | null;
+  refundedCents: number;
+  retainedCents: number;
+  /** True while the call has not started and the inspection is scheduled. */
+  canChange: boolean;
 }
+
+export type CancelReason = 'DifferentCar' | 'SellerBackedOut' | 'PriceChanged' | 'Other';
 
 /**
  * Booking: free slots, a 10-minute hold, confirmation of a paid checkout, and the buyer's inspections.
@@ -51,6 +61,9 @@ export interface BookingsApi {
   confirm(checkoutId: string, holdId: string, vehicleId: string): Observable<Inspection>;
   inspections(): Observable<Inspection[]>;
   inspection(id: string): Observable<Inspection>;
+  rescheduleSlots(id: string): Observable<Slot[]>;
+  reschedule(id: string, start: string): Observable<Inspection>;
+  cancel(id: string, reason: CancelReason): Observable<Inspection>;
 }
 
 export const BOOKINGS_API = new InjectionToken<BookingsApi>('BOOKINGS_API');

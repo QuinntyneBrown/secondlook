@@ -89,3 +89,9 @@ The dialog shows the invalid state with no reason, the failed state when the can
 The detail page shows the cancellation, the refund and "Rebook this car", and withholds the call actions.
 
 ![Sequence diagram for viewing a cancelled inspection](diagrams/sequence-view-cancelled.png)
+
+## Implementation (J07)
+
+Decisions are in ADR 0009. Mocks reused: `inspection-detail`, `dialogs/reschedule` and `dialogs/cancel-inspection`.
+
+`POST /api/inspections/{id}/cancel` `{reason}` (role Buyer, own inspection; reasons DifferentCar, SellerBackedOut, PriceChanged, Other; 400 when missing) cancels once: a conditional update picks the winner, who releases the slot and refunds through `RefundPaymentCommand` (full when more than 2 hours before the call, otherwise minus the $25 fee). A repeated or simultaneous request returns the cancelled inspection without another refund. The inspection reports `refundPreviewCents`, `cardLast4`, `cancelledAt`, `refundedCents` and `retainedCents`.

@@ -78,3 +78,9 @@ A seller no-show or an incomplete inspection leads to a full refund without any 
 Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
 
 `RefundPaymentCommand(paymentId, reason, hoursBeforeCall, reportDelivered)` applies L2-032: full refund for a seller no-show, an incomplete inspection, or a cancellation more than 2 hours before the call; a cancellation under 2 hours refunds the amount minus a $25 retained fee; a delivered report is not refundable; a payment is refunded once. It is a contract for the booking journeys; J05 adds no buyer-facing refund endpoint.
+
+## Implementation (J07)
+
+Decisions are in ADR 0009. Mocks reused: `inspection-detail`, `dialogs/reschedule` and `dialogs/cancel-inspection`.
+
+J07 uses the refund contract for buyer cancellations (`RefundReason.BuyerCancelled` with the hours before the call) and guarantees one refund per cancellation (ADR 0009).
