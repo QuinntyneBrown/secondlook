@@ -53,7 +53,7 @@ public static class PriceCalculator
 }
 
 /// <summary>A buyer's 14-day pricing window; it opens when their first payment succeeds.</summary>
-public sealed class PricingWindow
+public sealed class PricingWindow : IBuyerOwned
 {
     public Guid Id { get; set; }
     public Guid BuyerId { get; set; }

@@ -46,6 +46,9 @@ public static class PaymentEndpoints
                 _ => Results.Problem("Add your card details again to get a new payment token.", statusCode: 400, title: "We couldn’t use that payment method"),
             });
 
+        // The server's answer to "is another car $25 right now?" (ADR 0010).
+        group.MapGet("/pricing-window", async (IMediator m, CancellationToken ct) => Results.Ok(await m.Send(new GetPricingWindowQuery(), ct)));
+
         group.MapGet("/billing/receipts", async (IMediator m, CancellationToken ct) =>
             Results.Ok(new { receipts = await m.Send(new ListReceiptsQuery(), ct) }));
         return app;

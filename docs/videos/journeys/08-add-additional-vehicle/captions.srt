@@ -1,0 +1,135 @@
+1
+00:00:00,000 --> 00:00:03,310
+This is the implementation demo for journey eight.
+
+2
+00:00:03,310 --> 00:00:07,220
+It is the real application and API running on this machine,
+
+3
+00:00:07,220 --> 00:00:12,510
+with synthetic people and the local payment adapter, so nothing is ever charged.
+
+4
+00:00:12,510 --> 00:00:16,490
+It shows how a buyer adds a second car at the cheaper price.
+
+5
+00:00:17,640 --> 00:00:23,060
+A buyer who has already booked one car sees a banner on the dashboard: their window
+
+6
+00:00:23,060 --> 00:00:28,100
+is open until a date two weeks out, and another car to compare is twenty five
+
+7
+00:00:28,100 --> 00:00:28,620
+dollars.
+
+8
+00:00:28,620 --> 00:00:31,370
+The add another car button opens a dialog.
+
+9
+00:00:31,370 --> 00:00:36,470
+Continuing without a VIN puts focus on the VIN field and says what is missing.
+
+10
+00:00:36,470 --> 00:00:39,080
+Now the next car's VIN and both reviews.
+
+11
+00:00:39,080 --> 00:00:42,680
+The booking flow opens with that VIN already filled in,
+
+12
+00:00:42,680 --> 00:00:44,640
+and the review already chosen.
+
+13
+00:00:44,640 --> 00:00:49,480
+The order shows forty five dollars: twenty five for an additional vehicle,
+
+14
+00:00:49,480 --> 00:00:51,370
+plus twenty for both reviews.
+
+15
+00:00:51,370 --> 00:00:54,250
+The buyer picks a time, pays, and is booked.
+
+16
+00:00:54,250 --> 00:00:57,910
+Back on the dashboard, a message says the car was added,
+
+17
+00:00:57,910 --> 00:01:00,530
+and how many cars are now in the window.
+
+18
+00:01:01,680 --> 00:01:04,730
+The price is never worked out in the browser.
+
+19
+00:01:04,730 --> 00:01:10,420
+A buyer who has not paid yet has no window, and a first inspection is fifty dollars.
+
+20
+00:01:10,420 --> 00:01:13,810
+After the first payment the server opens a window.
+
+21
+00:01:13,810 --> 00:01:16,990
+From then on another car quotes at twenty five.
+
+22
+00:01:16,990 --> 00:01:21,870
+The window lasts fourteen days, and it is open up to, but not including,
+
+23
+00:01:21,870 --> 00:01:23,020
+its last instant.
+
+24
+00:01:23,020 --> 00:01:27,770
+With two days or less left it warns, and the warning can be dismissed.
+
+25
+00:01:27,770 --> 00:01:33,460
+Once it has closed, a new inspection is fifty dollars again and starts a new window.
+
+26
+00:01:33,460 --> 00:01:37,190
+Cancelling or refunding a car never changes the window,
+
+27
+00:01:37,190 --> 00:01:39,350
+but refunded cars stop counting.
+
+28
+00:01:39,350 --> 00:01:44,710
+These rules are written down as an architecture decision, and covered by tests.
+
+29
+00:01:45,860 --> 00:01:47,600
+Here is what to remember.
+
+30
+00:01:47,600 --> 00:01:51,020
+A window is fourteen days from the first payment.
+
+31
+00:01:51,020 --> 00:01:56,180
+Inside it another car is twenty five dollars, and both reviews add twenty.
+
+32
+00:01:56,180 --> 00:02:00,090
+The server decides eligibility and price, so the banner,
+
+33
+00:02:00,090 --> 00:02:02,950
+the dialog and the checkout always agree.
+
+34
+00:02:02,950 --> 00:02:05,950
+Next, journey nine: add a body shop review.

@@ -35,6 +35,16 @@ export type PayOutcome =
   | { status: 'Paid'; paymentId: string; amountCents: number; cardBrand: string; cardLast4: string }
   | { status: 'RequiresAction'; message: string };
 
+/** The buyer's pricing window, decided by the server (ADR 0010). */
+export interface PricingWindow {
+  state: 'None' | 'Open' | 'ClosingSoon' | 'Closed';
+  endsAt: string | null;
+  daysRemaining: number | null;
+  carsInWindow: number;
+  additionalVehicleCents: number;
+  newInspectionCents: number;
+}
+
 export interface Receipt {
   paymentId: string;
   date: string;
@@ -57,6 +67,7 @@ export interface PaymentsApi {
   getCheckout(id: string): Observable<Checkout>;
   pay(checkoutId: string, paymentToken: string): Observable<PayOutcome>;
   receipts(): Observable<Receipt[]>;
+  pricingWindow(): Observable<PricingWindow>;
 }
 
 export const PAYMENTS_API = new InjectionToken<PaymentsApi>('PAYMENTS_API');

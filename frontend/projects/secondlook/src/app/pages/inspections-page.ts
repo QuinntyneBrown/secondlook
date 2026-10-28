@@ -1,9 +1,11 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { BOOKINGS_API, Inspection } from 'api';
+import { BOOKINGS_API, Inspection, PAYMENTS_API, PricingWindow } from 'api';
 import { Alert, Button } from 'components';
+import { AddAnotherCarDialog, AddAnotherResult } from '../dialogs/add-another-car-dialog';
 import { SignOutDialog } from '../dialogs/sign-out-dialog';
+import { WindowBanner } from '../booking/window-banner';
 import { Session } from '../session';
 import { callTime } from '../util/eastern-time';
 
@@ -12,7 +14,7 @@ type View = 'loading' | 'ready' | 'failed';
 /** The dashboard (L2-019): the buyer's inspections, with the way to book another. */
 @Component({
   selector: 'sl-inspections-page',
-  imports: [Alert, Button, RouterLink],
+  imports: [Alert, Button, RouterLink, WindowBanner],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header>
@@ -31,6 +33,17 @@ type View = 'loading' | 'ready' | 'failed';
       </div>
       <sl-button routerLink="/book/vehicle">Book an inspection</sl-button>
     </div>
+
+    @if (added(); as a) {
+      <sl-alert
+        variant="success"
+        [title]="a.vin + ' added for ' + a.price"
+        [text]="
+          a.count + ' cars are in your window. Compare them side by side when the reports land.'
+        "
+      />
+    }
+    <sl-window-banner [window]="window()" (add)="addAnother()" />
 
     @if (view() === 'failed') {
       <sl-alert
@@ -176,6 +189,9 @@ export class InspectionsPage {
   private readonly dialog = inject(Dialog);
   private readonly router = inject(Router);
   private readonly api = inject(BOOKINGS_API);
+  private readonly payments = inject(PAYMENTS_API);
+  protected readonly window = signal<PricingWindow | null>(null);
+  protected readonly added = signal<{ vin: string; price: string; count: string } | null>(null);
 
   protected readonly view = signal<View>('loading');
   protected readonly inspections = signal<Inspection[]>([]);
@@ -197,6 +213,61 @@ export class InspectionsPage {
 
   constructor() {
     this.load();
+    this.loadWindow();
+  }
+
+  private static readonly WORDS = [
+    'Zero',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+    'Ten',
+  ];
+
+  /** The window comes from the server; a car just added in it is announced once (L2-033). */
+  private loadWindow() {
+    this.payments.pricingWindow().subscribe({
+      next: (w) => {
+        this.window.set(w);
+        let flag: { vin: string; cents: number } | null = null;
+        try {
+          flag = JSON.parse(sessionStorage.getItem('secondlook.addedCar') ?? 'null');
+          sessionStorage.removeItem('secondlook.addedCar');
+        } catch {
+          // nothing to announce
+        }
+        if (flag)
+          this.added.set({
+            vin: flag.vin,
+            price: `$${flag.cents % 100 === 0 ? flag.cents / 100 : (flag.cents / 100).toFixed(2)}`,
+            count: InspectionsPage.WORDS[w.carsInWindow] ?? String(w.carsInWindow),
+          });
+      },
+      error: () => this.window.set(null),
+    });
+  }
+
+  protected addAnother() {
+    const w = this.window();
+    if (!w) return;
+    const ref = this.dialog.open<AddAnotherResult>(AddAnotherCarDialog, {
+      data: { window: w },
+      ariaLabelledBy: 'another-title',
+      ariaDescribedBy: 'another-description',
+      backdropClass: 'sl-dialog-backdrop',
+    });
+    ref.closed.subscribe((r) => {
+      if (r)
+        void this.router.navigate(['/book/vehicle'], {
+          queryParams: { vin: r.vin, review: r.review },
+        });
+    });
   }
 
   protected reviewLabel(i: Inspection) {

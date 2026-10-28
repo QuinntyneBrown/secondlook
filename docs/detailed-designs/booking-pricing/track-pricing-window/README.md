@@ -70,3 +70,9 @@ The handler derives the state from the time remaining and the banner renders the
 The Worker sends one notice for each window in the closing state when the preference is on.
 
 ![Sequence diagram for notifying the buyer that the window is closing](diagrams/sequence-notify-window-closing.png)
+
+## Implementation (J08)
+
+Decisions are in ADR 0010. Mocks reused: `dashboard` (window banner) and `dialogs/add-another-car`.
+
+`GET /api/pricing-window` (role Buyer) returns `{state: None|Open|ClosingSoon|Closed, endsAt, daysRemaining, carsInWindow, additionalVehicleCents, newInspectionCents}` from the buyer's most recent window; the rules and boundaries are in ADR 0010. The dashboard banner (`sl-window-banner`) renders it: open, closing soon (dismissible) or closed (not dismissible). The window-closing preference of L2-034 AC4 waits for notification preferences.

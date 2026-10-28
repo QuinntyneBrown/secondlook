@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiProblem, VEHICLES_API } from 'api';
 import { Alert, Button, FormField, SummaryItem } from 'components';
 import { BookingDraft } from '../booking/booking-draft';
@@ -122,6 +122,7 @@ export class BookVehiclePage {
   private readonly vehicles = inject(VEHICLES_API);
   private readonly draft = inject(BookingDraft);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly vin = signal('');
   protected readonly km = signal('');
@@ -137,6 +138,12 @@ export class BookVehiclePage {
   constructor() {
     // A new booking starts here: forget earlier answers and purchase attempts.
     this.draft.reset();
+    // "Add another car" opens this step with the next car's VIN and review already chosen.
+    const query = this.route.snapshot.queryParamMap;
+    const review = query.get('review');
+    if (review === 'Mechanic' || review === 'BodyShop' || review === 'Both')
+      this.draft.update({ review });
+    this.vin.set(query.get('vin') ?? '');
   }
 
   protected submit(event: Event) {

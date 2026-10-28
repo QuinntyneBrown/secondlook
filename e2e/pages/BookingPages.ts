@@ -103,6 +103,25 @@ export class BookVehiclePage {
       .click();
   }
 
+  async expectValue(label: string, value: string) {
+    await expect(this.page.getByLabel(label, { exact: true })).toHaveValue(
+      value,
+    );
+  }
+
+  /** Every field except the VIN, for a page that opened with the VIN already filled in. */
+  async fillRest(v: Omit<BookingVehicle, "vin">) {
+    await this.page.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
+    await this.page
+      .getByLabel("Asking price ($)", { exact: true })
+      .fill(v.price);
+    await this.page
+      .getByLabel("Listing link (optional)", { exact: true })
+      .fill(v.url);
+    await this.page.getByLabel("Seller’s name", { exact: true }).fill(v.name);
+    await this.page.getByLabel("Seller’s phone", { exact: true }).fill(v.phone);
+  }
+
   async expectSummary(title: string, items: string[]) {
     const summary = this.page.getByRole("alert").filter({ hasText: title });
     await expect(summary).toBeVisible();

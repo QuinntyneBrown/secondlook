@@ -275,3 +275,30 @@ public sealed class RefundPaymentHandler(IAppDbContext db, IPaymentProcessor pro
         return new RefundResult.Refunded(refund, retained);
     }
 }
+
+public sealed record PricingWindowDto(string State, DateTimeOffset? EndsAt, int? DaysRemaining, int CarsInWindow, int AdditionalVehicleCents, int NewInspectionCents);
+
+public sealed record GetPricingWindowQuery : IRequest<PricingWindowDto>;
+
+/// <summary>The buyer's pricing window as the server sees it (ADR 0010); the banner, dialog and checkout all read this rule.</summary>
+public sealed class GetPricingWindowHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<GetPricingWindowQuery, PricingWindowDto>
+{
+    private static readonly TimeSpan ClosingSoon = TimeSpan.FromDays(2);
+
+    public async Task<PricingWindowDto> Handle(GetPricingWindowQuery q, CancellationToken ct)
+    {
+        var now = clock.GetUtcNow();
+        var latest = (await db.PricingWindows.ForBuyer(caller).ToListAsync(ct)).OrderByDescending(w => w.EndsAt).FirstOrDefault();
+        if (latest is null)
+            return new PricingWindowDto("None", null, null, 0, PriceCalculator.AdditionalVehicleCents, PriceCalculator.FirstInspectionCents);
+
+        var cars = (await db.Payments.ForBuyer(caller).ToListAsync(ct))
+            .Count(p => p.PaidAt >= latest.StartsAt && p.PaidAt < latest.EndsAt && p.RefundedCents == 0);
+        if (!latest.IsOpen(now))
+            return new PricingWindowDto("Closed", latest.EndsAt, 0, cars, PriceCalculator.AdditionalVehicleCents, PriceCalculator.FirstInspectionCents);
+
+        var remaining = latest.EndsAt - now;
+        var state = remaining <= ClosingSoon ? "ClosingSoon" : "Open";
+        return new PricingWindowDto(state, latest.EndsAt, (int)Math.Ceiling(remaining.TotalDays), cars, PriceCalculator.AdditionalVehicleCents, PriceCalculator.AdditionalVehicleCents);
+    }
+}
