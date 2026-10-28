@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ApiProblem, AUTH_API } from 'api';
-import { Button } from 'components';
+import { Alert, Button, FormField, SummaryItem } from 'components';
 import { Session } from '../session';
-import { Alert, SummaryItem } from '../ui/alert';
 import { AuthLayout } from '../ui/auth-layout';
-import { FormField } from '../ui/form-field';
 
 @Component({
   selector: 'sl-sign-in-page',

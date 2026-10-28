@@ -8,3 +8,9 @@ body {
   font-size: var(--fontSizeBase300);
   line-height: var(--lineHeightBase300);
 }
+
+@import '@angular/cdk/overlay-prebuilt.css';
+
+.sl-dialog-backdrop {
+  background: rgb(0 0 0 / 55%);
+}
