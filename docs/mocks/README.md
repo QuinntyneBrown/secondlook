@@ -51,6 +51,10 @@ python .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/mocks
 
 The second command writes to `docs/mocks/.cache/` (git-ignored). The mocks are generated from a script kept outside the repo; edit the HTML and `assets/` directly from here on.
 
+## J00 platform
+
+The platform journey (J00) adds no new screens. It reuses the system-state mocks: [not-found](pages/not-found/default.html), [forbidden](pages/forbidden/default.html), [server-error](pages/server-error/default.html), [offline](pages/offline/default.html) and [maintenance](pages/maintenance/default.html), all listed in `manifest.json`.
+
 ## Coverage
 
 <!-- coverage:start -->

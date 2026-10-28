@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Authenticated and forbidden requests
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Client" as c
+box "Backend — SecondLook.Api (ASP.NET Core)" #FEF3C7
+  participant "Request logging" as log
+  participant "Exception handling" as err
+  participant "JWT bearer" as jwt
+  participant "Role policy" as pol
+  participant "PlatformController" as ctl
+end box
+c -> log : GET /api/platform/access/admin with bearer token
+log -> err : Next
+err -> jwt : Next
+alt token missing, invalid or expired
+  jwt --> c : 401 problem+json (L2-069 criteria 1 and 2)
+else token valid, role is not Admin
+  jwt -> pol : Evaluate Admin policy
+  pol --> c : 403 problem+json (L2-070 criterion 1)
+else role is Admin
+  pol -> ctl : Authorized
+  ctl --> c : 200 role Admin (L2-070 criterion 2)
+end
+log -> log : Log method, path, handled status, elapsed, traceId (L2-071 criterion 4)
+@enduml

@@ -1,6 +1,6 @@
 name: Deploy to Azure
 
-# Every push to main: test gates → infrastructure (Bicep, idempotent) → API +
+# Manual only while the platform gate is open (no cloud deployment from setup). Steps: test gates → infrastructure (Bicep, idempotent) → API +
 # ingestion WebJob → EF migrations → the Static Web Apps (ADR-017, L2-041), and
 # the static marketing site at www.secondlook.ca (ADR-018, L2-156).
 #
@@ -9,8 +9,6 @@ name: Deploy to Azure
 # deployment tokens are read from Azure at run time, never stored in GitHub.
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

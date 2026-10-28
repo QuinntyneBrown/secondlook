@@ -1,0 +1,22 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Initial setup and platform
+
+Person(dev, "Developer", "Runs CLI and tests")
+Person(user, "User", "Uses the apps")
+System_Boundary(sl, "SecondLook") {
+  Container(buyer, "Buyer app", "Angular, :4200", "Shell, routing, system pages")
+  Container(admin, "Admin app", "Angular, :4300", "Shell, routing, system pages")
+  Container(api, "SecondLook.Api", "ASP.NET Core, :5100", "Auth, policies, health, errors, logging")
+  Container(cli, "SecondLook.Cli", ".NET tool", "migrate, seed, reset, token")
+  ContainerDb(db, "Database", "SQLite or SQL Server", "Users and later data")
+}
+Rel(user, buyer, "Uses", "HTTPS")
+Rel(user, admin, "Uses", "HTTPS")
+Rel(buyer, api, "Calls", "JSON/HTTPS")
+Rel(admin, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(dev, cli, "Runs")
+Rel(cli, db, "Migrates and seeds", "EF Core")
+@enduml

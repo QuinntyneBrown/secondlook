@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Unhandled fault with handled-status logging
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Client" as c
+box "Backend — SecondLook.Api (ASP.NET Core)" #FEF3C7
+  participant "Request logging" as log
+  participant "Exception handling" as err
+  participant "PlatformController" as ctl
+end box
+c -> log : GET /api/platform/diagnostics/fault
+log -> err : Next
+err -> ctl : Next
+ctl -> ctl : Throw (Development or E2E only, L2-071 criterion 3)
+ctl --> err : Exception
+err --> log : 500 problem+json with traceId, no stack trace (L2-071 criterion 1)
+log -> log : Log status 500, not the raw exception path
+log --> c : 500 problem+json
+@enduml

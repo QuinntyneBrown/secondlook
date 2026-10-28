@@ -10,6 +10,14 @@ The recordings come from the static mocks in `docs/mocks/`, played through a thr
 | 02 | [The live inspection](02-the-live-inspection/README.md) | 2:14 | Join live video inspection |
 | 03 | [Your safety estimate](03-your-safety-estimate/README.md) | 2:21 | Receive safety certification estimate |
 
+### Implementation demos
+
+Recorded from the running application, API and CLI (not from the static mocks), one per journey, under `journeys/`.
+
+| # | Demo | Runtime | Journey |
+|---|---|---|---|
+| J00 | [Initial setup and platform](journeys/00-initial-setup-and-platform/README.md) | 2:12 | Initial setup and platform |
+
 ## Making or updating a video
 
 Run from the repository root. Generated timing, slide renders and recordings go to `.cache/` (ignored by git).

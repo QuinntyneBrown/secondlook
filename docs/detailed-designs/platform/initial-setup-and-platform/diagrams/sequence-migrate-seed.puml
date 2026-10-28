@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Migrate and seed local storage
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Developer" as dev
+box "Backend — SecondLook.Cli (.NET)" #FEF3C7
+  participant "Cli" as cli
+  participant "Migrator and Seeder" as seed
+end box
+box "Backend — SecondLook.Infrastructure" #FCE7F3
+  participant "AppDbContext" as db
+end box
+dev -> cli : secondlook migrate --provider Sqlite --connection ... (L2-067 criterion 1)
+cli -> db : Apply migrations
+cli --> dev : Exit 0
+dev -> cli : secondlook seed
+cli -> seed : Seed identities
+seed -> db : Insert missing users by email (L2-067 criterion 3)
+cli --> dev : Exit 0
+dev -> cli : secondlook seed (second run)
+seed -> db : Find existing users, insert nothing
+cli --> dev : Exit 0, four users unchanged
+@enduml

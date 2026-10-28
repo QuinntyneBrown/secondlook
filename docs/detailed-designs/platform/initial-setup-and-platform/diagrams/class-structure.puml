@@ -1,0 +1,68 @@
+@startuml
+title UML class structure — Initial setup and platform
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+package "SecondLook.Domain" {
+  enum Role {
+    Buyer
+    Mechanic
+    BodyShop
+    Admin
+  }
+  class User {
+    +Id : Guid
+    +Email : string
+    +DisplayName : string
+    +Role : Role
+    +IsActive : bool
+  }
+}
+package "SecondLook.Application" {
+  interface IAppDbContext {
+    +Users : DbSet<User>
+    +SaveChangesAsync() : Task<int>
+  }
+  interface ICurrentUser {
+    +Id : Guid
+    +Role : Role
+  }
+}
+package "SecondLook.Infrastructure" {
+  class AppDbContext
+  class CurrentUser
+  class JwtTokenService {
+    +Issue(user : User) : string
+  }
+  class JwtOptions {
+    +Issuer : string
+    +Audience : string
+    +SigningKey : string
+  }
+}
+package "SecondLook.Api" {
+  class PlatformController {
+    +Me()
+    +Access(role : string)
+    +Fault()
+  }
+}
+User --> Role
+AppDbContext ..|> IAppDbContext
+CurrentUser ..|> ICurrentUser
+JwtTokenService --> JwtOptions
+PlatformController ..> ICurrentUser
+PlatformController ..> IAppDbContext
+IAppDbContext --> User
+@enduml

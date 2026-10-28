@@ -14,8 +14,7 @@
     "perf-test": "node perf-test/perf-test.mjs",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "mocks:check": "node ../docs/mocks/.check.mjs",
-    "test:marketing": "cross-env SL_MARKETING_ONLY=1 playwright test --config=playwright.config.ts --project=marketing"
+    "mocks:check": "node ../docs/mocks/.check.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

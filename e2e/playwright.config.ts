@@ -16,11 +16,6 @@ import { defineConfig, devices } from "@playwright/test";
  *     `SecondLook__CuratedPhotos__PublicOrigin=https://images.example.com` and
  *     `SecondLook__Images__AllowedOrigins__0=https://images.example.com`.
  *
- *   - The marketing site (marketing/, ADR-018) is served on
- *     http://localhost:4500 by fixtures/marketing-server.mjs with the headers
- *     from its staticwebapp.config.json, for the `marketing` project. It needs
- *     neither the Angular app nor the API.
- *
  *   - The v2 mocks (docs/mocks) are served on http://localhost:5173 by
  *     `http-server` when SL_BASELINE=1. Visual baselines are captured from
  *     them once with `npm run baseline` and committed. Subsequent runs
@@ -48,29 +43,11 @@ const VIEWPORTS = {
 
 const isBaselineCapture = process.env.SL_BASELINE === "1";
 
-/** `npm run test:marketing` sets this so only the static site's server starts. */
-const marketingOnly = process.env.SL_MARKETING_ONLY === "1";
-
-/** The static marketing site (ADR-018), served with its production headers. */
-const marketingServer = {
-  command: "node fixtures/marketing-server.mjs ../marketing 4500",
-  port: 4500,
-  reuseExistingServer: !process.env.CI,
-  timeout: 30_000,
-  cwd: __dirname,
-};
-
 /** Specs under tests/admin/ run only in the `admin` project (the admin app on :4300). */
 const ADMIN_SPECS = /tests[\\/]admin[\\/]/;
 
-/** The marketing site's specs run only in the `marketing` project (the static site on :4500). */
-const MARKETING_SPECS = [
-  /tests[\\/]marketing[\\/]/,
-  /tests[\\/]visual[\\/]marketing\.visual\.spec\.ts$/,
-];
-
 /** Specs the three viewport projects skip. */
-const OTHER_APP_SPECS = [ADMIN_SPECS, ...MARKETING_SPECS];
+const OTHER_APP_SPECS = [ADMIN_SPECS];
 
 export default defineConfig({
   testDir: "./tests",
@@ -109,9 +86,7 @@ export default defineConfig({
         timeout: 30_000,
         cwd: __dirname,
       }
-    : marketingOnly
-      ? marketingServer
-      : [
+    : [
           {
             command: "npm run start -- --port 4200",
             url: "http://localhost:4200",
@@ -127,7 +102,6 @@ export default defineConfig({
             timeout: 180_000,
             cwd: `${__dirname}/../frontend`,
           },
-          marketingServer,
         ],
   projects: [
     {
@@ -156,18 +130,6 @@ export default defineConfig({
         baseURL: isBaselineCapture
           ? "http://localhost:5173"
           : "http://localhost:4300",
-      },
-    },
-    // The marketing site (ADR-018): one project; specs set their own viewports.
-    {
-      name: "marketing",
-      testMatch: MARKETING_SPECS,
-      use: {
-        ...devices["Desktop Chrome"],
-        viewport: VIEWPORTS.desktop,
-        baseURL: isBaselineCapture
-          ? "http://localhost:5173"
-          : "http://localhost:4500",
       },
     },
   ],

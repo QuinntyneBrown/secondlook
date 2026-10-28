@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 00 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="00" data-video-title="Initial setup and platform" data-parts="Introduction|Setup|Access|The apps|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 00</div>
+  <h1>Initial setup and platform</h1>
+  <p class="lead">The real stack, on a throwaway SQLite database, in about two minutes</p>
+</section>
+
+<section id="setup" data-part="1" data-cue="Start with the database." data-clip="clips/setup.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Setup</span>
+    <h3>Explicit migrate, repeatable seed</h3>
+    <p class="muted">The API never migrates on startup. Seeding twice adds nothing.</p>
+  </aside>
+</section>
+
+<section id="access" data-part="2" data-cue="Now the access rules." data-clip="clips/access.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Access</span>
+    <h3>401, 200, 403 and a calm 500</h3>
+    <p class="muted">Local JWT, role policies, problem details. The token is redacted.</p>
+  </aside>
+</section>
+
+<section id="apps" data-part="3" data-cue="The buyer app starts and asks the real API whether it is ready." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Buyer app</span>
+    <h3>Ready, not found, down, recovered</h3>
+    <p class="muted">Chromium against the real API. Failure is simulated by cutting the connection.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Migrate and seed are explicit and repeatable</li>
+    <li>Authentication by default; roles decide who gets in</li>
+    <li>Failures are structured and recoverable</li>
+    <li>Payment and video are local stand-ins here; no real charges or emails</li>
+  </ul>
+  <p class="small muted">Next: Journey 01, sign up and sign in</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

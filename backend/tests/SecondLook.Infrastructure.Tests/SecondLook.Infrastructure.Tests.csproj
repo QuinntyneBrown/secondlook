@@ -16,4 +16,7 @@
     <ProjectReference Include="..\..\src\SecondLook.Application\SecondLook.Application.csproj" />
     <ProjectReference Include="..\..\src\SecondLook.Domain\SecondLook.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 </Project>

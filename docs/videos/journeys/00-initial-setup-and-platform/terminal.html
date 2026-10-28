@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Terminal</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d1015; }
+  #t { box-sizing: border-box; height: 100%; padding: 48px 64px; overflow: hidden; font: 28px/1.5 Consolas, "Cascadia Mono", monospace; color: #e9ecf1; display: flex; flex-direction: column; justify-content: flex-end; }
+  .cmd { color: #f4b48f; margin-top: 14px; }
+  .cmd::before { content: "PS secondlook> "; color: #959eab; }
+  .out { color: #e9ecf1; white-space: pre-wrap; word-break: break-all; }
+  .ok { color: #9bd8ac; } .bad { color: #f7cac5; } .note { color: #959eab; }
+</style>
+</head>
+<body>
+<div id="t"></div>
+<script>
+  const t = document.getElementById('t');
+  window.addLine = (text, cls) => {
+    const d = document.createElement('div');
+    d.className = cls; d.textContent = text; t.appendChild(d);
+  };
+</script>
+</body>
+</html>
