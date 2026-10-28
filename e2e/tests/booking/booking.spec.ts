@@ -195,4 +195,37 @@ test.describe("Book a video inspection (J06)", () => {
     await schedule.chooseAnotherTime();
     await schedule.expectSlotMissing(slot);
   });
+
+  // A slow answer for an earlier choice must not overwrite the price of the review the buyer picked last.
+  test("the order total follows the latest review choice even when an earlier price arrives late", async ({
+    page,
+    request,
+  }) => {
+    const buyer = await newBuyer(request);
+    await signIn(page, buyer.email);
+    await new DashboardPage(page).startBooking();
+    const vehicle = new BookVehiclePage(page);
+    await vehicle.fill({
+      vin: uniqueVin(),
+      km: "90000",
+      price: "5000",
+      url: "",
+      name: "Sam Whitaker",
+      phone: "905-555-0142",
+    });
+
+    // Hold back the price of the default (Mechanic) review so it arrives after the buyer has chosen Both.
+    await page.route("**/api/checkouts", async (route) => {
+      if (route.request().postData()?.includes('"review":"Mechanic"'))
+        await new Promise((r) => setTimeout(r, 2000));
+      await route.continue();
+    });
+    await vehicle.continue();
+    const review = new ReviewTypePage(page);
+    await review.expectLoaded();
+    await review.choose("Both");
+    await review.expectTotal("$70.00");
+    await page.waitForTimeout(2500);
+    await review.expectTotal("$70.00");
+  });
 });

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 06 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="06" data-video-title="Book a video inspection" data-parts="Introduction|Booking|Races and repeats|Losing a slot|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 06</div>
+  <h1>Book a video inspection</h1>
+  <p class="lead">Hold, pay, confirm: one inspection, no duplicate charge</p>
+</section>
+
+<section id="booking" data-part="1" data-cue="A new buyer opens the dashboard and finds no inspections yet." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Vehicle, review, time, pay, confirmed</h3>
+    <p class="muted">Local payment adapter: nothing is charged.</p>
+  </aside>
+</section>
+
+<section id="races" data-part="2" data-cue="Booking is safe when things happen at once." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>One winner, one inspection</h3>
+    <p class="muted">A unique reservation and a unique inspection per checkout.</p>
+  </aside>
+</section>
+
+<section id="lost" data-part="3" data-cue="There is one more case.">
+  <h2>Losing a slot after paying</h2>
+  <ul class="recap">
+    <li>The hold expired and someone else took the slot</li>
+    <li>The booking is refused and the payment refunded in full, automatically</li>
+    <li>No inspection exists; the buyer is never charged for a time they cannot have</li>
+    <li>Covered by automated tests</li>
+  </ul>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Hold, pay, confirm</li>
+    <li>A slot can be held once; a checkout makes one inspection</li>
+    <li>The inspection keeps the vehicle details it was booked with</li>
+  </ul>
+  <p class="small muted">Next: Journey 07, reschedule or cancel a booking</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

@@ -151,8 +151,13 @@ export class BookReviewPage {
     this.checkout.set(null);
     const vehicle = this.draft.state().vehicle;
     this.payments.createCheckout(review, checkoutKey(review), vehicle?.id).subscribe({
-      next: (c) => this.checkout.set(c),
-      error: () => this.failed.set(true),
+      // Ignore an answer for a review the buyer has since moved away from.
+      next: (c) => {
+        if (this.review() === review) this.checkout.set(c);
+      },
+      error: () => {
+        if (this.review() === review) this.failed.set(true);
+      },
     });
   }
 
