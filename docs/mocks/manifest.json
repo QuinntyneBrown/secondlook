@@ -733,6 +733,59 @@
       "not_applicable": {
         "invalid": "The dialog has no inputs to validate."
       }
+    },
+    {
+      "id": "provider-availability",
+      "kind": "page",
+      "title": "Your availability",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "not-approved"
+      ],
+      "route": "/availability"
+    },
+    {
+      "id": "add-availability",
+      "kind": "dialog",
+      "title": "Add availability",
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "conflict",
+        "failed"
+      ],
+      "opens_from": "provider-availability"
+    },
+    {
+      "id": "edit-availability",
+      "kind": "dialog",
+      "title": "Edit availability",
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "conflict",
+        "failed"
+      ],
+      "opens_from": "provider-availability"
+    },
+    {
+      "id": "remove-availability",
+      "kind": "dialog",
+      "title": "Remove availability",
+      "states": [
+        "default",
+        "busy",
+        "blocked"
+      ],
+      "opens_from": "provider-availability",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
     }
   ]
 }
