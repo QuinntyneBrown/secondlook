@@ -13,6 +13,7 @@ import { Session } from '../session';
   template: `
     <header>
       <a routerLink="/vehicles">Vehicles</a>
+      <a routerLink="/billing">Billing</a>
       <span>{{ session.displayName() }}</span>
       <sl-button variant="outline" (pressed)="signOut()">Sign out</sl-button>
     </header>

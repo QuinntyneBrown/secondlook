@@ -31,3 +31,14 @@ export {
   type VehicleInput,
   type VehiclesApi,
 } from './lib/vehicles-api';
+export {
+  PAYMENTS_API,
+  type CardDetails,
+  type CardToken,
+  type Checkout,
+  type PayOutcome,
+  type PaymentsApi,
+  type QuoteLine,
+  type Receipt,
+  type ReviewChoice,
+} from './lib/payments-api';

@@ -65,3 +65,9 @@ The page shows busy placeholders, requests the list, and then renders the table,
 The download action requests the receipt document for one row. The controller returns not found for a receipt that does not belong to the current buyer.
 
 ![Sequence diagram for downloading a receipt](diagrams/sequence-download-receipt.png)
+
+## Implementation (J05)
+
+Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
+
+`GET /api/billing/receipts` (role Buyer) returns `{receipts:[{paymentId,date,for,amountCents,status}]}` newest first; `for` reads like "first inspection" or "additional vehicle + body shop". The page offers a plain-text receipt download; a PDF is later work.

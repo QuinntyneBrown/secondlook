@@ -8,7 +8,9 @@ import { HttpAuthApi } from './http-auth-api';
 import { HttpAvailabilityApi } from './http-availability-api';
 import { API_BASE_URL, HttpPlatformApi } from './http-platform-api';
 import { PLATFORM_API } from './platform-api';
+import { HttpPaymentsApi } from './http-payments-api';
 import { HttpVehiclesApi } from './http-vehicles-api';
+import { PAYMENTS_API } from './payments-api';
 import { VEHICLES_API } from './vehicles-api';
 
 export function provideApi(baseUrl: string): EnvironmentProviders {
@@ -28,6 +30,7 @@ export function provideApi(baseUrl: string): EnvironmentProviders {
     { provide: AUTH_API, useClass: HttpAuthApi },
     { provide: AVAILABILITY_API, useClass: HttpAvailabilityApi },
     { provide: VEHICLES_API, useClass: HttpVehiclesApi },
+    { provide: PAYMENTS_API, useClass: HttpPaymentsApi },
     { provide: ADMIN_PROVIDERS_API, useClass: HttpAdminProvidersApi },
   ]);
 }

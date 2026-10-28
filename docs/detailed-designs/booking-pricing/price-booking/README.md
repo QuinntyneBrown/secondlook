@@ -79,3 +79,9 @@ A booking page requests a quote. The handler applies `L2-027` through `PricingPo
 Creating a booking reuses `PricingPolicy`. With no open window, the booking starts a window of fourteen days. After the window closes, the next booking is $50 and starts a new window.
 
 ![Sequence diagram for pricing at booking creation](diagrams/sequence-price-at-booking.png)
+
+## Implementation (J05)
+
+Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
+
+`PriceCalculator` (Domain) is the only place prices are decided: first review $50, additional vehicle $25 inside a 14-day window that opens when the first payment succeeds, +$20 for both reviews. `PricingService` reads the buyer's windows; a checkout's quote is recomputed on read and at payment (ADR 0007).

@@ -166,7 +166,7 @@ jobs:
 
       - name: Platform smoke (Chromium)
         working-directory: e2e
-        run: npx playwright test --project=desktop --project=admin tests/platform tests/admin tests/accounts tests/availability tests/vehicles
+        run: npx playwright test --project=desktop --project=admin tests/platform tests/admin tests/accounts tests/availability tests/vehicles tests/payments
 
       - name: Stop the API
         if: always()
