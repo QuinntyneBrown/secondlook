@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Scoping;
+using SecondLook.Domain.Scoping;
 using SecondLook.Domain.Users;
 
 namespace SecondLook.Application.Tests.Scoping;

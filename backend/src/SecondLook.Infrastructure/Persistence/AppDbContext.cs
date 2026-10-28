@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
 using SecondLook.Domain.Availability;
 using SecondLook.Domain.Users;
+using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Infrastructure.Persistence;
 
@@ -11,6 +12,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<AccountToken> AccountTokens => Set<AccountToken>();
     public DbSet<AvailabilityWindow> AvailabilityWindows => Set<AvailabilityWindow>();
     public DbSet<SlotReservation> SlotReservations => Set<SlotReservation>();
+    public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +52,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(r => r.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(r => r.ExpiresAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
             e.HasIndex(r => new { r.ProviderId, r.StartUtc }).IsUnique();
+        });
+        modelBuilder.Entity<Vehicle>(e =>
+        {
+            e.HasKey(v => v.Id);
+            e.Property(v => v.Vin).HasMaxLength(17).IsRequired();
+            e.Property(v => v.AskingPrice).HasPrecision(18, 2);
+            e.Property(v => v.ListingUrl).HasMaxLength(500);
+            e.Property(v => v.SellerName).HasMaxLength(100).IsRequired();
+            e.Property(v => v.SellerPhone).HasMaxLength(10).IsRequired();
+            e.Property(v => v.RemovedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.Ignore(v => v.IsSaved);
+            e.HasIndex(v => new { v.BuyerId, v.Vin });
         });
     }
 }
