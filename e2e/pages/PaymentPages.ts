@@ -158,11 +158,9 @@ export class BillingPage {
   }
 
   private row(text: string): Locator {
-    return this.page
-      .getByRole("row")
-      .filter({
-        has: this.page.getByRole("cell", { name: text, exact: true }),
-      });
+    return this.page.getByRole("row").filter({
+      has: this.page.getByRole("cell", { name: text, exact: true }),
+    });
   }
 
   async expectReceipt(forWhat: string, amount: string, status: string) {

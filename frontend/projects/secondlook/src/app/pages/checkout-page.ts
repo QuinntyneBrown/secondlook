@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiProblem, Checkout, PAYMENTS_API, ReviewChoice } from 'api';
+import { ApiProblem, BOOKINGS_API, Checkout, PAYMENTS_API, ReviewChoice } from 'api';
 import { Alert, Button, FormField, SummaryItem } from 'components';
+import { BookingDraft, checkoutKey } from '../booking/booking-draft';
 
 export const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 const payLabel = (cents: number) =>
@@ -39,6 +40,21 @@ const payLabel = (cents: number) =>
           <sl-alert variant="success" title="Payment received" [text]="p">
             <a routerLink="/billing">View billing history</a>
           </sl-alert>
+          @if (slotLost(); as lost) {
+            <sl-alert title="We couldn’t hold that slot" [text]="lost">
+              <sl-button variant="outline" (pressed)="chooseAnotherTime()"
+                >Choose another time</sl-button
+              >
+            </sl-alert>
+          }
+          @if (confirmFailed()) {
+            <sl-alert
+              title="We couldn’t confirm your booking"
+              text="Your payment went through and is safe. Try again to finish booking."
+            >
+              <sl-button variant="outline" (pressed)="confirmBooking(c.id)">Try again</sl-button>
+            </sl-alert>
+          }
         } @else {
           <form novalidate (submit)="submit($event)">
             <h2>Pay with card</h2>
@@ -179,6 +195,8 @@ const payLabel = (cents: number) =>
 })
 export class CheckoutPage {
   private readonly api = inject(PAYMENTS_API);
+  private readonly bookings = inject(BOOKINGS_API);
+  private readonly draft = inject(BookingDraft);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -204,6 +222,8 @@ export class CheckoutPage {
   protected readonly declined = signal<string | null>(null);
   protected readonly approval = signal<string | null>(null);
   protected readonly paid = signal<string | null>(null);
+  protected readonly slotLost = signal<string | null>(null);
+  protected readonly confirmFailed = signal(false);
   protected readonly errors = signal<Record<string, string>>({});
   protected readonly summary = signal<SummaryItem[]>([]);
 
@@ -215,31 +235,25 @@ export class CheckoutPage {
     return `secondlook.checkoutKey.${this.review}`;
   }
 
+  /** A booking in progress (a held slot and a saved vehicle) turns the payment into a confirmed inspection. */
+  private get booking() {
+    const d = this.draft.state();
+    return d.hold && d.vehicle ? { hold: d.hold, vehicle: d.vehicle } : null;
+  }
+
   /** One idempotency key per purchase attempt: reloading the page returns the same checkout, never a second one. */
   protected start() {
     this.loadFailed.set(false);
-    let key: string | null = null;
-    try {
-      key = sessionStorage.getItem(this.keyName);
-    } catch {
-      // fall through with a fresh key
-    }
-    if (!key) {
-      key = crypto.randomUUID();
-      try {
-        sessionStorage.setItem(this.keyName, key);
-      } catch {
-        // the key then lasts only for this page view
-      }
-    }
-    this.api.createCheckout(this.review, key).subscribe({
-      next: (c) => {
-        this.checkout.set(c);
-        if (c.status === 'Paid')
-          this.paid.set('This inspection is already paid. Your receipt is in billing history.');
-      },
-      error: () => this.loadFailed.set(true),
-    });
+    this.api
+      .createCheckout(this.review, checkoutKey(this.review), this.booking?.vehicle.id)
+      .subscribe({
+        next: (c) => {
+          this.checkout.set(c);
+          if (c.status === 'Paid')
+            this.paid.set('This inspection is already paid. Your receipt is in billing history.');
+        },
+        error: () => this.loadFailed.set(true),
+      });
   }
 
   protected addDifferentCard() {
@@ -310,6 +324,7 @@ export class CheckoutPage {
               this.paid.set(
                 `You paid ${money(outcome.amountCents)} with ${outcome.cardBrand} ending ${outcome.cardLast4}. Your receipt is in billing history.`,
               );
+              this.confirmBooking(c.id);
             },
             error: (p: ApiProblem) => {
               this.busy.set(false);
@@ -345,7 +360,33 @@ export class CheckoutPage {
       });
   }
 
+  /** Confirms the booking with the paid checkout. A lost slot is refunded by the server and explained here. */
+  protected confirmBooking(checkoutId: string) {
+    const b = this.booking;
+    if (!b) return;
+    this.slotLost.set(null);
+    this.confirmFailed.set(false);
+    this.bookings.confirm(checkoutId, b.hold.holdId, b.vehicle.id).subscribe({
+      next: (inspection) => {
+        this.draft.reset();
+        void this.router.navigateByUrl(`/book/confirmed/${inspection.id}`);
+      },
+      error: (p: ApiProblem) => {
+        if (p.status === 409)
+          this.slotLost.set(
+            p.detail ?? 'Someone just took it. You haven’t been charged. Pick another time.',
+          );
+        else this.confirmFailed.set(true);
+      },
+    });
+  }
+
+  protected chooseAnotherTime() {
+    this.draft.update({ hold: null });
+    void this.router.navigateByUrl('/book/schedule');
+  }
+
   protected goBack() {
-    void this.router.navigateByUrl('/inspections');
+    void this.router.navigateByUrl(this.booking ? '/book/schedule' : '/inspections');
   }
 }

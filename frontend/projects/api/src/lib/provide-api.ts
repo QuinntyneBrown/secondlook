@@ -8,6 +8,8 @@ import { HttpAuthApi } from './http-auth-api';
 import { HttpAvailabilityApi } from './http-availability-api';
 import { API_BASE_URL, HttpPlatformApi } from './http-platform-api';
 import { PLATFORM_API } from './platform-api';
+import { BOOKINGS_API } from './bookings-api';
+import { HttpBookingsApi } from './http-bookings-api';
 import { HttpPaymentsApi } from './http-payments-api';
 import { HttpVehiclesApi } from './http-vehicles-api';
 import { PAYMENTS_API } from './payments-api';
@@ -31,6 +33,7 @@ export function provideApi(baseUrl: string): EnvironmentProviders {
     { provide: AVAILABILITY_API, useClass: HttpAvailabilityApi },
     { provide: VEHICLES_API, useClass: HttpVehiclesApi },
     { provide: PAYMENTS_API, useClass: HttpPaymentsApi },
+    { provide: BOOKINGS_API, useClass: HttpBookingsApi },
     { provide: ADMIN_PROVIDERS_API, useClass: HttpAdminProvidersApi },
   ]);
 }

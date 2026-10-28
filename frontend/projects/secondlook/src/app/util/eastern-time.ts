@@ -73,3 +73,19 @@ export function timeLabel(iso: string): string {
   });
   return `${p['hour']}:${p['minute']} ${String(p['dayPeriod']).toUpperCase().replace(/\./g, '')}`;
 }
+
+/** "Thu 29 Oct": the day chip on the schedule step. */
+export function dayChip(iso: string): string {
+  const p = parts(Date.parse(iso), { weekday: 'short', day: 'numeric', month: 'short' });
+  return `${p['weekday']} ${p['day']} ${p['month']}`;
+}
+
+/** "Thursday". */
+export function longWeekday(iso: string): string {
+  return parts(Date.parse(iso), { weekday: 'long' })['weekday'];
+}
+
+/** "Thu 29 Oct, 6:30 PM". */
+export function callTime(iso: string): string {
+  return `${dayChip(iso)}, ${timeLabel(iso)}`;
+}

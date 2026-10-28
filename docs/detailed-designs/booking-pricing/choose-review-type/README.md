@@ -70,3 +70,9 @@ The Angular app calls the SecondLook API, which reads and writes the SecondLook 
 The page saves the selection. The handler applies `L2-027` pricing and persists the booking; a failure shows the error alert and the buyer may navigate back.
 
 ![Sequence diagram for choosing a review type](diagrams/sequence-choose-review.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+The review step creates the same idempotent checkout (key per review type, kept in the tab) and shows its server price in "Your order".
