@@ -10,6 +10,7 @@
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="coverlet.collector" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SecondLook.Cli\SecondLook.Cli.csproj" />
