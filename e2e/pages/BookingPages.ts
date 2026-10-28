@@ -185,6 +185,23 @@ export class SchedulePage {
     await expect(this.page.getByText(name, { exact: true })).toBeVisible();
   }
 
+  /** A combined or body shop call names who will be on it. */
+  async expectProviders(...names: string[]) {
+    for (const name of names)
+      await expect(this.page.getByText(name, { exact: true })).toBeVisible();
+  }
+
+  async expectNoSharedTimes() {
+    await expect(
+      this.page.getByRole("heading", { name: "No shared times yet" }),
+    ).toBeVisible();
+    await expect(
+      this.page.getByText(
+        "No time has both a mechanic and a body shop free. Go back and choose a single review.",
+      ),
+    ).toBeVisible();
+  }
+
   async continueToPayment() {
     await this.page
       .getByRole("button", { name: "Continue to payment" })
@@ -225,7 +242,7 @@ export class SchedulePage {
 export class ConfirmedPage {
   constructor(private readonly page: Page) {}
 
-  async expectBooked(startIso: string, mechanic: string) {
+  async expectBooked(startIso: string, mechanic: string, bodyShop?: string) {
     const l = slotLabels(startIso);
     await expect(
       this.page.getByRole("heading", {
@@ -234,7 +251,9 @@ export class ConfirmedPage {
       }),
     ).toBeVisible();
     await expect(
-      this.page.getByText(`${mechanic} will inspect the car over video.`),
+      this.page.getByText(
+        `${bodyShop ? `${mechanic} and ${bodyShop}` : mechanic} will inspect the car over video.`,
+      ),
     ).toBeVisible();
   }
 
@@ -245,6 +264,12 @@ export class ConfirmedPage {
 
 export class InspectionDetailPage {
   constructor(private readonly page: Page) {}
+
+  async expectProvider(name: string, role: "Mechanic" | "Body shop") {
+    await expect(
+      this.page.getByText(`${name} · ${role}`, { exact: true }),
+    ).toBeVisible();
+  }
 
   async expectScheduled(vin: string, startIso: string, paid: string) {
     const l = slotLabels(startIso);

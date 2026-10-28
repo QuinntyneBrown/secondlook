@@ -64,7 +64,7 @@ test.describe("Add an additional vehicle (J08)", () => {
     page,
     request,
   }) => {
-    const b = await bookedInspection(request);
+    const b = await bookedInspection(request, { withBodyShop: true });
     await signIn(page, b.buyer.email);
     const banner = new WindowBanner(page);
     await banner.openAddAnother();
@@ -98,7 +98,11 @@ test.describe("Add an additional vehicle (J08)", () => {
     await checkout.expectLoaded("Pay $45");
     await checkout.fillCard(VISA);
     await checkout.pay("Pay $45");
-    await new ConfirmedPage(page).expectBooked(b.second, "Maya Mechanic");
+    await new ConfirmedPage(page).expectBooked(
+      b.second,
+      "Maya Mechanic",
+      "Bo Bodyshop",
+    );
 
     await new DashboardPage(page).open();
     await banner.expectAdded(vin, "$45", "Two");

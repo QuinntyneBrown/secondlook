@@ -99,3 +99,7 @@ Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `bo
 Decisions are in ADR 0009. Mocks reused: `inspection-detail`, `dialogs/reschedule` and `dialogs/cancel-inspection`.
 
 Rescheduling reuses the slot reservation rules: the new slot is reserved as Booked first and the old reservation is deleted only after the inspection has moved (ADR 0009).
+
+## Implementation (J09)
+
+Decisions are in ADR 0011 (no new fee; one call per inspection; combined calls need a mechanic and a body shop free at the same start; all-or-nothing holds; holds must fit the paid review; cancel and reschedule act on every reservation). Mocks added: `book-schedule/combined` and `book-schedule/no-shared-times`. `POST /api/bookings/holds` takes an optional `bodyShopId` and returns `bodyShopHoldId`; `POST /api/bookings` takes `bodyShopHoldId`. Inspections record `MechanicId`, `BodyShopId` and `BodyShopReservationId`; reschedule-slots return the starts the inspection's own providers share.

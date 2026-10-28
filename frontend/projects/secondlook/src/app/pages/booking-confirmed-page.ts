@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BOOKINGS_API, Inspection } from 'api';
 import { Alert, Button } from 'components';
 import { callTime, longWeekday, timeLabel } from '../util/eastern-time';
+import { providerNames } from '../util/providers';
 
 /** The booking confirmation (L2-035's sibling mock "booking-confirmed"). */
 @Component({
@@ -14,8 +15,8 @@ import { callTime, longWeekday, timeLabel } from '../util/eastern-time';
       @if (inspection(); as i) {
         <h1>You’re booked for {{ weekday(i) }} at {{ time(i) }}</h1>
         <p class="lead">
-          {{ i.mechanicName }} will inspect the car over video. Your estimate lands within an hour
-          of the call.
+          {{ names(i) }} will inspect the car over video. Your estimate lands within an hour of the
+          call.
         </p>
         <section aria-labelledby="next">
           <h2 id="next">What happens next</h2>
@@ -81,6 +82,7 @@ import { callTime, longWeekday, timeLabel } from '../util/eastern-time';
   `,
 })
 export class BookingConfirmedPage {
+  protected readonly names = providerNames;
   private readonly api = inject(BOOKINGS_API);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 

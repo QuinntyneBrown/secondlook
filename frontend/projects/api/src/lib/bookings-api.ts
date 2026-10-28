@@ -5,10 +5,13 @@ import { ReviewChoice } from './payments-api';
 export interface Slot {
   providerId: string;
   providerName: string;
-  kind: 'Mechanic' | 'BodyShop';
+  kind: 'Mechanic' | 'BodyShop' | 'Both';
   /** UTC ISO instants. */
   start: string;
   end: string;
+  /** Set on a combined call: the body shop that is free at the same time as the mechanic. */
+  bodyShopId?: string | null;
+  bodyShopName?: string | null;
 }
 
 export interface Hold {
@@ -18,6 +21,9 @@ export interface Hold {
   start: string;
   end: string;
   expiresAt: string;
+  /** The body shop's slot of a combined call. */
+  bodyShopHoldId?: string | null;
+  bodyShopName?: string | null;
 }
 
 export interface InspectionVehicle {
@@ -35,6 +41,7 @@ export interface Inspection {
   start: string;
   end: string;
   mechanicName: string | null;
+  bodyShopName: string | null;
   review: ReviewChoice;
   amountCents: number;
   vehicle: InspectionVehicle;
@@ -56,9 +63,15 @@ export type CancelReason = 'DifferentCar' | 'SellerBackedOut' | 'PriceChanged' |
  * Errors are `ApiProblem`s: 409 "We couldn’t hold that slot" (also after paying, in which case the payment is refunded).
  */
 export interface BookingsApi {
-  slots(kind?: 'Mechanic' | 'BodyShop'): Observable<Slot[]>;
-  hold(providerId: string, start: string): Observable<Hold>;
-  confirm(checkoutId: string, holdId: string, vehicleId: string): Observable<Inspection>;
+  slots(kind?: 'Mechanic' | 'BodyShop' | 'Both'): Observable<Slot[]>;
+  /** For a combined call pass the mechanic as `providerId` and the body shop as `bodyShopId`. */
+  hold(providerId: string, start: string, bodyShopId?: string | null): Observable<Hold>;
+  confirm(
+    checkoutId: string,
+    holdId: string,
+    vehicleId: string,
+    bodyShopHoldId?: string | null,
+  ): Observable<Inspection>;
   inspections(): Observable<Inspection[]>;
   inspection(id: string): Observable<Inspection>;
   rescheduleSlots(id: string): Observable<Slot[]>;

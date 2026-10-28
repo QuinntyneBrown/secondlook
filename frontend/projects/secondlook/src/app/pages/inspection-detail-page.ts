@@ -69,7 +69,12 @@ const whole = (cents: number) => `$${cents % 100 === 0 ? cents / 100 : (cents / 
         </dl>
         <section aria-labelledby="team">
           <h2 id="team">Your team</h2>
-          <p>{{ i.mechanicName }} · Mechanic</p>
+          @if (i.mechanicName) {
+            <p>{{ i.mechanicName }} · Mechanic</p>
+          }
+          @if (i.bodyShopName) {
+            <p>{{ i.bodyShopName }} · Body shop</p>
+          }
         </section>
         <section aria-labelledby="paid">
           <h2 id="paid">Paid</h2>

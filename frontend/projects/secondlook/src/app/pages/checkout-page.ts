@@ -366,31 +366,33 @@ export class CheckoutPage {
     if (!b) return;
     this.slotLost.set(null);
     this.confirmFailed.set(false);
-    this.bookings.confirm(checkoutId, b.hold.holdId, b.vehicle.id).subscribe({
-      next: (inspection) => {
-        // A car added inside the window is announced on the dashboard.
-        const quote = this.checkout()?.quote;
-        if (quote?.lines[0]?.label === 'Additional vehicle') {
-          try {
-            sessionStorage.setItem(
-              'secondlook.addedCar',
-              JSON.stringify({ vin: inspection.vehicle.vin, cents: quote.totalCents }),
-            );
-          } catch {
-            // the dashboard simply shows no announcement
+    this.bookings
+      .confirm(checkoutId, b.hold.holdId, b.vehicle.id, b.hold.bodyShopHoldId)
+      .subscribe({
+        next: (inspection) => {
+          // A car added inside the window is announced on the dashboard.
+          const quote = this.checkout()?.quote;
+          if (quote?.lines[0]?.label === 'Additional vehicle') {
+            try {
+              sessionStorage.setItem(
+                'secondlook.addedCar',
+                JSON.stringify({ vin: inspection.vehicle.vin, cents: quote.totalCents }),
+              );
+            } catch {
+              // the dashboard simply shows no announcement
+            }
           }
-        }
-        this.draft.reset();
-        void this.router.navigateByUrl(`/book/confirmed/${inspection.id}`);
-      },
-      error: (p: ApiProblem) => {
-        if (p.status === 409)
-          this.slotLost.set(
-            p.detail ?? 'Someone just took it. You haven’t been charged. Pick another time.',
-          );
-        else this.confirmFailed.set(true);
-      },
-    });
+          this.draft.reset();
+          void this.router.navigateByUrl(`/book/confirmed/${inspection.id}`);
+        },
+        error: (p: ApiProblem) => {
+          if (p.status === 409)
+            this.slotLost.set(
+              p.detail ?? 'Someone just took it. You haven’t been charged. Pick another time.',
+            );
+          else this.confirmFailed.set(true);
+        },
+      });
   }
 
   protected chooseAnotherTime() {

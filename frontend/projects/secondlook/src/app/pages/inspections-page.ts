@@ -8,6 +8,7 @@ import { SignOutDialog } from '../dialogs/sign-out-dialog';
 import { WindowBanner } from '../booking/window-banner';
 import { Session } from '../session';
 import { callTime } from '../util/eastern-time';
+import { providerNames } from '../util/providers';
 
 type View = 'loading' | 'ready' | 'failed';
 
@@ -85,7 +86,7 @@ type View = 'loading' | 'ready' | 'failed';
           <li>
             <a [routerLink]="['/inspections', i.id]">{{ i.vehicle.vin }}</a>
             <span class="meta"
-              >{{ reviewLabel(i) }} · {{ i.mechanicName }} ·
+              >{{ reviewLabel(i) }} · {{ names(i) }} ·
               {{ '$' + i.vehicle.askingPrice.toLocaleString('en-CA') }}</span
             >
             <span class="chip">{{ i.status === 'Cancelled' ? 'Cancelled' : callTime(i) }}</span>
@@ -185,6 +186,7 @@ type View = 'loading' | 'ready' | 'failed';
   `,
 })
 export class InspectionsPage {
+  protected readonly names = providerNames;
   protected readonly session = inject(Session);
   private readonly dialog = inject(Dialog);
   private readonly router = inject(Router);
