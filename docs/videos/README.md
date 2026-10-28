@@ -24,6 +24,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J05 | [Pay for an inspection](journeys/05-pay-for-inspection/README.md) | 2:02 | Pay for inspection |
 | J06 | [Book a video inspection](journeys/06-book-a-video-inspection/README.md) | 2:04 | Book a video inspection |
 | J07 | [Reschedule or cancel a booking](journeys/07-reschedule-or-cancel-booking/README.md) | 1:55 | Reschedule or cancel booking |
+| J08 | [Add an additional vehicle](journeys/08-add-additional-vehicle/README.md) | 2:09 | Add additional vehicle |
 
 ## Making or updating a video
 

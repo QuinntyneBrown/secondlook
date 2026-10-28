@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 08 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="08" data-video-title="Add an additional vehicle" data-parts="Introduction|Adding a second car|The server decides|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 08</div>
+  <h1>Add an additional vehicle</h1>
+  <p class="lead">$25 for another car in the window; the server decides</p>
+</section>
+
+<section id="app" data-part="1" data-cue="A buyer who has already booked one car sees a banner on the dashboard" data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Banner, dialog, $45, added</h3>
+    <p class="muted">Local payment adapter: nothing is charged.</p>
+  </aside>
+</section>
+
+<section id="server" data-part="2" data-cue="The price is never worked out in the browser." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>None, open, quoted</h3>
+    <p class="muted">14 days from the first payment; open until, not including, its end (ADR 0010).</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="3" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>A window is 14 days from the first payment</li>
+    <li>Inside it: $25 per car, +$20 for both reviews</li>
+    <li>The server decides eligibility and price</li>
+  </ul>
+  <p class="small muted">Next: Journey 09, add a body shop review</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
