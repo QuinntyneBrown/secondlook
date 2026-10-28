@@ -5,6 +5,7 @@ const KEY = 'secondlook.session';
 interface Stored {
   token: string;
   displayName: string;
+  role?: string;
 }
 
 function read(): Stored | null {
@@ -22,15 +23,16 @@ export class Session {
 
   readonly signedIn = computed(() => this.state() !== null);
   readonly displayName = computed(() => this.state()?.displayName ?? '');
+  readonly role = computed(() => this.state()?.role ?? 'Buyer');
 
   token(): string | null {
     return this.state()?.token ?? null;
   }
 
-  start(token: string, displayName: string) {
-    this.state.set({ token, displayName });
+  start(token: string, displayName: string, role = 'Buyer') {
+    this.state.set({ token, displayName, role });
     try {
-      localStorage.setItem(KEY, JSON.stringify({ token, displayName }));
+      localStorage.setItem(KEY, JSON.stringify({ token, displayName, role }));
     } catch {
       // storage unavailable: the session lasts until the page closes
     }
