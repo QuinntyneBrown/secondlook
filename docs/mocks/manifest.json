@@ -786,6 +786,58 @@
       "not_applicable": {
         "invalid": "The dialog has no inputs to validate."
       }
+    },
+    {
+      "id": "vehicles",
+      "kind": "page",
+      "title": "Your vehicles",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "route": "/vehicles"
+    },
+    {
+      "id": "add-vehicle",
+      "kind": "dialog",
+      "title": "Add a vehicle",
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "duplicate",
+        "failed"
+      ],
+      "opens_from": "vehicles"
+    },
+    {
+      "id": "edit-vehicle",
+      "kind": "dialog",
+      "title": "Edit vehicle",
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "duplicate",
+        "failed"
+      ],
+      "opens_from": "vehicles"
+    },
+    {
+      "id": "remove-vehicle",
+      "kind": "dialog",
+      "title": "Remove vehicle",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "vehicles",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
     }
   ]
 }
