@@ -25,6 +25,9 @@ public static class DependencyInjection
         services.AddScoped<SecondLook.Application.Accounts.IAccessTokenIssuer, SecondLook.Infrastructure.Auth.JwtTokenService>();
         services.AddScoped<SecondLook.Application.Accounts.AccountTokens>();
         services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<SecondLook.Infrastructure.Payments.LocalPaymentProcessor>();
+        services.AddSingleton<SecondLook.Application.Payments.IPaymentProcessor>(sp => sp.GetRequiredService<SecondLook.Infrastructure.Payments.LocalPaymentProcessor>());
+        services.AddScoped<SecondLook.Application.Payments.PricingService>();
         return services;
     }
 }

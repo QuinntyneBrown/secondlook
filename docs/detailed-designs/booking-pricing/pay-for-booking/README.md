@@ -84,3 +84,9 @@ The page validates the card fields, then creates the booking and the payment wit
 A repeated request with the same `Idempotency-Key` returns the stored booking or payment and does not call the gateway, in line with `L2-029`.
 
 ![Sequence diagram for idempotent re-posting](diagrams/sequence-idempotent-repost.png)
+
+## Implementation (J05)
+
+Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
+
+Endpoints (role Buyer): `POST /api/payments/tokens` (card details to the processor adapter, 400 field errors, returns an opaque token), `POST /api/checkouts` `{review, idempotencyKey}` (201, or 200 for a repeated key), `GET /api/checkouts/{id}`, `POST /api/checkouts/{id}/pay` `{paymentToken}` (200 Paid; 402 "Your card was declined"; 202 RequiresAction; 404 for another buyer's checkout). One successful `Payment` per checkout (unique index); the local processor charges once per checkout. Only brand and last four digits are stored. Test cards: 4242 4242 4242 4242, 4000 0000 0000 0002 (declined), 4000 0025 0000 3155 (bank approval).

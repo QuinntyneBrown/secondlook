@@ -17,6 +17,7 @@ type View = 'loading' | 'ready' | 'failed';
     <nav class="top" aria-label="Primary">
       <a routerLink="/inspections">Inspections</a>
       <a routerLink="/vehicles" aria-current="page">Vehicles</a>
+      <a routerLink="/billing">Billing</a>
     </nav>
     <div class="head">
       <div>

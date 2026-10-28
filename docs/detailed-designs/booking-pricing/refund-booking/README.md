@@ -72,3 +72,9 @@ The policy decides among rejection, a full refund, and a $25 partial refund from
 A seller no-show or an incomplete inspection leads to a full refund without any buyer action.
 
 ![Sequence diagram for a refund after a failed call](diagrams/sequence-call-failure-refund.png)
+
+## Implementation (J05)
+
+Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
+
+`RefundPaymentCommand(paymentId, reason, hoursBeforeCall, reportDelivered)` applies L2-032: full refund for a seller no-show, an incomplete inspection, or a cancellation more than 2 hours before the call; a cancellation under 2 hours refunds the amount minus a $25 retained fee; a delivered report is not refundable; a payment is refunded once. It is a contract for the booking journeys; J05 adds no buyer-facing refund endpoint.
