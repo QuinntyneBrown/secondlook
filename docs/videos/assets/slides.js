@@ -78,5 +78,33 @@
     if (['ArrowRight', 'PageDown', ' '].includes(e.key)) show(current + 1);
     if (['ArrowLeft', 'PageUp'].includes(e.key)) show(current - 1);
   });
+
+  // ?audit=1 (the video builder): lay out every slide, then publish overflow problems and the
+  // box of each .clip as JSON attributes on <body>, which the builder reads from the dumped DOM.
+  if (params.has('audit')) {
+    const problems = [];
+    const clips = [];
+    sections.forEach((section, i) => {
+      show(i);
+      const rect = section.getBoundingClientRect();
+      if (section.scrollHeight > section.clientHeight + 1) {
+        problems.push({ slide: i + 1, id: section.id, issue: 'content overflows the slide', height: section.scrollHeight });
+      }
+      section.querySelectorAll('h1, h2, h3, p, li, pre, table, .card').forEach((el) => {
+        const box = el.getBoundingClientRect();
+        if (box.bottom > rect.bottom - 10 || box.right > rect.right + 1) {
+          problems.push({ slide: i + 1, id: section.id, issue: 'element outside the slide', el: el.tagName.toLowerCase(), bottom: Math.round(box.bottom) });
+        }
+      });
+      const clip = section.querySelector('.clip');
+      if (clip) {
+        const box = clip.getBoundingClientRect();
+        clips.push({ slide: i + 1, x: Math.round(box.left - rect.left), y: Math.round(box.top - rect.top), w: Math.round(box.width), h: Math.round(box.height) });
+      }
+    });
+    show(0);
+    document.body.setAttribute('data-audit', JSON.stringify(problems));
+    document.body.setAttribute('data-clips', JSON.stringify(clips));
+  }
   window.slideCount = sections.length;
 })();

@@ -1,0 +1,216 @@
+{
+  "cases": {
+    "Downside": [
+      {
+        "windows": 360,
+        "inspections": 504,
+        "gross": 24120,
+        "net": 23396.399999999998,
+        "costs": 13415.612399999998,
+        "contribution": 7172.7876,
+        "fixed": 37200,
+        "operating": -30027.2124,
+        "capacity": 947,
+        "unserved": 0
+      },
+      {
+        "windows": 1287,
+        "inspections": 1931,
+        "gross": 92036,
+        "net": 89274.92,
+        "costs": 51900.16972,
+        "contribution": 27375.75028,
+        "fixed": 78800,
+        "operating": -51424.24972,
+        "capacity": 3083,
+        "unserved": 0
+      },
+      {
+        "windows": 3465,
+        "inspections": 5544,
+        "gross": 264033,
+        "net": 256112.00999999998,
+        "costs": 150717.36141,
+        "contribution": 76981.64858999997,
+        "fixed": 133200,
+        "operating": -56218.35141000003,
+        "capacity": 7882,
+        "unserved": 0
+      }
+    ],
+    "Base": [
+      {
+        "windows": 720,
+        "inspections": 1008,
+        "gross": 48240,
+        "net": 46792.799999999996,
+        "costs": 26831.224799999996,
+        "contribution": 14345.5752,
+        "fixed": 37200,
+        "operating": -22854.4248,
+        "capacity": 947,
+        "unserved": 0
+      },
+      {
+        "windows": 2574,
+        "inspections": 3861,
+        "gross": 184041,
+        "net": 178519.77,
+        "costs": 103778.67357000001,
+        "contribution": 54743.096429999976,
+        "fixed": 78800,
+        "operating": -24056.903570000024,
+        "capacity": 3083,
+        "unserved": 0
+      },
+      {
+        "windows": 6930,
+        "inspections": 11088,
+        "gross": 528066,
+        "net": 512224.01999999996,
+        "costs": 301434.72282,
+        "contribution": 153963.29717999994,
+        "fixed": 133200,
+        "operating": 20763.297179999936,
+        "capacity": 7882,
+        "unserved": 0
+      }
+    ],
+    "Upside": [
+      {
+        "windows": 947,
+        "inspections": 1326,
+        "gross": 63455,
+        "net": 61551.35,
+        "costs": 35294.72035,
+        "contribution": 18868.629649999995,
+        "fixed": 37200,
+        "operating": -18331.370350000005,
+        "capacity": 947,
+        "unserved": 313
+      },
+      {
+        "windows": 3083,
+        "inspections": 4625,
+        "gross": 220450,
+        "net": 213836.5,
+        "costs": 124311.3965,
+        "contribution": 65569.1035,
+        "fixed": 78800,
+        "operating": -13230.896500000003,
+        "capacity": 3083,
+        "unserved": 1422
+      },
+      {
+        "windows": 7882,
+        "inspections": 12611,
+        "gross": 600602,
+        "net": 582583.94,
+        "costs": 342839.47754,
+        "contribution": 175111.46245999995,
+        "fixed": 133200,
+        "operating": 41911.46245999995,
+        "capacity": 7882,
+        "unserved": 4246
+      }
+    ]
+  },
+  "baseSummary": [
+    [
+      null,
+      "Year 1",
+      "Year 2",
+      "Year 3"
+    ],
+    [
+      "Net service revenue",
+      46792.8,
+      178519.77,
+      512224.02
+    ],
+    [
+      "Gross service billings",
+      48240,
+      184041,
+      528066
+    ],
+    [
+      "Served paid windows",
+      720,
+      2574,
+      6930
+    ],
+    [
+      "Inspection bookings",
+      1008,
+      3861,
+      11088
+    ],
+    [
+      "Gross contribution before acquisition",
+      19961.575200000003,
+      74741.09642999998,
+      210789.29718
+    ],
+    [
+      "Contribution after acquisition",
+      14345.575200000003,
+      54743.096429999976,
+      153963.29718
+    ],
+    [
+      "Fixed operating costs",
+      37200,
+      78800,
+      133200
+    ],
+    [
+      "Operating result before tax / D&A",
+      -22854.424799999997,
+      -24056.903570000024,
+      20763.297179999994
+    ],
+    [
+      "Result including founder replacement",
+      -70854.4248,
+      -54056.903570000024,
+      20763.297179999994
+    ],
+    [
+      "Annual-trough funding plus reserve",
+      67854.4248,
+      91911.32837000002,
+      91911.32837000002
+    ],
+    [
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      "Contribution / paid window",
+      19.924410000000005,
+      21.267714230769222,
+      22.216926
+    ],
+    [
+      "Break-even paid windows",
+      1868,
+      3706,
+      5996
+    ],
+    [
+      "Provider capacity utilization",
+      0.7596153846153846,
+      0.8348214285714286,
+      0.8792067307692307
+    ],
+    [
+      "Unserved paid-window demand",
+      0,
+      0,
+      0
+    ]
+  ]
+}

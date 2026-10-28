@@ -1,0 +1,30 @@
+/* Pitch-only composition using the existing slide palette, typography and framing. */
+body.promo section.screenshot-scene {
+  padding: 90px 80px 110px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 48px;
+}
+.product-shot {
+  flex: none;
+  width: 1250px;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+}
+.screenshot-scene .clip-notes {
+  flex: 1;
+  align-self: center;
+  gap: 24px;
+  font-size: 32px;
+}
+.screenshot-scene .clip-notes h3 {
+  font-size: 46px;
+}
+.screenshot-scene .kicker {
+  font-size: 24px;
+}
+.screenshot-scene .small {
+  font-size: 26px;
+}
