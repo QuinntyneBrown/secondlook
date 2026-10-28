@@ -1,22 +1,17 @@
-import { fileURLToPath } from "node:url";
+import { fileURLToPath } from 'node:url';
 
-import { scenarioIterations } from "./scenario-iterations.mjs";
-import {
-  DefaultRenderTypes,
-  scenarioRenderTypes,
-} from "./scenario-render-types.mjs";
+import { scenarioIterations } from './scenario-iterations.mjs';
+import { DefaultRenderTypes, scenarioRenderTypes } from './scenario-render-types.mjs';
 
 const resolve = (path) => fileURLToPath(new URL(path, import.meta.url));
 
 export const config = {
   /** Folder whose file names are the scenario names. */
-  scenariosSrcDirPath: resolve(
-    "../../../frontend/projects/perf-test/src/scenarios",
-  ),
+  scenariosSrcDirPath: resolve('../../../frontend/projects/perf-test/src/scenarios'),
   /** `ng build perf-test` output. */
-  distDir: resolve("../../../frontend/dist/perf-test/browser"),
+  distDir: resolve('../../../frontend/dist/perf-test/browser'),
   /** Reports, results JSON and .cpuprofile files. */
-  outDir: resolve("../logfiles"),
+  outDir: resolve('../logfiles'),
   defaultIterations: 1000,
   /** Measured page loads per scenario, render type and target; the report shows the median. */
   runs: 5,

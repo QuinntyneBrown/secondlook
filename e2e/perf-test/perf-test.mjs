@@ -9,30 +9,30 @@
 //   npm run perf-test -- [--scenarios Button,Day] [--iterations 500] [--runs 5]
 //                        [--baseline <dist>] [--dist <dist>] [--out <dir>]
 //                        [--fail-on-regression] [--chromium <executable>]
-import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { parseArgs } from "node:util";
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
 
-import { chromium } from "@playwright/test";
+import { chromium } from '@playwright/test';
 
-import { config } from "./config/index.mjs";
-import { countTicks, topFunctions } from "./profile.mjs";
-import { analyse, renderReport } from "./report.mjs";
-import { serve } from "./server.mjs";
+import { config } from './config/index.mjs';
+import { countTicks, topFunctions } from './profile.mjs';
+import { analyse, renderReport } from './report.mjs';
+import { serve } from './server.mjs';
 
 const RENDER_TIMEOUT_MS = 120_000;
 
 const { values: args } = parseArgs({
   options: {
-    scenarios: { type: "string" },
-    iterations: { type: "string" },
-    runs: { type: "string" },
-    dist: { type: "string", default: config.distDir },
-    baseline: { type: "string" },
-    out: { type: "string", default: config.outDir },
-    "fail-on-regression": { type: "boolean", default: false },
+    scenarios: { type: 'string' },
+    iterations: { type: 'string' },
+    runs: { type: 'string' },
+    dist: { type: 'string', default: config.distDir },
+    baseline: { type: 'string' },
+    out: { type: 'string', default: config.outDir },
+    'fail-on-regression': { type: 'boolean', default: false },
     // A Chromium binary other than Playwright's own download.
-    chromium: { type: "string" },
+    chromium: { type: 'string' },
   },
 });
 
@@ -41,9 +41,8 @@ const outDir = resolve(args.out);
 mkdirSync(outDir, { recursive: true });
 
 const scenarios = listScenarios();
-const targets = [{ name: "pr", dist: resolve(args.dist) }];
-if (args.baseline)
-  targets.unshift({ name: "baseline", dist: resolve(args.baseline) });
+const targets = [{ name: 'pr', dist: resolve(args.dist) }];
+if (args.baseline) targets.unshift({ name: 'baseline', dist: resolve(args.baseline) });
 
 for (const target of targets) Object.assign(target, await serve(target.dist));
 const browser = await chromium.launch({ executablePath: args.chromium });
@@ -52,12 +51,9 @@ const results = [];
 try {
   for (const scenario of scenarios) {
     const iterations = Number(
-      args.iterations ??
-        config.scenarioIterations[scenario] ??
-        config.defaultIterations,
+      args.iterations ?? config.scenarioIterations[scenario] ?? config.defaultIterations,
     );
-    for (const renderType of config.scenarioRenderTypes[scenario] ??
-      config.defaultRenderTypes) {
+    for (const renderType of config.scenarioRenderTypes[scenario] ?? config.defaultRenderTypes) {
       results.push(await measureScenario({ scenario, iterations, renderType }));
     }
   }
@@ -71,27 +67,25 @@ const report = renderReport(results, {
   hasBaseline: Boolean(args.baseline),
   regressionThreshold: config.regressionThreshold,
 });
-writeFileSync(join(outDir, "perf-test.md"), report);
-writeFileSync(join(outDir, "results.json"), JSON.stringify(results, null, 2));
-console.log(`\n${report}\nWrote ${join(outDir, "perf-test.md")}`);
+writeFileSync(join(outDir, 'perf-test.md'), report);
+writeFileSync(join(outDir, 'results.json'), JSON.stringify(results, null, 2));
+console.log(`\n${report}\nWrote ${join(outDir, 'perf-test.md')}`);
 
 const failed = results.some((r) => r.error);
-const regressed = results.some((r) => r.analysis?.status === "regression");
-process.exitCode = failed || (regressed && args["fail-on-regression"]) ? 1 : 0;
+const regressed = results.some((r) => r.analysis?.status === 'regression');
+process.exitCode = failed || (regressed && args['fail-on-regression']) ? 1 : 0;
 
 /** Scenario names are the scenario file names, filtered by --scenarios and the exclude list. */
 function listScenarios() {
   const all = readdirSync(config.scenariosSrcDirPath)
-    .filter((file) => file.endsWith(".ts") && file !== "index.ts")
+    .filter((file) => file.endsWith('.ts') && file !== 'index.ts')
     .map((file) => file.slice(0, -3))
     .filter((name) => !config.excludeScenarios.includes(name));
   if (!args.scenarios) return all;
-  const wanted = args.scenarios.split(",").map((s) => s.trim());
+  const wanted = args.scenarios.split(',').map((s) => s.trim());
   const unknown = wanted.filter((name) => !all.includes(name));
   if (unknown.length)
-    throw new Error(
-      `Unknown scenario(s): ${unknown.join(", ")}. Known: ${all.join(", ")}`,
-    );
+    throw new Error(`Unknown scenario(s): ${unknown.join(', ')}. Known: ${all.join(', ')}`);
   return wanted;
 }
 
@@ -111,14 +105,13 @@ async function measureScenario({ scenario, iterations, renderType }) {
         await load(target, params);
         samples.set(target, []);
       } catch (error) {
-        if (target.name === "pr") throw error;
+        if (target.name === 'pr') throw error;
         result.baselineError = firstLine(error);
         console.log(`  baseline skipped: ${result.baselineError}`);
       }
     }
     for (let run = 0; run < runs; run++) {
-      for (const [target, list] of samples)
-        list.push(await load(target, params));
+      for (const [target, list] of samples) list.push(await load(target, params));
     }
   } catch (error) {
     console.log(`  ✖ ${firstLine(error)}`);
@@ -127,10 +120,7 @@ async function measureScenario({ scenario, iterations, renderType }) {
 
   for (const [target, list] of samples) {
     const { profile, ...summary } = summarise(list);
-    const file = join(
-      outDir,
-      `${scenario}.${renderType}.${target.name}.cpuprofile`,
-    );
+    const file = join(outDir, `${scenario}.${renderType}.${target.name}.cpuprofile`);
     writeFileSync(file, JSON.stringify(profile));
     result[target.name] = { ...summary, profileFile: file };
   }
@@ -140,16 +130,14 @@ async function measureScenario({ scenario, iterations, renderType }) {
   });
   const change =
     result.analysis.change == null
-      ? ""
+      ? ''
       : ` (${(result.analysis.change * 100).toFixed(1)}% vs baseline)`;
-  console.log(
-    `  ${result.pr.renderMs.toFixed(1)} ms, ${result.pr.ticks} ticks${change}`,
-  );
+  console.log(`  ${result.pr.renderMs.toFixed(1)} ms, ${result.pr.ticks} ticks${change}`);
   return result;
 }
 
 function firstLine(error) {
-  return error.message.split("\n")[0];
+  return error.message.split('\n')[0];
 }
 
 /** Loads one scenario in a fresh page with the profiler running from before navigation. */
@@ -157,18 +145,15 @@ async function load(target, { scenario, iterations, renderType }) {
   const context = await browser.newContext();
   const page = await context.newPage();
   const pageErrors = [];
-  page.on("pageerror", (error) => pageErrors.push(error.message));
-  page.on(
-    "console",
-    (msg) => msg.type() === "error" && pageErrors.push(msg.text()),
-  );
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+  page.on('console', (msg) => msg.type() === 'error' && pageErrors.push(msg.text()));
 
   const cdp = await context.newCDPSession(page);
-  await cdp.send("Profiler.enable");
-  await cdp.send("Profiler.setSamplingInterval", {
+  await cdp.send('Profiler.enable');
+  await cdp.send('Profiler.setSamplingInterval', {
     interval: config.samplingIntervalUs,
   });
-  await cdp.send("Profiler.start");
+  await cdp.send('Profiler.start');
   try {
     const query = new URLSearchParams({
       scenario,
@@ -177,16 +162,16 @@ async function load(target, { scenario, iterations, renderType }) {
     });
     await page.goto(`${target.origin}/?${query}`);
     const marker = await page
-      .waitForSelector("#render-done", {
-        state: "attached",
+      .waitForSelector('#render-done', {
+        state: 'attached',
         timeout: RENDER_TIMEOUT_MS,
       })
       .catch(() => {
         throw new Error(
-          `#render-done never appeared${pageErrors.length ? `: ${pageErrors[0]}` : ""}`,
+          `#render-done never appeared${pageErrors.length ? `: ${pageErrors[0]}` : ''}`,
         );
       });
-    const { profile } = await cdp.send("Profiler.stop");
+    const { profile } = await cdp.send('Profiler.stop');
     const { error, duration } = await marker.evaluate((el) => ({
       ...el.dataset,
     }));
