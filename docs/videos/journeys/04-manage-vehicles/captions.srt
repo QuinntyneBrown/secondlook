@@ -1,0 +1,119 @@
+1
+00:00:00,000 --> 00:00:03,150
+This is the implementation demo for journey four.
+
+2
+00:00:03,150 --> 00:00:08,470
+It is the real application and API running on this machine, with a synthetic buyer.
+
+3
+00:00:08,470 --> 00:00:12,650
+It shows how a buyer keeps a list of the cars they are comparing.
+
+4
+00:00:13,800 --> 00:00:17,200
+A new buyer opens Vehicles and sees an empty list.
+
+5
+00:00:17,200 --> 00:00:19,110
+Adding a car opens a dialog.
+
+6
+00:00:19,110 --> 00:00:24,560
+With a short VIN and a short phone number, the dialog lists exactly what to fix,
+
+7
+00:00:24,560 --> 00:00:27,290
+and each field explains its own problem.
+
+8
+00:00:27,290 --> 00:00:32,810
+A valid car is saved and appears in the list with its odometer, price and seller.
+
+9
+00:00:32,810 --> 00:00:37,710
+Saving the same VIN again is refused, because it is already on the list.
+
+10
+00:00:37,710 --> 00:00:42,210
+Editing a car works the same way, and the changes show right away.
+
+11
+00:00:42,210 --> 00:00:46,290
+Removing a car asks first, and cancel is the focused choice.
+
+12
+00:00:47,440 --> 00:00:49,680
+Every vehicle belongs to one buyer.
+
+13
+00:00:49,680 --> 00:00:53,010
+Another buyer who asks for the list does not see it.
+
+14
+00:00:53,010 --> 00:00:57,040
+Asking for that car by its identifier is answered as not found,
+
+15
+00:00:57,040 --> 00:00:58,960
+and so is trying to delete it.
+
+16
+00:00:58,960 --> 00:01:01,590
+The owner can read it, and can remove it.
+
+17
+00:01:01,590 --> 00:01:06,260
+The buyer is always taken from the sign in token, never from the request,
+
+18
+00:01:06,260 --> 00:01:09,910
+so there is no way to ask for someone else's car by name.
+
+19
+00:01:09,910 --> 00:01:13,360
+That is true for reading, changing and deleting alike.
+
+20
+00:01:14,510 --> 00:01:18,300
+Removing a car hides it from the list, but nothing is deleted.
+
+21
+00:01:18,300 --> 00:01:22,880
+Inspections you have already booked keep the details they were booked with,
+
+22
+00:01:22,880 --> 00:01:24,600
+so the history stays intact.
+
+23
+00:01:24,600 --> 00:01:26,980
+A removed VIN can be saved again later.
+
+24
+00:01:26,980 --> 00:01:29,850
+These rules are covered by the automated tests.
+
+25
+00:01:31,000 --> 00:01:32,810
+Here is what to remember.
+
+26
+00:01:32,810 --> 00:01:35,400
+Each buyer sees only their own cars.
+
+27
+00:01:35,400 --> 00:01:37,860
+A VIN can be saved once at a time.
+
+28
+00:01:37,860 --> 00:01:41,330
+Removing hides a car without erasing the record,
+
+29
+00:01:41,330 --> 00:01:44,500
+and past inspections keep their own details.
+
+30
+00:01:44,500 --> 00:01:47,540
+Next, journey five: pay for an inspection.

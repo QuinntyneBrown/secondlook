@@ -72,3 +72,9 @@ The handler saves the changes, or returns not found when the vehicle does not ex
 The handler removes the vehicle from the list, or returns not found when the vehicle does not exist for the buyer.
 
 ![Sequence diagram for removing a vehicle](diagrams/sequence-remove-vehicle.png)
+
+## Implementation (J04)
+
+Decisions are in ADR 0006. Mocks: `docs/mocks/pages/vehicles` (default, loading, empty, error) and the dialogs `add-vehicle`, `edit-vehicle` and `remove-vehicle`.
+
+Endpoints, all role Buyer only with the buyer taken from the token: `GET /api/vehicles`, `GET /api/vehicles/{id}`, `POST /api/vehicles` `{vin,odometerKm,askingPrice,listingUrl?,sellerName,sellerPhone}` (201; 400 field errors; 409 `You already saved that vehicle`), `PUT /api/vehicles/{id}` (200; 404; 409), `DELETE /api/vehicles/{id}` (204 soft removal; 404). Another buyer's vehicle is 404. `Vehicle` implements `IBuyerOwned` and handlers use `ForBuyer`.

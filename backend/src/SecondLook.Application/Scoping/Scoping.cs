@@ -1,3 +1,4 @@
+using SecondLook.Domain.Scoping;
 using SecondLook.Domain.Users;
 
 namespace SecondLook.Application.Scoping;
@@ -10,19 +11,6 @@ public interface ICurrentUser
 }
 
 public sealed record CurrentUser(Guid Id, UserRole Role) : ICurrentUser;
-
-/// <summary>A resource a buyer owns (vehicles, inspections, estimates).</summary>
-public interface IBuyerOwned
-{
-    Guid BuyerId { get; }
-}
-
-/// <summary>An inspection assigned to a mechanic and/or body shop.</summary>
-public interface IProviderAssigned
-{
-    Guid? MechanicId { get; }
-    Guid? BodyShopId { get; }
-}
 
 public static class ScopingExtensions
 {

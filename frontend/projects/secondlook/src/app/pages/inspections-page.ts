@@ -1,6 +1,6 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Button } from 'components';
 import { SignOutDialog } from '../dialogs/sign-out-dialog';
 import { Session } from '../session';
@@ -8,10 +8,11 @@ import { Session } from '../session';
 /** The signed-in landing page. The inspection list itself arrives with the inspection journeys. */
 @Component({
   selector: 'sl-inspections-page',
-  imports: [Button],
+  imports: [Button, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header>
+      <a routerLink="/vehicles">Vehicles</a>
       <span>{{ session.displayName() }}</span>
       <sl-button variant="outline" (pressed)="signOut()">Sign out</sl-button>
     </header>

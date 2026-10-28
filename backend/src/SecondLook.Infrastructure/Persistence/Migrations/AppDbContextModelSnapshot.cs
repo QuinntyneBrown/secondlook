@@ -156,6 +156,51 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Users");
                 });
+
+            modelBuilder.Entity("SecondLook.Domain.Vehicles.Vehicle", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("AskingPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("BuyerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ListingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("OdometerKm")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("RemovedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("SellerName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SellerPhone")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Vin")
+                        .IsRequired()
+                        .HasMaxLength(17)
+                        .HasColumnType("nvarchar(17)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuyerId", "Vin");
+
+                    b.ToTable("Vehicles");
+                });
 #pragma warning restore 612, 618
         }
     }
