@@ -681,6 +681,58 @@
         "warning": "Consent has no warning variant; the choice is accept, reject or manage.",
         "danger": "Saving a consent choice can’t fail in a way the visitor needs to act on."
       }
+    },
+    {
+      "id": "admin-providers",
+      "kind": "page",
+      "title": "Providers",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "forbidden"
+      ],
+      "route": "/providers",
+      "app": "admin"
+    },
+    {
+      "id": "onboard-provider",
+      "kind": "dialog",
+      "title": "Onboard a provider",
+      "states": [
+        "default",
+        "busy",
+        "invalid",
+        "failed"
+      ],
+      "opens_from": "admin-providers"
+    },
+    {
+      "id": "approve-provider",
+      "kind": "dialog",
+      "title": "Approve provider",
+      "states": [
+        "default",
+        "busy"
+      ],
+      "opens_from": "admin-providers",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
+    },
+    {
+      "id": "deactivate-provider",
+      "kind": "dialog",
+      "title": "Deactivate provider",
+      "states": [
+        "default",
+        "busy"
+      ],
+      "opens_from": "admin-providers",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
     }
   ]
 }

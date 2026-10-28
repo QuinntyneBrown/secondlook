@@ -80,3 +80,9 @@ The handler sets `Approved` on a `Pending` provider, or returns not found or con
 The handler sets `Deactivated` on an `Approved` provider, or returns not found or conflict.
 
 ![Sequence diagram for deactivating a provider](diagrams/sequence-deactivate-provider.png)
+
+## Implementation (J02)
+
+Decisions are in ADR 0004. Mocks: `docs/mocks/pages/admin-providers` (default, loading, empty, error, forbidden) and the dialogs `onboard-provider`, `approve-provider` and `deactivate-provider`.
+
+A provider is a `User` with role `Mechanic` or `BodyShop`; `ApprovalStatus` is `Pending`, `Approved` or `Deactivated`; `CanTakeInspections` needs an active, approved provider. Endpoints (role `Admin` only): `GET /api/admin/providers?status=&kind=`, `GET /api/admin/providers/{id}`, `POST /api/admin/providers` (onboard: 201, or 200 for an existing provider with the same email and kind; 400 field errors; 409 other account), `POST /{id}/approve` (Pending or Deactivated to Approved) and `POST /{id}/deactivate` (Approved to Deactivated); other transitions are 409, unknown ids 404. Onboarding emails a set-password link through the reset-password flow. Deactivation never cancels or reassigns existing inspections.
