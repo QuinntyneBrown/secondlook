@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using SecondLook.Api.Auth;
+using SecondLook.Api.Platform;
 using SecondLook.Infrastructure;
 using SecondLook.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddSecondLookAuth(builder.Configuration);
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
@@ -13,6 +17,11 @@ if (DatabaseSettings.Provider(app.Configuration) == "Sqlite")
     using var scope = app.Services.CreateScope();
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
 }
+
+app.UseStatusCodePages();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapPlatformEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

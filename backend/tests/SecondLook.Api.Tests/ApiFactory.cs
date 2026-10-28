@@ -39,7 +39,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         var claims = new List<Claim>
         {
             new(JwtRegisteredClaimNames.Sub, (userId ?? Guid.NewGuid()).ToString()),
-            new(ClaimTypes.Role, role),
+            new("role", role),
         };
         var creds = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)), SecurityAlgorithms.HmacSha256);
         var token = new JwtSecurityToken(issuer, Audience, claims,
