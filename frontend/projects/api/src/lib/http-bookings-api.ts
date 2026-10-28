@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { ApiProblem } from './auth-api';
-import { BookingsApi, Hold, Inspection, Slot } from './bookings-api';
+import { BookingsApi, CancelReason, Hold, Inspection, Slot } from './bookings-api';
 import { API_BASE_URL } from './http-platform-api';
 
 function toProblem(e: unknown): ApiProblem {
@@ -58,5 +58,25 @@ export class HttpBookingsApi implements BookingsApi {
 
   inspection(id: string) {
     return this.guard(this.http.get<Inspection>(`${this.base}/inspections/${id}`));
+  }
+
+  rescheduleSlots(id: string) {
+    return this.guard(
+      this.http
+        .get<{ slots: Slot[] }>(`${this.base}/inspections/${id}/reschedule-slots`)
+        .pipe(map((r) => r.slots)),
+    );
+  }
+
+  reschedule(id: string, start: string) {
+    return this.guard(
+      this.http.post<Inspection>(`${this.base}/inspections/${id}/reschedule`, { start }),
+    );
+  }
+
+  cancel(id: string, reason: CancelReason) {
+    return this.guard(
+      this.http.post<Inspection>(`${this.base}/inspections/${id}/cancel`, { reason }),
+    );
   }
 }

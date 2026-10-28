@@ -47,15 +47,27 @@ public sealed class HoldSlotHandler(IAppDbContext db, ICurrentUser caller, IMedi
 
 public sealed record VehicleCopyDto(string Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
 
-public sealed record InspectionDto(Guid Id, string Status, DateTimeOffset Start, DateTimeOffset End, string? MechanicName, string Review, int AmountCents, VehicleCopyDto Vehicle, DateTimeOffset CreatedAt);
+public sealed record InspectionDto(
+    Guid Id, string Status, DateTimeOffset Start, DateTimeOffset End, string? MechanicName, string Review, int AmountCents, VehicleCopyDto Vehicle, DateTimeOffset CreatedAt,
+    string? CardLast4, int RefundPreviewCents, DateTimeOffset? CancelledAt, int RefundedCents, int RetainedCents, bool CanChange);
 
 internal static class InspectionMapper
 {
-    public static async Task<InspectionDto> ToDtoAsync(IAppDbContext db, Inspection i, CancellationToken ct)
+    /// <summary>What cancelling now would refund: everything more than 2 hours before the call, otherwise minus the $25 fee.</summary>
+    public static int RefundPreview(Inspection i, DateTimeOffset now) =>
+        i.Status != InspectionStatus.Scheduled ? 0
+        : (i.StartUtc - now) >= TimeSpan.FromHours(2) ? i.AmountCents
+        : i.AmountCents - Math.Min(RefundPaymentHandler.RetainedCents, i.AmountCents);
+
+    public static async Task<InspectionDto> ToDtoAsync(IAppDbContext db, TimeProvider clock, Inspection i, CancellationToken ct)
     {
         var mechanic = i.MechanicId is { } id ? (await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct))?.DisplayName : null;
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.Id == i.PaymentId, ct);
+        var now = clock.GetUtcNow();
         return new InspectionDto(i.Id, i.Status.ToString(), i.StartUtc, i.EndUtc, mechanic, i.Review.ToString(), i.AmountCents,
-            new VehicleCopyDto(i.Vin, i.OdometerKm, i.AskingPrice, i.ListingUrl, i.SellerName, i.SellerPhone), i.CreatedAt);
+            new VehicleCopyDto(i.Vin, i.OdometerKm, i.AskingPrice, i.ListingUrl, i.SellerName, i.SellerPhone), i.CreatedAt,
+            payment?.CardLast4, RefundPreview(i, now), i.CancelledAt, i.RefundedCents, i.RetainedCents,
+            i.Status == InspectionStatus.Scheduled && i.StartUtc > now);
     }
 }
 
@@ -97,7 +109,7 @@ public sealed class ConfirmBookingHandler(IAppDbContext db, ICurrentUser caller,
         if (checkout is null) return new ConfirmResult.NotFound();
 
         var existing = await db.Inspections.FirstOrDefaultAsync(i => i.CheckoutId == checkout.Id, ct);
-        if (existing is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, existing, ct));
+        if (existing is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, clock, existing, ct));
 
         var vehicle = await db.Vehicles.ForBuyer(caller).FirstOrDefaultAsync(v => v.Id == c.VehicleId && v.RemovedAt == null, ct);
         if (vehicle is null) return new ConfirmResult.NotFound();
@@ -111,7 +123,7 @@ public sealed class ConfirmBookingHandler(IAppDbContext db, ICurrentUser caller,
         {
             // A concurrent request may have booked this very checkout a moment ago; never refund a booking that exists.
             var winner = await db.Inspections.FirstOrDefaultAsync(i => i.CheckoutId == checkout.Id, ct);
-            if (winner is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, winner, ct));
+            if (winner is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, clock, winner, ct));
             var refund = await mediator.Send(new RefundPaymentCommand(payment.Id, RefundReason.SlotUnavailable, null, false), ct);
             return new ConfirmResult.SlotLost(refund is RefundResult.Refunded);
         }
@@ -129,30 +141,30 @@ public sealed class ConfirmBookingHandler(IAppDbContext db, ICurrentUser caller,
         };
         db.Inspections.Add(inspection);
         await db.SaveChangesAsync(ct);
-        return new ConfirmResult.Created(await InspectionMapper.ToDtoAsync(db, inspection, ct));
+        return new ConfirmResult.Created(await InspectionMapper.ToDtoAsync(db, clock, inspection, ct));
     }
 }
 
 public sealed record ListInspectionsQuery : IRequest<IReadOnlyList<InspectionDto>>;
 
-public sealed class ListInspectionsHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<ListInspectionsQuery, IReadOnlyList<InspectionDto>>
+public sealed class ListInspectionsHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<ListInspectionsQuery, IReadOnlyList<InspectionDto>>
 {
     public async Task<IReadOnlyList<InspectionDto>> Handle(ListInspectionsQuery q, CancellationToken ct)
     {
         var rows = (await db.Inspections.ForCaller(caller).ToListAsync(ct)).OrderBy(i => i.StartUtc).ToList();
         var list = new List<InspectionDto>();
-        foreach (var i in rows) list.Add(await InspectionMapper.ToDtoAsync(db, i, ct));
+        foreach (var i in rows) list.Add(await InspectionMapper.ToDtoAsync(db, clock, i, ct));
         return list;
     }
 }
 
 public sealed record GetInspectionQuery(Guid Id) : IRequest<InspectionDto?>;
 
-public sealed class GetInspectionHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<GetInspectionQuery, InspectionDto?>
+public sealed class GetInspectionHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<GetInspectionQuery, InspectionDto?>
 {
     public async Task<InspectionDto?> Handle(GetInspectionQuery q, CancellationToken ct)
     {
         var i = await db.Inspections.ForCaller(caller).FirstOrDefaultAsync(x => x.Id == q.Id, ct);
-        return i is null ? null : await InspectionMapper.ToDtoAsync(db, i, ct);
+        return i is null ? null : await InspectionMapper.ToDtoAsync(db, clock, i, ct);
     }
 }

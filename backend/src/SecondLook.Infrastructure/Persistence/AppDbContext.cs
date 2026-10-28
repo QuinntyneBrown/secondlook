@@ -104,6 +104,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.HasKey(i => i.Id);
             e.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
             e.Property(i => i.Review).HasConversion<string>().HasMaxLength(20);
+            e.Property(i => i.CancelReason).HasConversion<string>().HasMaxLength(30);
+            e.Property(i => i.CancelledAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
             e.Property(i => i.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(i => i.EndUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(i => i.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));

@@ -45,6 +45,7 @@ export {
 export {
   BOOKINGS_API,
   type BookingsApi,
+  type CancelReason,
   type Hold,
   type Inspection,
   type InspectionVehicle,

@@ -81,3 +81,9 @@ The dialog shows the invalid state with no slot, the failed state when the move 
 The "Undo" action restores the previous time when the previous slot is still free.
 
 ![Sequence diagram for undoing a reschedule](diagrams/sequence-undo.png)
+
+## Implementation (J07)
+
+Decisions are in ADR 0009. Mocks reused: `inspection-detail`, `dialogs/reschedule` and `dialogs/cancel-inspection`.
+
+`GET /api/inspections/{id}/reschedule-slots` (role Buyer, own inspection) lists the same mechanic's free slots within two weeks of the call; `POST /api/inspections/{id}/reschedule` `{start}` books the new slot, moves the inspection with a conditional update and frees the old slot (200 with the inspection; 409 "We couldn’t move the call" when the slot is taken or not offered, 409 when the call has started or the inspection is cancelled). Undo is a reschedule back. The seller text is shown in the copy but not sent (local adapter stance, ADR 0009).

@@ -1,0 +1,115 @@
+1
+00:00:00,000 --> 00:00:03,450
+This is the implementation demo for journey seven.
+
+2
+00:00:03,450 --> 00:00:07,510
+It is the real application and API running on this machine,
+
+3
+00:00:07,510 --> 00:00:12,750
+with synthetic people and the local payment adapter, so no real money moves.
+
+4
+00:00:12,750 --> 00:00:16,750
+It shows how a buyer moves or cancels a booked inspection.
+
+5
+00:00:17,900 --> 00:00:21,680
+The buyer opens a booked inspection and chooses reschedule.
+
+6
+00:00:21,680 --> 00:00:25,200
+The dialog offers the same mechanic's other free times.
+
+7
+00:00:25,200 --> 00:00:28,530
+Submitting without choosing one asks for a new time.
+
+8
+00:00:28,530 --> 00:00:32,880
+Choosing a time moves the call, and a message confirms the new time.
+
+9
+00:00:32,880 --> 00:00:37,370
+If the buyer changes their mind, undo puts the call back where it was.
+
+10
+00:00:38,520 --> 00:00:43,150
+Cancelling opens a dialog with the safe choice, keep inspection, focused.
+
+11
+00:00:43,150 --> 00:00:46,840
+It asks for a reason, and refuses to continue without one.
+
+12
+00:00:46,840 --> 00:00:49,760
+It also says what comes back: the full amount,
+
+13
+00:00:49,760 --> 00:00:54,840
+to the card ending in four two four two, because the call is more than two hours
+
+14
+00:00:54,840 --> 00:00:55,160
+away.
+
+15
+00:00:55,160 --> 00:00:59,480
+After cancelling, the inspection shows as cancelled with the refund,
+
+16
+00:00:59,480 --> 00:01:03,860
+the buttons to move or cancel are gone, and it moves to the past tab.
+
+17
+00:01:05,010 --> 00:01:07,970
+Moving and cancelling are safe under pressure.
+
+18
+00:01:07,970 --> 00:01:12,980
+If another buyer takes the time someone wants to move to, the move is refused,
+
+19
+00:01:12,980 --> 00:01:15,230
+and the original time stays booked.
+
+20
+00:01:15,230 --> 00:01:18,130
+If a cancellation is sent five times at once,
+
+21
+00:01:18,130 --> 00:01:20,760
+the buyer is still refunded exactly once.
+
+22
+00:01:20,760 --> 00:01:26,030
+A cancellation less than two hours before the call keeps a twenty five dollar fee,
+
+23
+00:01:26,030 --> 00:01:30,210
+and a call that has already started cannot be moved or cancelled.
+
+24
+00:01:30,210 --> 00:01:33,230
+Those rules are covered by the automated tests.
+
+25
+00:01:34,380 --> 00:01:36,210
+Here is what to remember.
+
+26
+00:01:36,210 --> 00:01:40,610
+A reschedule keeps the same mechanic and frees the old time.
+
+27
+00:01:40,610 --> 00:01:45,510
+A cancellation needs a reason, releases the slot, and refunds once.
+
+28
+00:01:45,510 --> 00:01:48,440
+Only the buyer who booked can do either.
+
+29
+00:01:48,440 --> 00:01:51,880
+Next, journey eight: add an additional vehicle.
