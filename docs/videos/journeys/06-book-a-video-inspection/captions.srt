@@ -1,0 +1,131 @@
+1
+00:00:00,000 --> 00:00:03,360
+This is the implementation demo for journey six.
+
+2
+00:00:03,360 --> 00:00:07,480
+It is the real application and API running on this machine,
+
+3
+00:00:07,480 --> 00:00:13,070
+with synthetic people and the local payment adapter, so nothing is ever charged.
+
+4
+00:00:13,070 --> 00:00:17,690
+It shows a buyer going from a car to a confirmed video inspection.
+
+5
+00:00:18,840 --> 00:00:22,800
+A new buyer opens the dashboard and finds no inspections yet.
+
+6
+00:00:22,800 --> 00:00:25,600
+Booking starts with the car and the seller.
+
+7
+00:00:25,600 --> 00:00:30,540
+A short VIN and a short phone number are refused with a list of what to fix.
+
+8
+00:00:30,540 --> 00:00:35,870
+Then the review: choosing both a mechanic and a body shop shows the server's price
+
+9
+00:00:35,870 --> 00:00:37,100
+of seventy dollars.
+
+10
+00:00:37,100 --> 00:00:38,010
+Next the time.
+
+11
+00:00:38,010 --> 00:00:42,170
+The page offers only slots that are really free, grouped by day.
+
+12
+00:00:42,170 --> 00:00:47,370
+Choosing one shows the mechanic, and continuing holds that slot for ten minutes.
+
+13
+00:00:47,370 --> 00:00:50,290
+Then payment through the same flow as before.
+
+14
+00:00:50,290 --> 00:00:55,430
+When the payment succeeds, the buyer is booked: the confirmation names the day,
+
+15
+00:00:55,430 --> 00:00:57,120
+the time and the mechanic.
+
+16
+00:00:57,120 --> 00:01:01,470
+The inspection shows the car, the time, the team and what was paid,
+
+17
+00:01:01,470 --> 00:01:04,460
+and the dashboard lists it with its call time.
+
+18
+00:01:05,610 --> 00:01:08,280
+Booking is safe when things happen at once.
+
+19
+00:01:08,280 --> 00:01:12,740
+When two buyers hold the same slot at the same moment, exactly one wins,
+
+20
+00:01:12,740 --> 00:01:17,460
+and the other is told that the slot was just taken, and keeps their answers.
+
+21
+00:01:17,460 --> 00:01:22,290
+When a booking is confirmed five times at once, there is still one inspection.
+
+22
+00:01:23,440 --> 00:01:24,910
+There is one more case.
+
+23
+00:01:24,910 --> 00:01:27,770
+If a buyer pays after their hold has expired,
+
+24
+00:01:27,770 --> 00:01:32,290
+and someone else took the slot in the meantime, the booking is refused,
+
+25
+00:01:32,290 --> 00:01:35,480
+and the payment is refunded in full automatically.
+
+26
+00:01:35,480 --> 00:01:38,980
+The buyer is never charged for a time they cannot have.
+
+27
+00:01:38,980 --> 00:01:41,470
+This is covered by the automated tests.
+
+28
+00:01:42,620 --> 00:01:44,320
+Here is what to remember.
+
+29
+00:01:44,320 --> 00:01:46,510
+A booking is hold, pay, confirm.
+
+30
+00:01:46,510 --> 00:01:50,400
+Only free slots are offered, and a slot can be held once.
+
+31
+00:01:50,400 --> 00:01:53,470
+A paid checkout makes exactly one inspection,
+
+32
+00:01:53,470 --> 00:01:56,950
+which keeps the vehicle details it was booked with.
+
+33
+00:01:56,950 --> 00:02:00,500
+Next, journey seven: reschedule or cancel a booking.

@@ -70,3 +70,9 @@ Inside the app, `BookVehiclePage` uses `BOOKINGS_API`. Inside the API, `Bookings
 The page submits the answers. The validator enforces `L2-023` field rules, the handler calls the VIN lookup, and the page shows the invalid, error or success state.
 
 ![Sequence diagram for saving vehicle details](diagrams/sequence-save-vehicle.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+The first booking step saves the car through the saved-vehicles API (ADR 0006); a VIN the buyer already saved is reused. Validation messages follow L2-023 and share `validateVehicle` with the vehicle dialogs' rules.

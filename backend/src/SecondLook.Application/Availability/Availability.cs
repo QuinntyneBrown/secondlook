@@ -158,7 +158,7 @@ public sealed class ListSlotsHandler(IAppDbContext db, TimeProvider clock) : IRe
     }
 }
 
-public sealed record ReserveSlotCommand(Guid ProviderId, DateTimeOffset Start, ReservationStatus Status, TimeSpan? HoldFor) : IRequest<ReserveSlotResult>;
+public sealed record ReserveSlotCommand(Guid ProviderId, DateTimeOffset Start, ReservationStatus Status, TimeSpan? HoldFor, Guid? BuyerId = null) : IRequest<ReserveSlotResult>;
 
 public abstract record ReserveSlotResult
 {
@@ -193,6 +193,7 @@ public sealed class ReserveSlotHandler(IAppDbContext db, TimeProvider clock) : I
                 Id = Guid.NewGuid(),
                 ProviderId = c.ProviderId,
                 StartUtc = start,
+                BuyerId = c.BuyerId,
                 Status = c.Status,
                 ExpiresAt = c.Status == ReservationStatus.Held ? now + (c.HoldFor ?? TimeSpan.FromMinutes(10)) : null,
             };

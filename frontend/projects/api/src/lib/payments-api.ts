@@ -49,7 +49,11 @@ export interface Receipt {
  */
 export interface PaymentsApi {
   tokenize(card: CardDetails): Observable<CardToken>;
-  createCheckout(review: ReviewChoice, idempotencyKey: string): Observable<Checkout>;
+  createCheckout(
+    review: ReviewChoice,
+    idempotencyKey: string,
+    vehicleId?: string,
+  ): Observable<Checkout>;
   getCheckout(id: string): Observable<Checkout>;
   pay(checkoutId: string, paymentToken: string): Observable<PayOutcome>;
   receipts(): Observable<Receipt[]>;

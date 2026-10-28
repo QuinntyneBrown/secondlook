@@ -85,3 +85,9 @@ Selecting "Next", "Previous" or a page number requests that page and updates the
 The status of the row decides whether the vehicle link opens the inspection or the report.
 
 ![Sequence diagram for opening a row](diagrams/sequence-open-row.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+`GET /api/inspections` (roles Buyer, Mechanic, BodyShop) returns the caller's inspections only: buyers their own, providers those assigned to them. The dashboard shows them with an Active tab, the call time as the status chip, and an empty state with "Book an inspection".

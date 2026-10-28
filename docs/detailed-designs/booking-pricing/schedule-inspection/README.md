@@ -87,3 +87,9 @@ The handler creates a 10-minute hold, or fails with the slot-taken result. The p
 The worker releases holds whose `ExpiresAt` has passed, so the slot becomes available again.
 
 ![Sequence diagram for releasing an expired hold](diagrams/sequence-release-expired-hold.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+`POST /api/bookings/holds` `{providerId,start}` (role Buyer) holds a free slot for 10 minutes (201 `{holdId,expiresAt,...}`; 409 "We couldn’t hold that slot" when it is held, booked or not offered). A buyer has one active hold; a new one releases the old. `GET /api/slots` lists only free slots (L2-061). The schedule step groups slots by Eastern day.

@@ -68,3 +68,9 @@ Inside the API, `BookingsController` sends `GetBookingConfirmationQuery` to its 
 After payment succeeds, the page loads the confirmation, renders the heading and the "What happens next" timeline in order, offers both actions, and raises the success toast, in line with `L2-030`. The seller text is sent after payment succeeds.
 
 ![Sequence diagram for confirming a booking](diagrams/sequence-confirm.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+`POST /api/bookings` `{checkoutId,holdId,vehicleId}` (role Buyer) confirms a paid checkout: 201 or 200 with the inspection (one per checkout, unique index; concurrent calls return the same one), 402 when unpaid, 404 for another buyer's hold, checkout or vehicle, 409 "We couldn’t hold that slot" when the slot was lost after the hold expired, in which case the payment is refunded in full automatically (`RefundReason.SlotUnavailable`). The inspection copies the vehicle details (ADR 0008).

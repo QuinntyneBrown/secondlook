@@ -42,3 +42,11 @@ export {
   type Receipt,
   type ReviewChoice,
 } from './lib/payments-api';
+export {
+  BOOKINGS_API,
+  type BookingsApi,
+  type Hold,
+  type Inspection,
+  type InspectionVehicle,
+  type Slot,
+} from './lib/bookings-api';

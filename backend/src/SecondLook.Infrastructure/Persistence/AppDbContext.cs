@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
 using SecondLook.Domain.Availability;
+using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Payments;
 using SecondLook.Domain.Users;
 using SecondLook.Domain.Vehicles;
@@ -17,6 +18,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Checkout> Checkouts => Set<Checkout>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<PricingWindow> PricingWindows => Set<PricingWindow>();
+    public DbSet<Inspection> Inspections => Set<Inspection>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,6 +98,23 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(w => w.StartsAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(w => w.EndsAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.HasIndex(w => w.BuyerId);
+        });
+        modelBuilder.Entity<Inspection>(e =>
+        {
+            e.HasKey(i => i.Id);
+            e.Property(i => i.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(i => i.Review).HasConversion<string>().HasMaxLength(20);
+            e.Property(i => i.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(i => i.EndUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(i => i.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(i => i.Vin).HasMaxLength(17).IsRequired();
+            e.Property(i => i.AskingPrice).HasPrecision(18, 2);
+            e.Property(i => i.ListingUrl).HasMaxLength(500);
+            e.Property(i => i.SellerName).HasMaxLength(100).IsRequired();
+            e.Property(i => i.SellerPhone).HasMaxLength(10).IsRequired();
+            e.HasIndex(i => i.CheckoutId).IsUnique();
+            e.HasIndex(i => i.BuyerId);
+            e.HasIndex(i => i.MechanicId);
         });
     }
 }

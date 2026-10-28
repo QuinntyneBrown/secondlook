@@ -2,7 +2,12 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router, Routes } from '@angular/router';
 import { AvailabilityPage } from './pages/availability-page';
 import { BillingPage } from './pages/billing-page';
+import { BookReviewPage } from './pages/book-review-page';
+import { BookSchedulePage } from './pages/book-schedule-page';
+import { BookVehiclePage } from './pages/book-vehicle-page';
+import { BookingConfirmedPage } from './pages/booking-confirmed-page';
 import { CheckoutPage } from './pages/checkout-page';
+import { InspectionDetailPage } from './pages/inspection-detail-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
 import { InspectionsPage } from './pages/inspections-page';
 import { ReadinessPage } from './pages/readiness-page';
@@ -26,6 +31,11 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordPage },
   { path: 'reset-password', component: ResetPasswordPage },
   { path: 'inspections', component: InspectionsPage, canActivate: [signedIn] },
+  { path: 'inspections/:id', component: InspectionDetailPage, canActivate: [signedIn] },
+  { path: 'book/vehicle', component: BookVehiclePage, canActivate: [signedIn] },
+  { path: 'book/review', component: BookReviewPage, canActivate: [signedIn] },
+  { path: 'book/schedule', component: BookSchedulePage, canActivate: [signedIn] },
+  { path: 'book/confirmed/:id', component: BookingConfirmedPage, canActivate: [signedIn] },
   { path: 'availability', component: AvailabilityPage, canActivate: [signedIn] },
   { path: 'vehicles', component: VehiclesPage, canActivate: [signedIn] },
   { path: 'checkout', component: CheckoutPage, canActivate: [signedIn] },

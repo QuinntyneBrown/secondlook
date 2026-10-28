@@ -43,9 +43,9 @@ export class HttpPaymentsApi implements PaymentsApi {
     return this.guard(this.http.post<CardToken>(`${this.base}/payments/tokens`, card));
   }
 
-  createCheckout(review: ReviewChoice, idempotencyKey: string) {
+  createCheckout(review: ReviewChoice, idempotencyKey: string, vehicleId?: string) {
     return this.guard(
-      this.http.post<Checkout>(`${this.base}/checkouts`, { review, idempotencyKey }),
+      this.http.post<Checkout>(`${this.base}/checkouts`, { review, idempotencyKey, vehicleId }),
     );
   }
 

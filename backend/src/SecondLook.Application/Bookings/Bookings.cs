@@ -1,0 +1,158 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using SecondLook.Application.Abstractions;
+using SecondLook.Application.Availability;
+using SecondLook.Application.Payments;
+using SecondLook.Application.Scoping;
+using SecondLook.Domain.Availability;
+using SecondLook.Domain.Inspections;
+using SecondLook.Domain.Payments;
+
+namespace SecondLook.Application.Bookings;
+
+public sealed record HoldDto(Guid HoldId, Guid ProviderId, string ProviderName, DateTimeOffset Start, DateTimeOffset End, DateTimeOffset ExpiresAt);
+
+public abstract record HoldResult
+{
+    public sealed record Held(HoldDto Hold) : HoldResult;
+    public sealed record Taken : HoldResult;
+}
+
+public sealed record HoldSlotCommand(Guid ProviderId, DateTimeOffset Start) : IRequest<HoldResult>;
+
+/// <summary>Takes a slot for 10 minutes. A buyer has one active hold: a new one releases the old (ADR 0008).</summary>
+public sealed class HoldSlotHandler(IAppDbContext db, ICurrentUser caller, IMediator mediator, TimeProvider clock) : IRequestHandler<HoldSlotCommand, HoldResult>
+{
+    public static readonly TimeSpan HoldFor = TimeSpan.FromMinutes(10);
+
+    public async Task<HoldResult> Handle(HoldSlotCommand c, CancellationToken ct)
+    {
+        var start = c.Start.ToUniversalTime();
+        var mine = await db.SlotReservations.Where(r => r.BuyerId == caller.Id && r.Status == ReservationStatus.Held).ToListAsync(ct);
+        var stillHeld = mine.Where(r => !(r.ProviderId == c.ProviderId && r.StartUtc == start)).ToList();
+
+        var result = await mediator.Send(new ReserveSlotCommand(c.ProviderId, start, ReservationStatus.Held, HoldFor, caller.Id), ct);
+        if (result is not ReserveSlotResult.Reserved reserved) return new HoldResult.Taken();
+
+        // Release the buyer's earlier holds only once the new one is secured.
+        var release = await db.SlotReservations.Where(r => r.BuyerId == caller.Id && r.Status == ReservationStatus.Held && r.Id != reserved.ReservationId).ToListAsync(ct);
+        foreach (var r in release) db.SlotReservations.Remove(r);
+        if (release.Count > 0) await db.SaveChangesAsync(ct);
+
+        var provider = await db.Users.FirstAsync(u => u.Id == c.ProviderId, ct);
+        var expires = clock.GetUtcNow() + HoldFor;
+        return new HoldResult.Held(new HoldDto(reserved.ReservationId, c.ProviderId, provider.DisplayName, start, start + AvailabilityWindow.SlotLength, expires));
+    }
+}
+
+public sealed record VehicleCopyDto(string Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
+
+public sealed record InspectionDto(Guid Id, string Status, DateTimeOffset Start, DateTimeOffset End, string? MechanicName, string Review, int AmountCents, VehicleCopyDto Vehicle, DateTimeOffset CreatedAt);
+
+internal static class InspectionMapper
+{
+    public static async Task<InspectionDto> ToDtoAsync(IAppDbContext db, Inspection i, CancellationToken ct)
+    {
+        var mechanic = i.MechanicId is { } id ? (await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct))?.DisplayName : null;
+        return new InspectionDto(i.Id, i.Status.ToString(), i.StartUtc, i.EndUtc, mechanic, i.Review.ToString(), i.AmountCents,
+            new VehicleCopyDto(i.Vin, i.OdometerKm, i.AskingPrice, i.ListingUrl, i.SellerName, i.SellerPhone), i.CreatedAt);
+    }
+}
+
+public abstract record ConfirmResult
+{
+    public sealed record Created(InspectionDto Inspection) : ConfirmResult;
+    public sealed record Existing(InspectionDto Inspection) : ConfirmResult;
+    public sealed record NotFound : ConfirmResult;
+    public sealed record PaymentRequired : ConfirmResult;
+    public sealed record SlotLost(bool Refunded) : ConfirmResult;
+}
+
+public sealed record ConfirmBookingCommand(Guid CheckoutId, Guid HoldId, Guid VehicleId) : IRequest<ConfirmResult>;
+
+/// <summary>Turns a paid checkout, a hold and a saved vehicle into exactly one inspection (ADR 0008).</summary>
+public sealed class ConfirmBookingHandler(IAppDbContext db, ICurrentUser caller, IMediator mediator, TimeProvider clock) : IRequestHandler<ConfirmBookingCommand, ConfirmResult>
+{
+    public async Task<ConfirmResult> Handle(ConfirmBookingCommand c, CancellationToken ct)
+    {
+        // A concurrent request that confirms the same checkout first (unique index) or a briefly busy database
+        // makes the save fail; looking again returns the winner's inspection (L2-029).
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await ConfirmOnce(c, ct);
+            }
+            catch (DbUpdateException) when (attempt < 6)
+            {
+                db.ChangeTracker.Clear();
+                await Task.Delay(40 * (attempt + 1), ct);
+            }
+        }
+    }
+
+    private async Task<ConfirmResult> ConfirmOnce(ConfirmBookingCommand c, CancellationToken ct)
+    {
+        var checkout = await db.Checkouts.ForBuyer(caller).FirstOrDefaultAsync(x => x.Id == c.CheckoutId, ct);
+        if (checkout is null) return new ConfirmResult.NotFound();
+
+        var existing = await db.Inspections.FirstOrDefaultAsync(i => i.CheckoutId == checkout.Id, ct);
+        if (existing is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, existing, ct));
+
+        var vehicle = await db.Vehicles.ForBuyer(caller).FirstOrDefaultAsync(v => v.Id == c.VehicleId && v.RemovedAt == null, ct);
+        if (vehicle is null) return new ConfirmResult.NotFound();
+        var anyHold = await db.SlotReservations.FirstOrDefaultAsync(r => r.Id == c.HoldId, ct);
+        if (anyHold is not null && anyHold.BuyerId != caller.Id) return new ConfirmResult.NotFound();
+        if (checkout.Status != CheckoutStatus.Paid) return new ConfirmResult.PaymentRequired();
+        var payment = await db.Payments.FirstAsync(p => p.CheckoutId == checkout.Id, ct);
+
+        // The hold row is gone when someone else took the slot after it expired: refund in full and say so.
+        if (anyHold is null || anyHold.Status == ReservationStatus.Booked)
+        {
+            // A concurrent request may have booked this very checkout a moment ago; never refund a booking that exists.
+            var winner = await db.Inspections.FirstOrDefaultAsync(i => i.CheckoutId == checkout.Id, ct);
+            if (winner is not null) return new ConfirmResult.Existing(await InspectionMapper.ToDtoAsync(db, winner, ct));
+            var refund = await mediator.Send(new RefundPaymentCommand(payment.Id, RefundReason.SlotUnavailable, null, false), ct);
+            return new ConfirmResult.SlotLost(refund is RefundResult.Refunded);
+        }
+
+        var now = clock.GetUtcNow();
+        anyHold.Status = ReservationStatus.Booked;
+        anyHold.ExpiresAt = null;
+        var inspection = new Inspection
+        {
+            Id = Guid.NewGuid(), BuyerId = caller.Id, MechanicId = anyHold.ProviderId, CheckoutId = checkout.Id, PaymentId = payment.Id,
+            SlotReservationId = anyHold.Id, Review = checkout.Review, StartUtc = anyHold.StartUtc, EndUtc = anyHold.StartUtc + AvailabilityWindow.SlotLength,
+            AmountCents = payment.AmountCents, CreatedAt = now,
+            Vin = vehicle.Vin, OdometerKm = vehicle.OdometerKm, AskingPrice = vehicle.AskingPrice, ListingUrl = vehicle.ListingUrl,
+            SellerName = vehicle.SellerName, SellerPhone = vehicle.SellerPhone,
+        };
+        db.Inspections.Add(inspection);
+        await db.SaveChangesAsync(ct);
+        return new ConfirmResult.Created(await InspectionMapper.ToDtoAsync(db, inspection, ct));
+    }
+}
+
+public sealed record ListInspectionsQuery : IRequest<IReadOnlyList<InspectionDto>>;
+
+public sealed class ListInspectionsHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<ListInspectionsQuery, IReadOnlyList<InspectionDto>>
+{
+    public async Task<IReadOnlyList<InspectionDto>> Handle(ListInspectionsQuery q, CancellationToken ct)
+    {
+        var rows = (await db.Inspections.ForCaller(caller).ToListAsync(ct)).OrderBy(i => i.StartUtc).ToList();
+        var list = new List<InspectionDto>();
+        foreach (var i in rows) list.Add(await InspectionMapper.ToDtoAsync(db, i, ct));
+        return list;
+    }
+}
+
+public sealed record GetInspectionQuery(Guid Id) : IRequest<InspectionDto?>;
+
+public sealed class GetInspectionHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<GetInspectionQuery, InspectionDto?>
+{
+    public async Task<InspectionDto?> Handle(GetInspectionQuery q, CancellationToken ct)
+    {
+        var i = await db.Inspections.ForCaller(caller).FirstOrDefaultAsync(x => x.Id == q.Id, ct);
+        return i is null ? null : await InspectionMapper.ToDtoAsync(db, i, ct);
+    }
+}

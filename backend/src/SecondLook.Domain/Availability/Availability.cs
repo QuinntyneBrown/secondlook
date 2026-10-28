@@ -36,6 +36,9 @@ public sealed class SlotReservation
     public Guid ProviderId { get; set; }
     public DateTimeOffset StartUtc { get; set; }
     public ReservationStatus Status { get; set; }
+
+    /// <summary>The buyer who holds or booked the slot (null for reservations made without a buyer).</summary>
+    public Guid? BuyerId { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
 
     public bool IsActive(DateTimeOffset now) => Status == ReservationStatus.Booked || (ExpiresAt is { } e && e > now);

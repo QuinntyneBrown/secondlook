@@ -73,3 +73,9 @@ The page shows the busy state, then the detail, the error state or the forbidden
 The page links to the mechanic profile and the call lobby, and opens the reschedule and cancel dialogs.
 
 ![Sequence diagram for choosing an action](diagrams/sequence-choose-action.png)
+
+## Implementation (J06)
+
+Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
+
+`GET /api/inspections/{id}` returns the inspection with its vehicle copy, mechanic name, review and amount; another user's inspection is 404. The detail page shows the vehicle, the scheduled time, the team and what was paid. Join, reschedule and cancel arrive with their own journeys.
