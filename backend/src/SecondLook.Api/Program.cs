@@ -7,7 +7,8 @@ using SecondLook.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSecondLookAuth(builder.Configuration);
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx =>
+    ctx.ProblemDetails.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier);
 
 var app = builder.Build();
 
@@ -18,6 +19,8 @@ if (DatabaseSettings.Provider(app.Configuration) == "Sqlite")
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
 }
 
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseAuthentication();
 app.UseAuthorization();

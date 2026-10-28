@@ -19,6 +19,14 @@ public static class PlatformEndpoints
         access.MapGet("/mechanic", () => Results.Ok(new { access = "mechanic" })).RequireAuthorization(Policies.Mechanic);
         access.MapGet("/body-shop", () => Results.Ok(new { access = "body-shop" })).RequireAuthorization(Policies.BodyShop);
         access.MapGet("/admin", () => Results.Ok(new { access = "admin" })).RequireAuthorization(Policies.Admin);
+
+        var env = app.ServiceProvider.GetRequiredService<IHostEnvironment>();
+        var config = app.ServiceProvider.GetRequiredService<IConfiguration>();
+        if (env.IsDevelopment() || config.GetValue<bool>("SecondLook:Diagnostics:EnableFaultEndpoint"))
+        {
+            group.MapGet("/diagnostics/fault", () => { throw new InvalidOperationException("deliberate platform fault"); })
+                .RequireAuthorization(Policies.Admin);
+        }
         return app;
     }
 }

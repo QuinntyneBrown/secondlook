@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace SecondLook.Api.Tests;
@@ -19,11 +21,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private readonly string _database = $"file:sl{Guid.NewGuid():N}?mode=memory&cache=shared";
     private SqliteConnection? _keepAlive;
 
+    public List<string> Logs { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _keepAlive = new SqliteConnection($"Data Source={_database}");
         _keepAlive.Open();
         builder.UseEnvironment("Development");
+        builder.ConfigureLogging(l => l.AddProvider(new CapturingLoggerProvider(Logs)));
         builder.UseSetting("SecondLook:Database:Provider", "Sqlite");
         builder.UseSetting("SecondLook:Database:ConnectionString", $"Data Source={_database}");
         builder.UseSetting("SecondLook:Jwt:Issuer", Issuer);
@@ -52,5 +57,21 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         base.Dispose(disposing);
         if (disposing) _keepAlive?.Dispose();
+    }
+}
+
+internal sealed class CapturingLoggerProvider(List<string> sink) : ILoggerProvider
+{
+    public ILogger CreateLogger(string categoryName) => new Capture(categoryName, sink);
+    public void Dispose() { }
+
+    private sealed class Capture(string category, List<string> sink) : ILogger
+    {
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+        {
+            lock (sink) sink.Add($"{category}|{logLevel}|{formatter(state, exception)}");
+        }
     }
 }
