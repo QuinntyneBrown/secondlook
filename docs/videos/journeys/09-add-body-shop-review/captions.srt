@@ -1,0 +1,119 @@
+1
+00:00:00,000 --> 00:00:03,340
+This is the implementation demo for journey nine.
+
+2
+00:00:03,340 --> 00:00:07,350
+It is the real application and API running on this machine,
+
+3
+00:00:07,350 --> 00:00:12,800
+with synthetic people and the local payment adapter, so nothing is ever charged.
+
+4
+00:00:12,800 --> 00:00:17,570
+It shows how a buyer adds a body shop review to a mechanic inspection.
+
+5
+00:00:18,720 --> 00:00:22,250
+A buyer starts a booking and enters the car's details.
+
+6
+00:00:22,250 --> 00:00:27,030
+On the review step there are three choices: mechanic, body shop, or both.
+
+7
+00:00:27,030 --> 00:00:30,430
+Body shop alone costs the same as a mechanic review.
+
+8
+00:00:30,430 --> 00:00:33,900
+Both adds twenty dollars, so the order shows seventy.
+
+9
+00:00:33,900 --> 00:00:35,340
+Now the schedule step.
+
+10
+00:00:35,340 --> 00:00:40,050
+A combined call needs a mechanic and a body shop on the same video call,
+
+11
+00:00:40,050 --> 00:00:43,000
+so only times when both are free are offered.
+
+12
+00:00:43,000 --> 00:00:47,770
+Here the mechanic is free from the hour and the body shop from half past,
+
+13
+00:00:47,770 --> 00:00:52,090
+so a single shared time appears, and picking it names both people.
+
+14
+00:00:52,090 --> 00:00:57,460
+The buyer pays and is booked, and the confirmation says both will inspect the car.
+
+15
+00:00:57,460 --> 00:01:00,860
+The inspection shows the mechanic and the body shop.
+
+16
+00:01:02,010 --> 00:01:05,960
+Slots can be asked for by kind: mechanic, body shop, or both,
+
+17
+00:01:05,960 --> 00:01:11,130
+and a combined slot exists only where both providers are free at the same start.
+
+18
+00:01:11,130 --> 00:01:15,400
+Holding a combined time takes both slots together, all or nothing.
+
+19
+00:01:15,400 --> 00:01:19,730
+If a second buyer asks for the same time, the answer is a conflict,
+
+20
+00:01:19,730 --> 00:01:21,670
+and nothing is left half held.
+
+21
+00:01:21,670 --> 00:01:25,680
+Once the call is booked, the shared time is no longer offered.
+
+22
+00:01:25,680 --> 00:01:28,840
+If the paid review does not match the held times,
+
+23
+00:01:28,840 --> 00:01:33,370
+the booking is refused without refunding, so the buyer can pick again.
+
+24
+00:01:33,370 --> 00:01:37,250
+Cancelling releases both slots, and rescheduling moves both.
+
+25
+00:01:37,250 --> 00:01:42,360
+These rules are written down as an architecture decision, and covered by tests.
+
+26
+00:01:43,510 --> 00:01:45,270
+Here is what to remember.
+
+27
+00:01:45,270 --> 00:01:49,790
+Body shop alone is the base price, and both adds twenty dollars.
+
+28
+00:01:49,790 --> 00:01:54,800
+A combined call needs a mechanic and a body shop free at the same time.
+
+29
+00:01:54,800 --> 00:01:57,830
+Both slots are held together or not at all.
+
+30
+00:01:57,830 --> 00:02:01,220
+Next, journey ten: join a live video inspection.

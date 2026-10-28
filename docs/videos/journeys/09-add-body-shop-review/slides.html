@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 09 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="09" data-video-title="Add a body shop review" data-parts="Introduction|Booking a combined call|The server decides|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 09</div>
+  <h1>Add a body shop review</h1>
+  <p class="lead">Mechanic, body shop or both; combined calls need both free</p>
+</section>
+
+<section id="app" data-part="1" data-cue="A buyer starts a booking and enters the car's details." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Both, $70, one shared time</h3>
+    <p class="muted">Local payment adapter: nothing is charged.</p>
+  </aside>
+</section>
+
+<section id="server" data-part="2" data-cue="Slots can be asked for by kind" data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Slots by kind, all-or-nothing hold</h3>
+    <p class="muted">ADR 0011: no new fee; both slots held together.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="3" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Body shop alone is the base price; both adds $20</li>
+    <li>A combined call needs both providers free together</li>
+    <li>Both slots are held together or not at all</li>
+  </ul>
+  <p class="small muted">Next: Journey 10, join a live video inspection</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
