@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
 using SecondLook.Domain.Availability;
+using SecondLook.Domain.Payments;
 using SecondLook.Domain.Users;
 using SecondLook.Domain.Vehicles;
 
@@ -13,6 +14,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<AvailabilityWindow> AvailabilityWindows => Set<AvailabilityWindow>();
     public DbSet<SlotReservation> SlotReservations => Set<SlotReservation>();
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    public DbSet<Checkout> Checkouts => Set<Checkout>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<PricingWindow> PricingWindows => Set<PricingWindow>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -64,6 +68,34 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(v => v.RemovedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
             e.Ignore(v => v.IsSaved);
             e.HasIndex(v => new { v.BuyerId, v.Vin });
+        });
+        modelBuilder.Entity<Checkout>(e =>
+        {
+            e.HasKey(c => c.Id);
+            e.Property(c => c.Review).HasConversion<string>().HasMaxLength(20);
+            e.Property(c => c.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(c => c.IdempotencyKey).HasMaxLength(100).IsRequired();
+            e.Property(c => c.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(c => new { c.BuyerId, c.IdempotencyKey }).IsUnique();
+        });
+        modelBuilder.Entity<Payment>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.Description).HasMaxLength(120);
+            e.Property(p => p.CardBrand).HasMaxLength(20);
+            e.Property(p => p.CardLast4).HasMaxLength(4);
+            e.Property(p => p.ProcessorReference).HasMaxLength(100);
+            e.Property(p => p.PaidAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(p => p.RefundedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.Ignore(p => p.Status);
+            e.HasIndex(p => p.CheckoutId).IsUnique();
+        });
+        modelBuilder.Entity<PricingWindow>(e =>
+        {
+            e.HasKey(w => w.Id);
+            e.Property(w => w.StartsAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(w => w.EndsAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(w => w.BuyerId);
         });
     }
 }
