@@ -301,6 +301,26 @@
       }
     },
     {
+      "id": "book-disclosure",
+      "kind": "page",
+      "title": "Book: disclosure",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error"
+      ],
+      "route": "/book/disclosure",
+      "requirements": [
+        "L2-066",
+        "L2-067"
+      ],
+      "not_applicable": {
+        "loading": "The disclosure is fixed, versioned copy that ships with the page; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
       "id": "book-schedule",
       "kind": "page",
       "title": "Book: schedule",

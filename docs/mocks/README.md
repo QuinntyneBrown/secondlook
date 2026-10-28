@@ -40,6 +40,8 @@ Fonts: the mocks name IBM Plex Sans and Plex Mono but do not load them from the 
 - **Region**: copy says "safety certified" (the Ontario term). For other provinces, "pass a safety inspection" travels better.
 - **Report timing**: "within an hour of the call" is an assumption.
 - **Call recordings**: kept 30 days, assumed.
+- **Disclosure step**: added between Review and Schedule so the buyer agrees before a slot is held or a card is charged. The wording is plain-language product copy and needs counsel review; whether a liability waiver is enforceable in Ontario is a legal question, not a design one.
+- **Photos and video**: the disclosure lists what the mechanic needs (photos, video with the engine running) but no upload step is mocked yet. Open question: does the buyer or the seller send them, and before or during the call?
 - **Mechanic profile, share link (14 days)** and the compare view are additions beyond the brief.
 
 ## Checking
@@ -80,6 +82,7 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 | Your inspections (`dashboard`) | [✅](pages/dashboard/default.html) | [✅](pages/dashboard/loading.html) | [✅](pages/dashboard/empty.html) | [✅](pages/dashboard/error.html) |  |  |  | [✅](pages/dashboard/long.html) | [✅](pages/dashboard/edge.html) |  |  |  |  |  |  |  |  |
 | Book: vehicle (`book-vehicle`) | [✅](pages/book-vehicle/default.html) | ➖ | ➖ | [✅](pages/book-vehicle/error.html) | [✅](pages/book-vehicle/invalid.html) | [✅](pages/book-vehicle/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |
 | Book: review type (`book-review-type`) | [✅](pages/book-review-type/default.html) | ➖ | ➖ | [✅](pages/book-review-type/error.html) |  | [✅](pages/book-review-type/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |
+| Book: disclosure (`book-disclosure`) | [✅](pages/book-disclosure/default.html) | ➖ | ➖ | [✅](pages/book-disclosure/error.html) | [✅](pages/book-disclosure/invalid.html) | [✅](pages/book-disclosure/submitting.html) |  |  |  |  |  |  |  |  |  |  | `L2-066`, `L2-067` |
 | Book: schedule (`book-schedule`) | [✅](pages/book-schedule/default.html) | [✅](pages/book-schedule/loading.html) | [✅](pages/book-schedule/empty.html) | [✅](pages/book-schedule/error.html) |  | [✅](pages/book-schedule/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |
 | Book: pay (`checkout`) | [✅](pages/checkout/default.html) | ➖ | ➖ | [✅](pages/checkout/error.html) | [✅](pages/checkout/invalid.html) | [✅](pages/checkout/submitting.html) |  |  |  |  |  |  |  |  |  |  |  |
 | Booking confirmed (`booking-confirmed`) | [✅](pages/booking-confirmed/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |

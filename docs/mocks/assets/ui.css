@@ -159,6 +159,7 @@ hr, .divider { border: 0; border-top: 1px solid var(--color-border-default); mar
 .choice input[type="checkbox"]:indeterminate { background: var(--color-accent); border-color: var(--color-accent); }
 .choice input[type="radio"]:checked::before, .choice input[type="radio"][data-state="checked"]::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--color-fg-on-accent); }
 .choice input:disabled, .choice input[data-state="disabled"] { background: var(--color-bg-subtle); border-color: var(--color-border-default); cursor: not-allowed; }
+.choice input:checked:disabled { background: var(--color-accent); border-color: var(--color-accent); opacity: 0.6; }
 .choice input:disabled + * { color: var(--color-fg-disabled); }
 .choice input[aria-invalid="true"] { border-color: var(--color-danger-solid); }
 .choice__text { display: flex; flex-direction: column; gap: var(--space-0-5); }
