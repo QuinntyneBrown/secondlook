@@ -21,8 +21,14 @@ public sealed class RescheduleSlotsHandler(IAppDbContext db, ICurrentUser caller
         // Within two weeks either side of the current call, and never in the past.
         var from = inspection.StartUtc.AddDays(-14);
         var now = clock.GetUtcNow();
-        var all = await mediator.Send(new ListSlotsQuery(from > now ? from : now, inspection.StartUtc.AddDays(14), "Mechanic"), ct);
-        return all.Slots.Where(s => s.ProviderId == inspection.MechanicId).ToList();
+        var (f, t) = (from > now ? from : now, inspection.StartUtc.AddDays(14));
+        // The same providers only (ADR 0011): the mechanic, the body shop, or the starts both of them share.
+        var mechanic = inspection.MechanicId is null ? null : (await mediator.Send(new ListSlotsQuery(f, t, "Mechanic"), ct)).Slots.Where(s => s.ProviderId == inspection.MechanicId).ToList();
+        var shop = inspection.BodyShopId is null ? null : (await mediator.Send(new ListSlotsQuery(f, t, "BodyShop"), ct)).Slots.Where(s => s.ProviderId == inspection.BodyShopId).ToList();
+        if (mechanic is null) return shop!;
+        if (shop is null) return mechanic;
+        var shared = shop.ToDictionary(s => s.Start);
+        return mechanic.Where(s => shared.ContainsKey(s.Start)).Select(s => s with { Kind = "Both", BodyShopId = shared[s.Start].ProviderId, BodyShopName = shared[s.Start].ProviderName }).ToList();
     }
 }
 
@@ -51,24 +57,37 @@ public sealed class RescheduleInspectionHandler(IAppDbContext db, ICurrentUser c
         var start = c.Start.ToUniversalTime();
         if (start == inspection.StartUtc) return new ChangeResult.Done(await InspectionMapper.ToDtoAsync(db, clock, inspection, ct));
         var oldReservation = inspection.SlotReservationId;
+        var oldShopReservation = inspection.BodyShopReservationId;
         var id = inspection.Id;
 
-        var reserved = await mediator.Send(new ReserveSlotCommand(inspection.MechanicId!.Value, start, ReservationStatus.Booked, null, caller.Id), ct);
+        var reserved = await mediator.Send(new ReserveSlotCommand(inspection.MechanicId ?? inspection.BodyShopId!.Value, start, ReservationStatus.Booked, null, caller.Id), ct);
         if (reserved is not ReserveSlotResult.Reserved r) return new ChangeResult.SlotUnavailable();
+        Guid? newShop = null;
+        if (inspection.MechanicId is not null && inspection.BodyShopId is { } shopId)
+        {
+            var second = await mediator.Send(new ReserveSlotCommand(shopId, start, ReservationStatus.Booked, null, caller.Id), ct);
+            if (second is not ReserveSlotResult.Reserved sr)
+            {
+                await db.SlotReservations.Where(x => x.Id == r.ReservationId).ExecuteDeleteAsync(ct);
+                db.ChangeTracker.Clear();
+                return new ChangeResult.SlotUnavailable();
+            }
+            newShop = sr.ReservationId;
+        }
 
         var end = start + AvailabilityWindow.SlotLength;
         var moved = await db.Inspections
             .Where(i => i.Id == id && i.Status == InspectionStatus.Scheduled && i.SlotReservationId == oldReservation)
-            .ExecuteUpdateAsync(set => set.SetProperty(i => i.StartUtc, start).SetProperty(i => i.EndUtc, end).SetProperty(i => i.SlotReservationId, r.ReservationId), ct);
+            .ExecuteUpdateAsync(set => set.SetProperty(i => i.StartUtc, start).SetProperty(i => i.EndUtc, end).SetProperty(i => i.SlotReservationId, r.ReservationId).SetProperty(i => i.BodyShopReservationId, newShop), ct);
 
         db.ChangeTracker.Clear();
         if (moved == 0)
         {
             // The inspection changed meanwhile (cancelled or moved elsewhere): give back the slot taken for this attempt.
-            await db.SlotReservations.Where(x => x.Id == r.ReservationId).ExecuteDeleteAsync(ct);
+            await db.SlotReservations.Where(x => x.Id == r.ReservationId || x.Id == newShop).ExecuteDeleteAsync(ct);
             return new ChangeResult.NotAllowed();
         }
-        await db.SlotReservations.Where(x => x.Id == oldReservation).ExecuteDeleteAsync(ct);
+        await db.SlotReservations.Where(x => x.Id == oldReservation || x.Id == oldShopReservation).ExecuteDeleteAsync(ct);
         var fresh = await db.Inspections.FirstAsync(i => i.Id == id, ct);
         return new ChangeResult.Done(await InspectionMapper.ToDtoAsync(db, clock, fresh, ct));
     }
@@ -98,13 +117,14 @@ public sealed class CancelInspectionHandler(IAppDbContext db, ICurrentUser calle
         var hoursBefore = (int)Math.Floor((inspection.StartUtc - now).TotalHours);
         var paymentId = inspection.PaymentId;
         var reservation = inspection.SlotReservationId;
+        var shopReservation = inspection.BodyShopReservationId;
         var won = await db.Inspections
             .Where(i => i.Id == id && i.Status == InspectionStatus.Scheduled)
             .ExecuteUpdateAsync(set => set.SetProperty(i => i.Status, InspectionStatus.Cancelled).SetProperty(i => i.CancelledAt, now).SetProperty(i => i.CancelReason, reason), ct);
         db.ChangeTracker.Clear();
         if (won == 0) return await Settled(id, ct);
 
-        await db.SlotReservations.Where(r => r.Id == reservation).ExecuteDeleteAsync(ct);
+        await db.SlotReservations.Where(r => r.Id == reservation || r.Id == shopReservation).ExecuteDeleteAsync(ct);
         var refund = await mediator.Send(new RefundPaymentCommand(paymentId, RefundReason.BuyerCancelled, hoursBefore, false), ct);
         var (refunded, retained) = refund is RefundResult.Refunded rr ? (rr.AmountCents, rr.RetainedCents) : (0, 0);
         await db.Inspections.Where(i => i.Id == id)

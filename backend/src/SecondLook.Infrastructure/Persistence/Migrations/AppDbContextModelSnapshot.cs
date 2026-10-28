@@ -91,6 +91,9 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("BodyShopId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BodyShopReservationId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("BuyerId")
                         .HasColumnType("uniqueidentifier");
 
