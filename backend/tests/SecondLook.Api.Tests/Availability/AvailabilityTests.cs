@@ -141,6 +141,9 @@ public class AvailabilityTests : IClassFixture<ApiFactory>
         var client = _factory.CreateClient();
         client.DefaultRequestHeaders.Authorization = new("Bearer", token);
         (await client.PostAsJsonAsync("/api/availability", Window(NextDay()))).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var list = await client.GetAsync("/api/availability");
+        list.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await list.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("title").GetString().Should().Be("Your account isn’t approved yet");
     }
 
     // L2-061 AC2: slots are 30-minute steps through the window, for approved providers only.

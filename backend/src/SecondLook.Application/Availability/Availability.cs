@@ -12,12 +12,15 @@ public sealed record WindowDto(Guid Id, DateTimeOffset Start, DateTimeOffset End
     public static WindowDto From(AvailabilityWindow w) => new(w.Id, w.StartUtc, w.EndUtc);
 }
 
-public sealed record GetAvailabilityQuery : IRequest<IReadOnlyList<WindowDto>>;
+/// <summary>The caller's windows, or null when the caller is not an approved provider.</summary>
+public sealed record GetAvailabilityQuery : IRequest<IReadOnlyList<WindowDto>?>;
 
-public sealed class GetAvailabilityHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<GetAvailabilityQuery, IReadOnlyList<WindowDto>>
+public sealed class GetAvailabilityHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<GetAvailabilityQuery, IReadOnlyList<WindowDto>?>
 {
-    public async Task<IReadOnlyList<WindowDto>> Handle(GetAvailabilityQuery q, CancellationToken ct)
+    public async Task<IReadOnlyList<WindowDto>?> Handle(GetAvailabilityQuery q, CancellationToken ct)
     {
+        var provider = await db.Users.FirstOrDefaultAsync(u => u.Id == caller.Id, ct);
+        if (provider is null || !provider.CanTakeInspections) return null;
         var rows = await db.AvailabilityWindows.Where(w => w.ProviderId == caller.Id).ToListAsync(ct);
         return rows.OrderBy(w => w.StartUtc).Select(WindowDto.From).ToList();
     }

@@ -13,7 +13,8 @@ public static class AvailabilityEndpoints
         // The caller is always the provider: no provider id is accepted from the request (ADR 0005).
         var mine = app.MapGroup("/api/availability").RequireAuthorization(Policies.Provider);
 
-        mine.MapGet("", async (IMediator m, CancellationToken ct) => Results.Ok(await m.Send(new GetAvailabilityQuery(), ct)));
+        mine.MapGet("", async (IMediator m, CancellationToken ct) =>
+            await m.Send(new GetAvailabilityQuery(), ct) is { } list ? Results.Ok(list) : Respond(new WindowResult.NotApproved()));
 
         mine.MapPost("", async (WindowRequest r, IMediator m, CancellationToken ct) =>
             Respond(await m.Send(new AddWindowCommand(r.Start, r.End), ct)));
