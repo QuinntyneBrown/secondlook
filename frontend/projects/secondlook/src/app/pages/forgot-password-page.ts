@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AUTH_API } from 'api';
-import { Button } from 'components';
-import { Alert } from '../ui/alert';
+import { Alert, Button, FormField } from 'components';
 import { AuthLayout } from '../ui/auth-layout';
-import { FormField } from '../ui/form-field';
 
 @Component({
   selector: 'sl-forgot-password-page',

@@ -1,0 +1,119 @@
+1
+00:00:00,000 --> 00:00:03,220
+This is the implementation demo for journey two.
+
+2
+00:00:03,220 --> 00:00:07,590
+It is the real admin application and API running on this machine,
+
+3
+00:00:07,590 --> 00:00:11,760
+with synthetic people and a local mailbox that sends no email.
+
+4
+00:00:11,760 --> 00:00:16,930
+It shows how an administrator decides which mechanics and body shops can take
+
+5
+00:00:16,930 --> 00:00:17,740
+inspections.
+
+6
+00:00:18,890 --> 00:00:22,670
+The administrator signs in and lands on the provider list.
+
+7
+00:00:22,670 --> 00:00:26,390
+Each provider shows a kind, licence, location and status.
+
+8
+00:00:26,390 --> 00:00:29,400
+The two seeded providers are already approved.
+
+9
+00:00:29,400 --> 00:00:33,120
+Providers who register themselves arrive here as pending.
+
+10
+00:00:34,270 --> 00:00:37,200
+To add a provider, open the onboard dialog.
+
+11
+00:00:37,200 --> 00:00:42,800
+With a bad email and nothing else filled in, the dialog lists exactly what to fix.
+
+12
+00:00:42,800 --> 00:00:44,300
+Now a valid body shop.
+
+13
+00:00:44,300 --> 00:00:48,880
+It is added as pending, which means it cannot take inspections yet,
+
+14
+00:00:48,880 --> 00:00:52,220
+and it is emailed a link to set its own password.
+
+15
+00:00:53,370 --> 00:00:58,660
+Approving asks for confirmation, then the shop shows as approved and can take
+
+16
+00:00:58,660 --> 00:00:59,480
+inspections.
+
+17
+00:00:59,480 --> 00:01:04,090
+Deactivating also asks, and the safe choice, cancel, has the focus.
+
+18
+00:01:04,090 --> 00:01:09,240
+The dialog explains that inspections already booked stay with the provider,
+
+19
+00:01:09,240 --> 00:01:10,890
+and only new work stops.
+
+20
+00:01:10,890 --> 00:01:14,320
+After deactivating, the shop shows as deactivated,
+
+21
+00:01:14,320 --> 00:01:16,870
+and one more approval brings it back.
+
+22
+00:01:18,020 --> 00:01:20,630
+Only administrators can do any of this.
+
+23
+00:01:20,630 --> 00:01:25,710
+A buyer who signs in to the admin app is told it is for administrators only,
+
+24
+00:01:25,710 --> 00:01:29,990
+and the API refuses the same requests with a forbidden response.
+
+25
+00:01:31,140 --> 00:01:32,950
+Here is what to remember.
+
+26
+00:01:32,950 --> 00:01:34,980
+New providers start pending.
+
+27
+00:01:34,980 --> 00:01:38,020
+Approval lets a provider take inspections,
+
+28
+00:01:38,020 --> 00:01:42,860
+and deactivation stops new work without touching existing bookings.
+
+29
+00:01:42,860 --> 00:01:47,420
+Every change is confirmed, and only administrators can make it.
+
+30
+00:01:47,420 --> 00:01:50,390
+Next, journey three: manage availability.

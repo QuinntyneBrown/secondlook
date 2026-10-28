@@ -11,4 +11,6 @@ export const AllRenderTypes = [
 export const scenarioRenderTypes = {
   Button: AllRenderTypes,
   EmptyState: AllRenderTypes,
+  Alert: AllRenderTypes,
+  FormField: AllRenderTypes,
 };

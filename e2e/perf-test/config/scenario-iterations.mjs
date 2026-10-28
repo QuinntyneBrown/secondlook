@@ -4,4 +4,6 @@
 export const scenarioIterations = {
   Button: 500,
   EmptyState: 500,
+  Alert: 500,
+  FormField: 500,
 };

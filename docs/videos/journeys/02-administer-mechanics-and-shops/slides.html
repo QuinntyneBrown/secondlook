@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 02 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="02" data-video-title="Administer mechanics and shops" data-parts="Introduction|The admin app|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 02</div>
+  <h1>Administer mechanics and shops</h1>
+  <p class="lead">Onboard, approve and deactivate providers on the real stack</p>
+</section>
+
+<section id="admin" data-part="1" data-cue="The administrator signs in and lands on the provider list." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real admin app</span>
+    <h3>Pending, approved, deactivated</h3>
+    <p class="muted">Chromium against the real API. The mailbox is a local adapter; no email is sent.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="2" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>New providers start pending</li>
+    <li>Deactivation stops new work; existing bookings stay</li>
+    <li>Every change is confirmed; administrators only</li>
+  </ul>
+  <p class="small muted">Next: Journey 03, manage availability</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

@@ -11,3 +11,12 @@ export {
   type SignedIn,
 } from './lib/auth-api';
 export { provideApi } from './lib/provide-api';
+export {
+  ADMIN_PROVIDERS_API,
+  type AdminProvidersApi,
+  type ApprovalStatus,
+  type OnboardProvider,
+  type Provider,
+  type ProviderFilter,
+  type ProviderKind,
+} from './lib/admin-providers-api';

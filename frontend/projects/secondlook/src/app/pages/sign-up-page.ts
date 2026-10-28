@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ApiProblem, AUTH_API } from 'api';
-import { Button } from 'components';
-import { Alert, SummaryItem } from '../ui/alert';
+import { Alert, Button, FormField, SummaryItem } from 'components';
 import { AuthLayout } from '../ui/auth-layout';
-import { FormField } from '../ui/form-field';
 
 export const PENDING_EMAIL_KEY = 'secondlook.pendingEmail';
 

@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiProblem, AUTH_API } from 'api';
-import { Button } from 'components';
-import { Alert } from '../ui/alert';
+import { Alert, Button } from 'components';
 import { AuthLayout } from '../ui/auth-layout';
 import { PENDING_EMAIL_KEY } from './sign-up-page';
 
