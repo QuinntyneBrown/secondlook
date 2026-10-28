@@ -65,3 +65,7 @@ The handler creates the user with a provider role and the `Provider`, or returns
 The shared sign-in handler verifies the credentials and issues a JWT whose role claim is `Mechanic` or `BodyShop`.
 
 ![Sequence diagram for signing in as a mechanic or body shop](diagrams/sequence-sign-in-as-provider.png)
+
+## Implementation (J01)
+
+Providers register through the same `POST /api/auth/register` with `role` `Mechanic` or `BodyShop`, are created unapproved, and sign in as their own role. They gain no approval or administrator privilege from registering.

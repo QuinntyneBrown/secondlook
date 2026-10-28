@@ -35,11 +35,16 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
     public List<string> Logs { get; } = new();
 
+    public TestClock Clock { get; } = new();
+
+    public SecondLook.Application.Accounts.LocalMailbox Mailbox => Services.GetRequiredService<SecondLook.Application.Accounts.LocalMailbox>();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         _keepAlive = new SqliteConnection($"Data Source={_database}");
         _keepAlive.Open();
         builder.UseEnvironment(_environment);
+        builder.ConfigureServices(sv => sv.AddSingleton<TimeProvider>(Clock));
         builder.ConfigureLogging(l => l.AddProvider(new CapturingLoggerProvider(Logs)));
         builder.UseSetting("SecondLook:Database:Provider", _provider);
         builder.UseSetting("SecondLook:Database:ConnectionString", $"Data Source={_database}");
@@ -100,4 +105,12 @@ internal sealed class CapturingLoggerProvider(List<string> sink) : ILoggerProvid
             lock (sink) sink.Add($"{category}|{logLevel}|{formatter(state, exception)}");
         }
     }
+}
+
+/// <summary>A clock tests can move forward to expire links.</summary>
+public sealed class TestClock : TimeProvider
+{
+    private TimeSpan _offset;
+    public void Advance(TimeSpan by) => _offset += by;
+    public override DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow + _offset;
 }

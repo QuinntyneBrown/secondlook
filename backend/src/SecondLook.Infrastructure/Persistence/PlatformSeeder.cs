@@ -6,6 +6,9 @@ namespace SecondLook.Infrastructure.Persistence;
 /// <summary>Synthetic identities for local, e2e and demo hosts. Safe to re-run.</summary>
 public static class PlatformSeeder
 {
+    /// <summary>Synthetic, public password of the seeded local identities. Never used outside local, test and demo hosts.</summary>
+    public const string SyntheticPassword = "Password-123!";
+
     public static readonly (Guid Id, string Email, string Name, UserRole Role)[] Identities =
     [
         (Guid.Parse("00000000-0000-0000-0000-000000000b01"), "buyer@example.test", "Sam Buyer", UserRole.Buyer),
@@ -16,9 +19,19 @@ public static class PlatformSeeder
 
     public static async Task SeedAsync(AppDbContext db, CancellationToken ct = default)
     {
-        var existing = await db.Users.Select(u => u.Email).ToListAsync(ct);
-        foreach (var (id, email, name, role) in Identities.Where(i => !existing.Contains(i.Email)))
-            db.Users.Add(new User { Id = id, Email = email, DisplayName = name, Role = role, IsActive = true });
+        var hash = new Auth.IdentityPasswordHasher().Hash(SyntheticPassword);
+        var existing = await db.Users.ToListAsync(ct);
+        foreach (var (id, email, name, role) in Identities)
+        {
+            var user = existing.FirstOrDefault(u => u.Email == email);
+            if (user is null)
+                db.Users.Add(new User { Id = id, Email = email, DisplayName = name, Role = role, IsActive = true, EmailVerified = true, PasswordHash = hash });
+            else if (user.PasswordHash is null)
+            {
+                user.PasswordHash = hash;
+                user.EmailVerified = true;
+            }
+        }
         await db.SaveChangesAsync(ct);
     }
 }

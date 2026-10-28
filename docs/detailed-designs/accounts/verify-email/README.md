@@ -72,3 +72,7 @@ The page shows the verifying state, then the verified state for a valid token or
 The holder asks for a new link from the check-your-email state or after expiry. The handler issues a token and mails it.
 
 ![Sequence diagram for resending the verification email](diagrams/sequence-resend-verification.png)
+
+## Implementation (J01)
+
+`POST /api/auth/verify-email` `{token}` returns 200, 410 `That link has expired` (24 h) or 400 for an unknown or used token; `POST /api/auth/resend-verification` `{email}` always returns 202. Tokens are 32 random bytes, stored as SHA-256 hashes in `AccountTokens`, single use. Mail goes through `IEmailSender`; the local adapter `LocalMailbox` keeps mail in memory and, in Development only, `GET /api/platform/diagnostics/mailbox` returns the last token for tests and demos.

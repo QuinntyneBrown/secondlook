@@ -61,3 +61,7 @@ The Angular app holds the session and calls `SecondLook.Api` with the JWT.
 The buyer cancels, or confirms and the dialog shows the busy state until the session is cleared.
 
 ![Sequence diagram for signing out](diagrams/sequence-sign-out.png)
+
+## Implementation (J01)
+
+`POST /api/auth/logout` (authenticated) returns 204. Sessions are stateless JWTs, so signing out discards the token in the client (`Session.end`) after the confirmation dialog of `L2-013`; the dialog is a CDK Dialog in `projects/secondlook/src/app/dialogs/`.

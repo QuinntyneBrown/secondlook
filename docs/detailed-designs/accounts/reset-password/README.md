@@ -79,3 +79,7 @@ The handler creates and mails a token for an existing account and returns the sa
 The page checks the token on load, then validates and saves the new password. A valid save issues a JWT, and an expired token shows the expiry alert.
 
 ![Sequence diagram for choosing a new password](diagrams/sequence-choose-new-password.png)
+
+## Implementation (J01)
+
+`POST /api/auth/forgot-password` `{email}` returns 202 whether or not the account exists (400 for an invalid email); `POST /api/auth/reset-password` `{token,newPassword,confirmPassword}` returns 200 `{token}` (signed in), 400 validation problem or unknown link, or 410 `That link has expired` (30 min). A used link cannot be reused; resetting also marks the email verified.

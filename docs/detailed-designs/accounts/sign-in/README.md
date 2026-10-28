@@ -87,3 +87,7 @@ The page validates email and password before the request, moves focus to the sum
 The bearer middleware skips anonymous endpoints, accepts a valid token, and returns `401` otherwise.
 
 ![Sequence diagram for authenticating a request](diagrams/sequence-authenticate-request.png)
+
+## Implementation (J01)
+
+`POST /api/auth/login` `{email,password}` returns 200 `{token,role,isApproved,displayName}`, 400 validation problem, 403 `Verify your email to sign in`, or 401 `That email and password don’t match` (identical for unknown email and wrong password). The token is the J00 local JWT. Providers can sign in without being approved; approval gates taking inspections (L2-064).
