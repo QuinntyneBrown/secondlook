@@ -1,0 +1,135 @@
+1
+00:00:00,000 --> 00:00:03,540
+This is the implementation demo for the platform gate.
+
+2
+00:00:03,540 --> 00:00:07,480
+Unlike videos one to three, which walk through design mocks,
+
+3
+00:00:07,480 --> 00:00:11,220
+everything here is the real code running on this machine,
+
+4
+00:00:11,220 --> 00:00:15,020
+against a throwaway SQLite database with synthetic people.
+
+5
+00:00:15,020 --> 00:00:20,140
+It shows how a clean checkout becomes a working platform in about two minutes.
+
+6
+00:00:21,290 --> 00:00:23,070
+Start with the database.
+
+7
+00:00:23,070 --> 00:00:28,590
+Migration is an explicit command, and the API never applies it on startup.
+
+8
+00:00:28,590 --> 00:00:34,690
+The start script runs migrate, then seed, then launches the API and waits until it
+
+9
+00:00:34,690 --> 00:00:35,740
+reports ready.
+
+10
+00:00:35,740 --> 00:00:39,830
+Seed is safe to run again: the second run adds nothing.
+
+11
+00:00:39,830 --> 00:00:43,860
+And seed on a file that was never migrated is refused,
+
+12
+00:00:43,860 --> 00:00:47,130
+with a message telling you to migrate first.
+
+13
+00:00:48,280 --> 00:00:49,650
+Now the access rules.
+
+14
+00:00:49,650 --> 00:00:52,130
+The health endpoint is open to anyone.
+
+15
+00:00:52,130 --> 00:00:57,290
+Every other endpoint needs a token, so a request without one gets a four oh one
+
+16
+00:00:57,290 --> 00:00:58,400
+problem response.
+
+17
+00:00:58,400 --> 00:01:01,470
+We issue a local token for the synthetic buyer,
+
+18
+00:01:01,470 --> 00:01:06,880
+shown here with the secret part hidden, and the same request now succeeds and names
+
+19
+00:01:06,880 --> 00:01:07,600
+the caller.
+
+20
+00:01:07,600 --> 00:01:12,430
+That buyer token on an admin endpoint is turned away with a four oh three.
+
+21
+00:01:12,430 --> 00:01:17,390
+And when the server really does fail, the caller gets a five hundred problem
+
+22
+00:01:17,390 --> 00:01:20,850
+response with a trace identifier, and no stack trace.
+
+23
+00:01:22,000 --> 00:01:26,340
+The buyer app starts and asks the real API whether it is ready.
+
+24
+00:01:26,340 --> 00:01:31,570
+An address that does not exist shows the four oh four page, with a way back.
+
+25
+00:01:31,570 --> 00:01:34,120
+Now we cut the connection to the API.
+
+26
+00:01:34,120 --> 00:01:39,080
+The app shows the five hundred page, with try again and contact support.
+
+27
+00:01:39,080 --> 00:01:43,550
+We restore the connection, press try again, and the app recovers.
+
+28
+00:01:44,700 --> 00:01:46,540
+Here is what to remember.
+
+29
+00:01:46,540 --> 00:01:50,200
+Migration and seeding are explicit and repeatable.
+
+30
+00:01:50,200 --> 00:01:55,550
+Endpoints require a valid token by default, and roles decide who gets in.
+
+31
+00:01:55,550 --> 00:01:59,000
+Failures are calm, structured, and recoverable.
+
+32
+00:01:59,000 --> 00:02:03,250
+Payments and video calls are local stand-ins in this gate,
+
+33
+00:02:03,250 --> 00:02:05,890
+and no real charge or email is made.
+
+34
+00:02:05,890 --> 00:02:08,750
+Next, journey one: sign up and sign in.

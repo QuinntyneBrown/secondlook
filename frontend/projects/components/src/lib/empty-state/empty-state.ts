@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  afterNextRender,
+  input,
+  viewChild,
+} from '@angular/core';
 
 /** A full-page system state: code, title, explanation and actions (404, 403, 500, offline, maintenance). */
 @Component({
@@ -7,7 +14,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="empty empty--error">
       <p class="mono text-muted">{{ code() }}</p>
-      <h1 class="empty__title">{{ title() }}</h1>
+      <h1 #heading class="empty__title" tabindex="-1">{{ title() }}</h1>
       <p class="empty__text">{{ text() }}</p>
       <div class="empty__actions"><ng-content select="[slot=actions]" /></div>
     </div>
@@ -32,6 +39,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       font-size: var(--fontSizeBase300);
     }
     .empty__title {
+      outline: none;
       margin: 0;
       font-size: var(--fontSizeBase500);
       font-weight: var(--fontWeightSemibold);
@@ -53,4 +61,10 @@ export class EmptyState {
   readonly code = input.required<string>();
   readonly title = input.required<string>();
   readonly text = input.required<string>();
+  private readonly heading = viewChild.required<ElementRef<HTMLElement>>('heading');
+
+  constructor() {
+    // A system page replaces the screen, so keyboard and screen-reader users start at its heading.
+    afterNextRender(() => this.heading().nativeElement.focus());
+  }
 }

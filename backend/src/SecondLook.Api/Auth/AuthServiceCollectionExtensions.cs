@@ -1,7 +1,11 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SecondLook.Application.Scoping;
+using SecondLook.Domain.Users;
+using SecondLook.Infrastructure.Persistence;
 
 namespace SecondLook.Api.Auth;
 
@@ -40,7 +44,20 @@ public static class AuthServiceCollectionExtensions
                     NameClaimType = "sub",
                     RoleClaimType = "role",
                 };
+                // A valid signature is not enough: the user must still exist and be active (L2-069 AC4).
+                o.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var sub = context.Principal?.FindFirst("sub")?.Value;
+                        var db = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                        if (!Guid.TryParse(sub, out var id) || !await db.Users.AnyAsync(u => u.Id == id && u.IsActive))
+                            context.Fail("Unknown or inactive user.");
+                    },
+                };
             });
+        services.AddScoped<ICurrentUser, HttpCurrentUser>();
+        services.AddHttpContextAccessor();
 
         services.AddAuthorizationBuilder()
             .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
@@ -50,4 +67,14 @@ public static class AuthServiceCollectionExtensions
             .AddPolicy(Policies.Admin, p => p.RequireRole(Policies.Admin));
         return services;
     }
+}
+
+/// <summary>The caller as seen by handlers, read from the validated token only.</summary>
+public sealed class HttpCurrentUser(IHttpContextAccessor accessor) : ICurrentUser
+{
+    private System.Security.Claims.ClaimsPrincipal Principal =>
+        accessor.HttpContext?.User ?? throw new InvalidOperationException("No authenticated caller.");
+
+    public Guid Id => Guid.Parse(Principal.FindFirst("sub")!.Value);
+    public UserRole Role => Enum.Parse<UserRole>(Principal.FindFirst("role")!.Value);
 }

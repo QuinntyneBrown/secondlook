@@ -23,8 +23,17 @@ test.describe("Buyer shell smoke (J00)", () => {
     );
   });
 
+  // L2-072 AC5: a system page puts keyboard focus on its heading.
+  test("a system page focuses its heading", async ({ page }) => {
+    const shell = new ShellPage(page);
+    await shell.open("/no/such/page");
+    await shell.systemState.expectHeadingFocused("We can’t find that page");
+  });
+
   // L2-059 AC2: forbidden state copy.
-  test("the forbidden state explains the inspection is not on the account", async ({ page }) => {
+  test("the forbidden state explains the inspection is not on the account", async ({
+    page,
+  }) => {
     const shell = new ShellPage(page);
     await shell.open("/forbidden");
     await shell.systemState.expectShown(
@@ -55,7 +64,9 @@ test.describe("Buyer shell smoke (J00)", () => {
   });
 
   // L2-060 AC2 / L2-071: when the API fails the shell shows the 500 state and recovers on Try again.
-  test("a failing API shows the server-error state and recovers", async ({ page }) => {
+  test("a failing API shows the server-error state and recovers", async ({
+    page,
+  }) => {
     const shell = new ShellPage(page);
     await shell.breakApi();
     await shell.open("/");

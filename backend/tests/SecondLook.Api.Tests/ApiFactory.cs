@@ -8,6 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using SecondLook.Infrastructure.Persistence;
 
 namespace SecondLook.Api.Tests;
 
@@ -18,6 +19,17 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     public const string Audience = "secondlook-api-tests";
     public const string SigningKey = "test-only-signing-key-0123456789-abcdefghijklmnop";
 
+    private readonly string _provider;
+    private readonly string _environment;
+
+    public ApiFactory() : this("Sqlite") { }
+
+    internal ApiFactory(string provider, string environment = "Development")
+    {
+        _provider = provider;
+        _environment = environment;
+    }
+
     private readonly string _database = $"file:sl{Guid.NewGuid():N}?mode=memory&cache=shared";
     private SqliteConnection? _keepAlive;
 
@@ -27,23 +39,37 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     {
         _keepAlive = new SqliteConnection($"Data Source={_database}");
         _keepAlive.Open();
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment(_environment);
         builder.ConfigureLogging(l => l.AddProvider(new CapturingLoggerProvider(Logs)));
-        builder.UseSetting("SecondLook:Database:Provider", "Sqlite");
+        builder.UseSetting("SecondLook:Database:Provider", _provider);
         builder.UseSetting("SecondLook:Database:ConnectionString", $"Data Source={_database}");
         builder.UseSetting("SecondLook:Jwt:Issuer", Issuer);
         builder.UseSetting("SecondLook:Jwt:Audience", Audience);
         builder.UseSetting("SecondLook:Jwt:SigningKey", SigningKey);
     }
 
+    private bool _seeded;
+
+    public void EnsureSeeded()
+    {
+        if (_seeded) return;
+        using var scope = Services.CreateScope();
+        PlatformSeeder.SeedAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>()).GetAwaiter().GetResult();
+        _seeded = true;
+    }
+
+    /// <summary>The seeded identity for a role, so tokens match an active user.</summary>
+    public static Guid SeededId(string role) => PlatformSeeder.Identities.First(i => i.Role.ToString() == role).Id;
+
     public HttpClient ClientFor(string? role, Guid? userId = null, DateTime? expires = null,
         string signingKey = SigningKey, string issuer = Issuer)
     {
         var client = CreateClient();
+        EnsureSeeded();
         if (role is null) return client;
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, (userId ?? Guid.NewGuid()).ToString()),
+            new(JwtRegisteredClaimNames.Sub, (userId ?? SeededId(role)).ToString()),
             new("role", role),
         };
         var creds = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)), SecurityAlgorithms.HmacSha256);

@@ -1,4 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using SecondLook.Api.Auth;
+using SecondLook.Application.Scoping;
+using SecondLook.Infrastructure.Persistence;
 
 namespace SecondLook.Api.Platform;
 
@@ -8,11 +11,11 @@ public static class PlatformEndpoints
     {
         var group = app.MapGroup("/api/platform");
 
-        group.MapGet("/me", (HttpContext http) => Results.Ok(new
+        group.MapGet("/me", async (ICurrentUser caller, AppDbContext db, CancellationToken ct) =>
         {
-            userId = Guid.Parse(http.User.FindFirst("sub")!.Value),
-            role = http.User.FindFirst("role")?.Value,
-        }));
+            var user = await db.Users.SingleAsync(u => u.Id == caller.Id, ct);
+            return Results.Ok(new { userId = user.Id, email = user.Email, displayName = user.DisplayName, role = user.Role.ToString() });
+        });
 
         var access = group.MapGroup("/access");
         access.MapGet("/buyer", () => Results.Ok(new { access = "buyer" })).RequireAuthorization(Policies.Buyer);

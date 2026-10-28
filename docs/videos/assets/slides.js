@@ -43,7 +43,8 @@
     const part = Number(section.dataset.part || 0);
     const header = document.createElement('div');
     header.className = 'slide-header';
-    header.innerHTML = '<img alt="" src="../assets/mark.svg"><span></span><span class="part"></span>';
+    const assets = document.querySelector('link[href$="slides.css"]').getAttribute('href').replace('slides.css', '');
+    header.innerHTML = '<img alt="" src="' + assets + 'mark.svg"><span></span><span class="part"></span>';
     header.children[1].textContent = `SecondLook · Video ${body.dataset.videoNumber} · ${body.dataset.videoTitle}`;
     header.children[2].textContent = parts[part] || '';
     section.prepend(header);

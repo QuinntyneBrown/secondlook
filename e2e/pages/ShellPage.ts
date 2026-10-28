@@ -4,13 +4,31 @@ import { expect, type Page } from "@playwright/test";
 export class SystemStatePage {
   constructor(private readonly page: Page) {}
 
-  async expectShown(code: string, title: string, text: string, actions: string[]) {
+  async expectShown(
+    code: string,
+    title: string,
+    text: string,
+    actions: string[],
+  ) {
     await expect(this.page.getByText(code, { exact: true })).toBeVisible();
-    await expect(this.page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+    await expect(
+      this.page.getByRole("heading", { level: 1, name: title }),
+    ).toBeVisible();
     await expect(this.page.getByText(text)).toBeVisible();
     for (const action of actions) {
-      await expect(this.page.getByRole(/^(Try again|Check status)$/.test(action) ? "button" : "link", { name: action })).toBeVisible();
+      await expect(
+        this.page.getByRole(
+          /^(Try again|Check status)$/.test(action) ? "button" : "link",
+          { name: action },
+        ),
+      ).toBeVisible();
     }
+  }
+
+  async expectHeadingFocused(title: string) {
+    await expect(
+      this.page.getByRole("heading", { level: 1, name: title }),
+    ).toBeFocused();
   }
 
   async tryAgain() {
@@ -35,7 +53,9 @@ export class ShellPage {
 
   /** Makes the next readiness checks fail the way a dead API would, until `restoreApi`. */
   async breakApi() {
-    await this.page.route("**/health/ready", (route) => route.abort("connectionrefused"));
+    await this.page.route("**/health/ready", (route) =>
+      route.abort("connectionrefused"),
+    );
   }
 
   async restoreApi() {

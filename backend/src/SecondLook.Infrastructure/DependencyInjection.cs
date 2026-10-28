@@ -24,7 +24,14 @@ public static class DependencyInjection
 
 public static class DatabaseSettings
 {
-    public static string Provider(IConfiguration c) => c["SecondLook:Database:Provider"] ?? "SqlServer";
+    public static string Provider(IConfiguration c)
+    {
+        var provider = c["SecondLook:Database:Provider"] ?? "SqlServer";
+        return provider is "Sqlite" or "SqlServer"
+            ? provider
+            : throw new InvalidOperationException(
+                $"SecondLook:Database:Provider must be 'Sqlite' or 'SqlServer', not '{provider}'.");
+    }
 
     public static string ConnectionString(IConfiguration c) =>
         c["SecondLook:Database:ConnectionString"]

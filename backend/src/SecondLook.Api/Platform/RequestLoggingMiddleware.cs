@@ -17,9 +17,9 @@ public sealed class RequestLoggingMiddleware(RequestDelegate next, ILogger<Reque
         }
         finally
         {
-            logger.LogInformation("RequestLogging {Method} {Path} responded {StatusCode} in {ElapsedMs:0.0} ms",
+            logger.LogInformation("RequestLogging {Method} {Path} responded {StatusCode} in {ElapsedMs:0.0} ms (trace {TraceId})",
                 context.Request.Method, context.Request.Path.Value, context.Response.StatusCode,
-                Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+                Stopwatch.GetElapsedTime(started).TotalMilliseconds, context.TraceIdentifier);
         }
     }
 }

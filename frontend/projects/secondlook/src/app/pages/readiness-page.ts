@@ -1,30 +1,18 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { PLATFORM_API } from 'api';
-import { Button, EmptyState } from 'components';
+import { SystemStateKey, SystemStateView } from './system-state-view';
 
-/** The landing screen: proves the shell can reach the API and shows the 500 state when it cannot. */
+/** The landing screen: proves the shell can reach the API and shows the matching system state when it cannot. */
 @Component({
   selector: 'sl-readiness-page',
-  imports: [EmptyState, Button],
+  imports: [SystemStateView],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (state() === 'failed') {
-      <sl-empty-state
-        code="500"
-        title="That one’s on us"
-        text="Something broke on our side. Your booking and payment are safe. Try again, and if it keeps happening, tell us."
-      >
-        <div slot="actions" style="display: contents">
-          <sl-button (pressed)="check()">Try again</sl-button>
-          <sl-button variant="outline" href="mailto:support@secondlook.example"
-            >Contact support</sl-button
-          >
-        </div>
-      </sl-empty-state>
+    @if (failure(); as key) {
+      <sl-system-state-view [key]="key" (retry)="check()" />
     } @else {
-      <p role="status" class="status">
-        {{ state() === 'ready' ? 'The API is ready.' : 'Checking the APIï¿½' }}
-      </p>
+      <p role="status" class="status">{{ ready() ? 'The API is ready.' : 'Checking the API…' }}</p>
     }
   `,
   styles: `
@@ -38,17 +26,26 @@ import { Button, EmptyState } from 'components';
 })
 export class ReadinessPage {
   private readonly api = inject(PLATFORM_API);
-  readonly state = signal<'checking' | 'ready' | 'failed'>('checking');
+  protected readonly ready = signal(false);
+  protected readonly failure = signal<SystemStateKey | null>(null);
 
   constructor() {
     this.check();
   }
 
   check() {
-    this.state.set('checking');
+    this.ready.set(false);
+    this.failure.set(null);
     this.api.ready().subscribe({
-      next: () => this.state.set('ready'),
-      error: () => this.state.set('failed'),
+      next: () => this.ready.set(true),
+      error: (e: unknown) => this.failure.set(this.stateFor(e)),
     });
+  }
+
+  /** No connection at all is offline, 503 is maintenance, anything else is our fault. */
+  private stateFor(e: unknown): SystemStateKey {
+    const status = e instanceof HttpErrorResponse ? e.status : -1;
+    if (status === 0 && !navigator.onLine) return 'offline';
+    return status === 503 ? 'maintenance' : 'server-error';
   }
 }

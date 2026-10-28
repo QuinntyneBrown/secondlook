@@ -1,0 +1,28 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — SecondLook.Api platform pipeline
+
+Container(spa, "Angular apps", "Angular", "Call the API")
+ContainerDb(db, "Database", "SQLite or SQL Server")
+Container_Boundary(api, "SecondLook.Api") {
+  Component(log, "Serilog request logging", "Middleware", "Outermost; logs handled status")
+  Component(err, "Exception handling", "Middleware", "ProblemDetails, traceId")
+  Component(auth, "Authentication and authorization", "JWT bearer, policies", "401 and 403")
+  Component(plat, "PlatformController", "Controller", "me, access, diagnostics")
+  Component(health, "Health endpoints", "Health checks", "live and ready")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(ctx, "AppDbContext", "EF Core", "Implements IAppDbContext")
+  Component(jwt, "JwtTokenService", "Service", "Issues dev tokens")
+  Component(cu, "CurrentUser", "Service", "Implements ICurrentUser")
+}
+Rel(spa, log, "HTTP request")
+Rel(log, err, "Next")
+Rel(err, auth, "Next")
+Rel(auth, plat, "Authorized request")
+Rel(plat, cu, "Reads caller")
+Rel(plat, ctx, "Queries")
+Rel(health, ctx, "Readiness probe")
+Rel(ctx, db, "SQL")
+@enduml

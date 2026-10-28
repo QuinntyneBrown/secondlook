@@ -1,0 +1,33 @@
+@startuml
+title UML sequence behaviour — Liveness and readiness
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Probe" as p
+box "Backend — SecondLook.Api (ASP.NET Core)" #FEF3C7
+  participant "Health endpoints" as h
+end box
+box "Backend — SecondLook.Infrastructure" #FCE7F3
+  participant "AppDbContext" as db
+end box
+p -> h : GET /health/live
+h --> p : 200 (L2-068 criterion 1)
+p -> h : GET /health/ready
+h -> db : CanConnectAsync
+alt database reachable
+  h --> p : 200 (criterion 2)
+else database down
+  h --> p : 503 problem+json, no connection details (criterion 3)
+end
+@enduml

@@ -9,6 +9,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSecondLookAuth(builder.Configuration);
 var origins = builder.Configuration.GetSection("SecondLook:Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddProblemDetails(o => o.CustomizeProblemDetails = ctx =>
     ctx.ProblemDetails.Extensions["traceId"] = System.Diagnostics.Activity.Current?.Id ?? ctx.HttpContext.TraceIdentifier);
 
@@ -23,6 +25,12 @@ if (DatabaseSettings.Provider(app.Configuration) == "Sqlite")
 
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
+if (app.Environment.IsDevelopment())
+{
+    // Swagger is middleware ahead of authorization, so it stays anonymous in Development only.
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 app.UseStatusCodePages();
 app.UseCors();
 app.UseAuthentication();
@@ -31,9 +39,17 @@ app.MapPlatformEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>
-    await db.Database.CanConnectAsync(ct)
-        ? Results.Ok(new { status = "ready" })
-        : Results.Problem("The database is not reachable.", statusCode: 503, title: "Not ready"))
+    {
+        try
+        {
+            await db.Users.AnyAsync(ct);
+            return Results.Ok(new { status = "ready" });
+        }
+        catch (Exception)
+        {
+            return Results.Problem("The service is not ready.", statusCode: 503, title: "Not ready");
+        }
+    })
     .AllowAnonymous();
 
 app.Run();

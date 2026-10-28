@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System context — Initial setup and platform
+
+Person(dev, "Developer", "Restores, migrates, seeds, runs and tests")
+Person(user, "User", "Buyer, mechanic, body shop or administrator")
+System(sl, "SecondLook", "Platform foundation: API, apps, CLI")
+System_Ext(ci, "CI", "GitHub Actions builds and tests")
+Rel(dev, sl, "Runs locally", "CLI, HTTPS")
+Rel(user, sl, "Uses", "HTTPS")
+Rel(ci, sl, "Builds and tests")
+@enduml

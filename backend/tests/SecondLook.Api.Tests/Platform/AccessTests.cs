@@ -22,12 +22,22 @@ public class AccessTests : IClassFixture<ApiFactory>
     [Fact]
     public async Task Valid_token_identifies_the_caller()
     {
-        var id = Guid.NewGuid();
+        var id = ApiFactory.SeededId("Buyer");
         var response = await _factory.ClientFor("Buyer", id).GetAsync("/api/platform/me");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
         body.GetProperty("userId").GetGuid().Should().Be(id);
         body.GetProperty("role").GetString().Should().Be("Buyer");
+        body.GetProperty("email").GetString().Should().Be("buyer@example.test");
+        body.GetProperty("displayName").GetString().Should().Be("Sam Buyer");
+    }
+
+    // L2-069 AC4: a valid token for an unknown user is rejected.
+    [Fact]
+    public async Task Token_for_an_unknown_user_is_401()
+    {
+        var client = _factory.ClientFor("Buyer", Guid.NewGuid());
+        (await client.GetAsync("/api/platform/me")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     // L2-069 AC3: expired and wrongly signed tokens are rejected.
