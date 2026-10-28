@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 05 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="05" data-video-title="Pay for an inspection" data-parts="Introduction|Paying|Safe payments|Refunds|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 05</div>
+  <h1>Pay for an inspection</h1>
+  <p class="lead">Server-owned prices, idempotent payments and a local payment adapter</p>
+</section>
+
+<section id="paying" data-part="1" data-cue="The buyer opens the Pay step." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Quote, invalid, declined, paid</h3>
+    <p class="muted">Local payment adapter: no real card, no real charge.</p>
+  </aside>
+</section>
+
+<section id="safe" data-part="2" data-cue="Payments are safe to repeat." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>One checkout, one charge</h3>
+    <p class="muted">Card details go to the processor and come back as a token.</p>
+  </aside>
+</section>
+
+<section id="refunds" data-part="3" data-cue="The refund rules are in place for the booking journeys to use.">
+  <h2>Refund rules</h2>
+  <ul class="recap">
+    <li>No-show, incomplete inspection, cancel more than 2 h ahead: full refund</li>
+    <li>Cancel under 2 h ahead: $25 fee kept</li>
+    <li>Report delivered: not refundable</li>
+    <li>Covered by automated tests; booking journeys call them</li>
+  </ul>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>The server decides every price</li>
+    <li>A payment goes through once, however often it is sent</li>
+    <li>Card numbers never touch our database</li>
+  </ul>
+  <p class="small muted">Next: Journey 06, book a video inspection</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

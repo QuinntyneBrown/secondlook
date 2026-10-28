@@ -21,6 +21,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J02 | [Administer mechanics and shops](journeys/02-administer-mechanics-and-shops/README.md) | 1:54 | Administer mechanics and shops |
 | J03 | [Manage availability](journeys/03-manage-availability/README.md) | 1:50 | Manage availability |
 | J04 | [Manage vehicles](journeys/04-manage-vehicles/README.md) | 1:51 | Manage vehicles |
+| J05 | [Pay for an inspection](journeys/05-pay-for-inspection/README.md) | 2:02 | Pay for inspection |
 
 ## Making or updating a video
 
