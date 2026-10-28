@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SecondLook.Api.Accounts;
 using SecondLook.Api.Auth;
 using SecondLook.Api.Availability;
+using SecondLook.Api.Bookings;
 using SecondLook.Api.Payments;
 using SecondLook.Api.Vehicles;
 using SecondLook.Api.Platform;
@@ -46,6 +47,7 @@ app.MapAdminProviderEndpoints();
 app.MapAvailabilityEndpoints();
 app.MapVehicleEndpoints();
 app.MapPaymentEndpoints();
+app.MapBookingEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

@@ -16,6 +16,7 @@ public static class Policies
     public const string BodyShop = "BodyShop";
     public const string Admin = "Admin";
     public const string Provider = "Provider";
+    public const string Inspections = "Inspections";
 }
 
 public static class AuthServiceCollectionExtensions
@@ -66,7 +67,8 @@ public static class AuthServiceCollectionExtensions
             .AddPolicy(Policies.Mechanic, p => p.RequireRole(Policies.Mechanic))
             .AddPolicy(Policies.BodyShop, p => p.RequireRole(Policies.BodyShop))
             .AddPolicy(Policies.Admin, p => p.RequireRole(Policies.Admin))
-            .AddPolicy(Policies.Provider, p => p.RequireRole(Policies.Mechanic, Policies.BodyShop));
+            .AddPolicy(Policies.Provider, p => p.RequireRole(Policies.Mechanic, Policies.BodyShop))
+            .AddPolicy(Policies.Inspections, p => p.RequireRole(Policies.Buyer, Policies.Mechanic, Policies.BodyShop));
         return services;
     }
 }

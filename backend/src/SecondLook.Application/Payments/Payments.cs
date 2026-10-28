@@ -239,6 +239,7 @@ public enum RefundReason
     InspectionIncomplete = 2,
     BuyerCancelled = 3,
     BuyerRequested = 4,
+    SlotUnavailable = 5,
 }
 
 public abstract record RefundResult

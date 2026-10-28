@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Domain.Availability;
+using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Payments;
 using SecondLook.Domain.Users;
 using SecondLook.Domain.Vehicles;
@@ -16,6 +17,7 @@ public interface IAppDbContext
     DbSet<Checkout> Checkouts { get; }
     DbSet<Payment> Payments { get; }
     DbSet<PricingWindow> PricingWindows { get; }
+    DbSet<Inspection> Inspections { get; }
     Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker ChangeTracker { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
