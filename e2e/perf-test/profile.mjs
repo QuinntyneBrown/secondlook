@@ -1,11 +1,13 @@
-import { basename } from 'node:path';
+import { basename } from "node:path";
 
-const IDLE = '(idle)';
+const IDLE = "(idle)";
 
 /** Non-idle samples in a CDP CPU profile: the work the page did, in ticks. */
 export function countTicks(profile) {
   const idle = new Set(
-    profile.nodes.filter((n) => n.callFrame.functionName === IDLE).map((n) => n.id),
+    profile.nodes
+      .filter((n) => n.callFrame.functionName === IDLE)
+      .map((n) => n.id),
   );
   return profile.samples.filter((id) => !idle.has(id)).length;
 }
@@ -17,8 +19,10 @@ export function topFunctions(profile, limit = 8) {
   for (const node of profile.nodes) {
     const { functionName, url, lineNumber } = node.callFrame;
     if (functionName === IDLE || !node.hitCount) continue;
-    const where = url ? ` (${basename(url.split('?')[0])}:${lineNumber + 1})` : '';
-    const key = `${functionName || '(anonymous)'}${where}`;
+    const where = url
+      ? ` (${basename(url.split("?")[0])}:${lineNumber + 1})`
+      : "";
+    const key = `${functionName || "(anonymous)"}${where}`;
     byFrame.set(key, (byFrame.get(key) ?? 0) + node.hitCount);
   }
   return [...byFrame]

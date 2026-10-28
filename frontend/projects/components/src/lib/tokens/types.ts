@@ -13,6 +13,7 @@ export interface Theme {
   colorBrandBackgroundHover: string;
   colorBrandBackgroundPressed: string;
   colorBrandForeground1: string;
+  colorBrandForeground2: string;
   colorBrandStroke1: string;
   colorStatusDangerBackground1: string;
   colorStatusDangerForeground1: string;
@@ -35,6 +36,7 @@ export interface Theme {
   spacingVerticalM: string;
   spacingVerticalL: string;
   spacingVerticalXXL: string;
+  borderRadiusSmall: string;
   borderRadiusMedium: string;
   borderRadiusLarge: string;
   strokeWidthThin: string;
