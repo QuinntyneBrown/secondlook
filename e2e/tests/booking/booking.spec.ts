@@ -10,6 +10,7 @@ import {
   slotLabels,
 } from "../../pages/BookingPages";
 import { CheckoutPage, VISA } from "../../pages/PaymentPages";
+import { openPairedWindows } from "../../fixtures/bookingApi";
 
 const API = "http://localhost:5100";
 const PASSWORD = "a-long-password";
@@ -85,7 +86,7 @@ async function signIn(page: Page, email: string) {
 test.describe("Book a video inspection (J06)", () => {
   // L2-019 AC1/3/4, L2-023 to L2-025, L2-028, L2-035: the whole booking, from vehicle to confirmation and dashboard.
   test("a buyer books a video inspection", async ({ page, request }) => {
-    const slot = await openSlot(request);
+    const slot = (await openPairedWindows(request)).toISOString();
     const buyer = await newBuyer(request);
     await signIn(page, buyer.email);
 
@@ -133,7 +134,7 @@ test.describe("Book a video inspection (J06)", () => {
     const schedule = new SchedulePage(page);
     await schedule.expectLoaded();
     await schedule.pick(slot);
-    await schedule.expectMechanic("Maya Mechanic");
+    await schedule.expectProviders("Maya Mechanic", "Bo Bodyshop");
     await schedule.continueToPayment();
 
     const checkout = new CheckoutPage(page);
@@ -143,7 +144,7 @@ test.describe("Book a video inspection (J06)", () => {
 
     // Confirmation, detail and dashboard.
     const confirmed = new ConfirmedPage(page);
-    await confirmed.expectBooked(slot, "Maya Mechanic");
+    await confirmed.expectBooked(slot, "Maya Mechanic", "Bo Bodyshop");
     await confirmed.viewInspection();
     await new InspectionDetailPage(page).expectScheduled(vin, slot, "$70.00");
 

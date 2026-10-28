@@ -31,20 +31,27 @@ export class HttpBookingsApi implements BookingsApi {
     return source.pipe(catchError((e) => throwError(() => toProblem(e))));
   }
 
-  slots(kind?: 'Mechanic' | 'BodyShop') {
+  slots(kind?: 'Mechanic' | 'BodyShop' | 'Both') {
     const params = kind ? new HttpParams().set('kind', kind) : new HttpParams();
     return this.guard(
       this.http.get<{ slots: Slot[] }>(`${this.base}/slots`, { params }).pipe(map((r) => r.slots)),
     );
   }
 
-  hold(providerId: string, start: string) {
-    return this.guard(this.http.post<Hold>(`${this.base}/bookings/holds`, { providerId, start }));
+  hold(providerId: string, start: string, bodyShopId?: string | null) {
+    return this.guard(
+      this.http.post<Hold>(`${this.base}/bookings/holds`, { providerId, start, bodyShopId }),
+    );
   }
 
-  confirm(checkoutId: string, holdId: string, vehicleId: string) {
+  confirm(checkoutId: string, holdId: string, vehicleId: string, bodyShopHoldId?: string | null) {
     return this.guard(
-      this.http.post<Inspection>(`${this.base}/bookings`, { checkoutId, holdId, vehicleId }),
+      this.http.post<Inspection>(`${this.base}/bookings`, {
+        checkoutId,
+        holdId,
+        vehicleId,
+        bodyShopHoldId,
+      }),
     );
   }
 

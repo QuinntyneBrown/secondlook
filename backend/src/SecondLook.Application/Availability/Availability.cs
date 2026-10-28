@@ -126,7 +126,7 @@ public sealed class RemoveWindowHandler(IAppDbContext db, ICurrentUser caller, T
     }
 }
 
-public sealed record SlotDto(Guid ProviderId, string ProviderName, string Kind, DateTimeOffset Start, DateTimeOffset End);
+public sealed record SlotDto(Guid ProviderId, string ProviderName, string Kind, DateTimeOffset Start, DateTimeOffset End, Guid? BodyShopId = null, string? BodyShopName = null);
 
 public sealed record SlotsResult(string TimeZone, IReadOnlyList<SlotDto> Slots);
 
@@ -142,19 +142,32 @@ public sealed class ListSlotsHandler(IAppDbContext db, TimeProvider clock) : IRe
         var now = clock.GetUtcNow();
         var from = q.From?.ToUniversalTime() ?? now;
         var to = q.To?.ToUniversalTime() ?? from.AddDays(14);
-        var kind = Enum.TryParse<UserRole>(q.Kind, out var k) && k is UserRole.Mechanic or UserRole.BodyShop ? k : UserRole.Mechanic;
+        if (q.Kind == "Both")
+        {
+            // A combined call needs a mechanic and a body shop free at the same start (ADR 0011).
+            var mechanics = (await FreeSlots(UserRole.Mechanic, from, to, now, ct)).GroupBy(s => s.Start).ToDictionary(g => g.Key, g => g.First());
+            var shops = (await FreeSlots(UserRole.BodyShop, from, to, now, ct)).GroupBy(s => s.Start).ToDictionary(g => g.Key, g => g.First());
+            var both = mechanics.Keys.Where(shops.ContainsKey).OrderBy(s => s)
+                .Select(s => new SlotDto(mechanics[s].ProviderId, mechanics[s].ProviderName, "Both", s, s + AvailabilityWindow.SlotLength, shops[s].ProviderId, shops[s].ProviderName))
+                .ToList();
+            return new SlotsResult(TimeZone, both);
+        }
+        var kind = q.Kind == "BodyShop" ? UserRole.BodyShop : UserRole.Mechanic;
+        var slots = await FreeSlots(kind, from, to, now, ct);
+        return new SlotsResult(TimeZone, slots);
+    }
 
+    private async Task<List<SlotDto>> FreeSlots(UserRole kind, DateTimeOffset from, DateTimeOffset to, DateTimeOffset now, CancellationToken ct)
+    {
         var providers = (await db.Users.Where(u => u.Role == kind).ToListAsync(ct)).Where(u => u.CanTakeInspections).ToDictionary(u => u.Id);
         var windows = (await db.AvailabilityWindows.ToListAsync(ct)).Where(w => providers.ContainsKey(w.ProviderId) && w.EndUtc > from && w.StartUtc < to);
         var taken = (await db.SlotReservations.ToListAsync(ct)).Where(r => r.IsActive(now)).Select(r => (r.ProviderId, r.StartUtc)).ToHashSet();
-
-        var slots = windows
+        return windows
             .SelectMany(w => w.SlotStarts().Select(s => (w.ProviderId, Start: s)))
             .Where(s => s.Start > now && s.Start >= from && s.Start < to && !taken.Contains((s.ProviderId, s.Start)))
             .OrderBy(s => s.Start).ThenBy(s => providers[s.ProviderId].DisplayName)
             .Select(s => new SlotDto(s.ProviderId, providers[s.ProviderId].DisplayName, providers[s.ProviderId].Role.ToString(), s.Start, s.Start + AvailabilityWindow.SlotLength))
             .ToList();
-        return new SlotsResult(TimeZone, slots);
     }
 }
 

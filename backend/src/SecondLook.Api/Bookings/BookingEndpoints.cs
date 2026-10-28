@@ -4,8 +4,8 @@ using SecondLook.Application.Bookings;
 
 namespace SecondLook.Api.Bookings;
 
-public sealed record HoldRequest(Guid ProviderId, DateTimeOffset Start);
-public sealed record ConfirmRequest(Guid CheckoutId, Guid HoldId, Guid VehicleId);
+public sealed record HoldRequest(Guid ProviderId, DateTimeOffset Start, Guid? BodyShopId = null);
+public sealed record ConfirmRequest(Guid CheckoutId, Guid HoldId, Guid VehicleId, Guid? BodyShopHoldId = null);
 public sealed record RescheduleRequest(DateTimeOffset Start);
 public sealed record CancelRequest(string? Reason);
 
@@ -16,19 +16,20 @@ public static class BookingEndpoints
         var buyer = app.MapGroup("/api/bookings").RequireAuthorization(Policies.Buyer);
 
         buyer.MapPost("/holds", async (HoldRequest r, IMediator m, CancellationToken ct) =>
-            await m.Send(new HoldSlotCommand(r.ProviderId, r.Start), ct) switch
+            await m.Send(new HoldSlotCommand(r.ProviderId, r.Start, r.BodyShopId), ct) switch
             {
                 HoldResult.Held h => Results.Created($"/api/bookings/holds/{h.Hold.HoldId}", h.Hold),
                 _ => SlotTaken(),
             });
 
         buyer.MapPost("", async (ConfirmRequest r, IMediator m, CancellationToken ct) =>
-            await m.Send(new ConfirmBookingCommand(r.CheckoutId, r.HoldId, r.VehicleId), ct) switch
+            await m.Send(new ConfirmBookingCommand(r.CheckoutId, r.HoldId, r.VehicleId, r.BodyShopHoldId), ct) switch
             {
                 ConfirmResult.Created c => Results.Created($"/api/inspections/{c.Inspection.Id}", c.Inspection),
                 ConfirmResult.Existing e => Results.Ok(e.Inspection),
                 ConfirmResult.PaymentRequired => Results.Problem("Pay for this inspection first.", statusCode: 402, title: "Payment required"),
                 ConfirmResult.SlotLost l => Results.Problem(l.Refunded ? "Someone just took it. You haven’t been charged: your payment was refunded in full. Pick another time." : "Someone just took it. Pick another time.", statusCode: 409, title: "We couldn’t hold that slot"),
+                ConfirmResult.HoldMismatch => Results.Problem("The times you held don’t match the review you paid for. Pick your time again.", statusCode: 409, title: "That time doesn’t fit your review"),
                 _ => Results.NotFound(),
             });
 

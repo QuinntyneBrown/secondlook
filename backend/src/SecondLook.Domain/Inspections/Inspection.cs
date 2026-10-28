@@ -30,6 +30,9 @@ public sealed class Inspection : IBuyerOwned, IProviderAssigned
     public Guid CheckoutId { get; set; }
     public Guid PaymentId { get; set; }
     public Guid SlotReservationId { get; set; }
+
+    /// <summary>The body shop's slot of a combined call; null when the inspection has a single provider (ADR 0011).</summary>
+    public Guid? BodyShopReservationId { get; set; }
     public InspectionStatus Status { get; set; } = InspectionStatus.Scheduled;
     public ReviewType Review { get; set; }
     public DateTimeOffset StartUtc { get; set; }

@@ -44,8 +44,20 @@ type View = 'loading' | 'ready' | 'failed';
             </sl-alert>
           } @else if (days().length === 0) {
             <div class="none">
-              <h3>No mechanics free yet</h3>
-              <p>Everyone near Hamilton is booked. Check back soon, or try another review type.</p>
+              @if (review() === 'Both') {
+                <h3>No shared times yet</h3>
+                <p>
+                  No time has both a mechanic and a body shop free. Go back and choose a single
+                  review.
+                </p>
+              } @else {
+                <h3>
+                  {{ review() === 'BodyShop' ? 'No body shops free yet' : 'No mechanics free yet' }}
+                </h3>
+                <p>
+                  Everyone near Hamilton is booked. Check back soon, or try another review type.
+                </p>
+              }
             </div>
           } @else {
             <div class="chips" role="group" aria-label="Day">
@@ -76,10 +88,23 @@ type View = 'loading' | 'ready' | 'failed';
               </div>
             }
             @if (slot(); as chosen) {
-              <div class="mechanic">
-                <strong>{{ chosen.providerName }}</strong>
-                <span>Licensed mechanic near Hamilton</span>
-              </div>
+              @if (review() !== 'BodyShop') {
+                <div class="mechanic">
+                  <strong>{{ chosen.providerName }}</strong>
+                  <span>Licensed mechanic near Hamilton</span>
+                </div>
+              }
+              @if (review() === 'Both' && chosen.bodyShopName) {
+                <div class="mechanic">
+                  <strong>{{ chosen.bodyShopName }}</strong>
+                  <span>Body shop reviewer near Hamilton</span>
+                </div>
+              } @else if (review() === 'BodyShop') {
+                <div class="mechanic">
+                  <strong>{{ chosen.providerName }}</strong>
+                  <span>Body shop reviewer near Hamilton</span>
+                </div>
+              }
             }
           }
           <div class="actions">
@@ -180,6 +205,7 @@ export class BookSchedulePage {
   protected readonly taken = signal(false);
   protected readonly checkout = signal<Checkout | null>(null);
   protected readonly time = (s: Slot) => timeLabel(s.start);
+  protected readonly review = computed(() => this.draft.state().review);
 
   /** Slots grouped by day, one slot per start time. */
   protected readonly days = computed(() => {
@@ -221,7 +247,7 @@ export class BookSchedulePage {
     this.view.set('loading');
     this.slot.set(null);
     this.bookings
-      .slots(this.draft.state().review === 'BodyShop' ? 'BodyShop' : 'Mechanic')
+      .slots(this.draft.state().review === 'Mechanic' ? 'Mechanic' : this.draft.state().review)
       .subscribe({
         next: (slots) => {
           this.slots.set(slots);
@@ -252,7 +278,7 @@ export class BookSchedulePage {
     if (!s || this.busy()) return;
     this.busy.set(true);
     this.taken.set(false);
-    this.bookings.hold(s.providerId, s.start).subscribe({
+    this.bookings.hold(s.providerId, s.start, s.bodyShopId).subscribe({
       next: (hold) => {
         this.draft.update({ hold });
         void this.router.navigate(['/checkout'], {

@@ -91,3 +91,7 @@ Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billin
 Decisions are in ADR 0010. Mocks reused: `dashboard` (window banner) and `dialogs/add-another-car`.
 
 Eligibility for the $25 price uses the same window rule as `GET /api/pricing-window` (ADR 0010): open until, but not including, the end instant.
+
+## Implementation (J09)
+
+Decisions are in ADR 0011 (no new fee; one call per inspection; combined calls need a mechanic and a body shop free at the same start; all-or-nothing holds; holds must fit the paid review; cancel and reschedule act on every reservation). Mocks added: `book-schedule/combined` and `book-schedule/no-shared-times`. A body shop review is priced like a mechanic review and Both adds $20; no new price was introduced.

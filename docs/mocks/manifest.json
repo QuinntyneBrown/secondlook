@@ -309,7 +309,9 @@
         "loading",
         "empty",
         "error",
-        "submitting"
+        "submitting",
+        "combined",
+        "no-shared-times"
       ],
       "route": "/book/schedule"
     },

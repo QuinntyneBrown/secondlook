@@ -116,15 +116,15 @@ public class BookingTests : IClassFixture<ApiFactory>
         var buyer = NewBuyer();
         var vehicle = await SaveVehicle(buyer);
         var hold = (await Json(await Hold(buyer, start))).GetProperty("holdId").GetGuid();
-        var checkout = await PaidCheckout(buyer, vehicle, "Both");
+        var checkout = await PaidCheckout(buyer, vehicle, "Mechanic");
         var response = await Confirm(buyer, checkout, hold, vehicle);
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         var inspection = await Json(response);
         inspection.GetProperty("status").GetString().Should().Be("Scheduled");
         inspection.GetProperty("start").GetDateTimeOffset().Should().Be(start);
         inspection.GetProperty("mechanicName").GetString().Should().Be("Maya Mechanic");
-        inspection.GetProperty("review").GetString().Should().Be("Both");
-        inspection.GetProperty("amountCents").GetInt32().Should().Be(7000);
+        inspection.GetProperty("review").GetString().Should().Be("Mechanic");
+        inspection.GetProperty("amountCents").GetInt32().Should().Be(5000);
         inspection.GetProperty("vehicle").GetProperty("sellerPhone").GetString().Should().Be("9055550142");
 
         // The booked slot stays taken after the hold window would have ended.

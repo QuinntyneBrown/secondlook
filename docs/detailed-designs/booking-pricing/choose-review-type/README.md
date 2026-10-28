@@ -76,3 +76,7 @@ The page saves the selection. The handler applies `L2-027` pricing and persists 
 Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
 
 The review step creates the same idempotent checkout (key per review type, kept in the tab) and shows its server price in "Your order".
+
+## Implementation (J09)
+
+Decisions are in ADR 0011 (no new fee; one call per inspection; combined calls need a mechanic and a body shop free at the same start; all-or-nothing holds; holds must fit the paid review; cancel and reschedule act on every reservation). Mocks added: `book-schedule/combined` and `book-schedule/no-shared-times`. `GET /api/slots?kind=Mechanic|BodyShop|Both` backs the review choice; the fee is unchanged and comes from `PriceCalculator`.
