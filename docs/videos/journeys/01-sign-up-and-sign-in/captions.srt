@@ -1,0 +1,115 @@
+1
+00:00:00,000 --> 00:00:03,240
+This is the implementation demo for journey one.
+
+2
+00:00:03,240 --> 00:00:08,090
+Everything here is the real application and API running on this machine,
+
+3
+00:00:08,090 --> 00:00:11,190
+with a local mailbox that sends no real email.
+
+4
+00:00:11,190 --> 00:00:16,450
+It shows how a buyer creates an account, proves their email, signs in and out,
+
+5
+00:00:16,450 --> 00:00:18,740
+and recovers a forgotten password.
+
+6
+00:00:19,890 --> 00:00:21,610
+Start on the sign-up page.
+
+7
+00:00:21,610 --> 00:00:24,520
+With a short email and password and no name,
+
+8
+00:00:24,520 --> 00:00:29,410
+the page refuses and lists exactly what to fix, with focus on the summary.
+
+9
+00:00:29,410 --> 00:00:30,730
+Now a valid account.
+
+10
+00:00:30,730 --> 00:00:33,240
+The page asks you to check your email.
+
+11
+00:00:33,240 --> 00:00:37,270
+Signing in before you verify is refused, with a clear reason.
+
+12
+00:00:38,420 --> 00:00:41,470
+We open the emailed link, which proves the address,
+
+13
+00:00:41,470 --> 00:00:43,800
+and the page confirms you are verified.
+
+14
+00:00:43,800 --> 00:00:48,630
+A wrong password is rejected with a message that never says which part was wrong.
+
+15
+00:00:48,630 --> 00:00:51,740
+The right password signs you in to your inspections.
+
+16
+00:00:52,890 --> 00:00:57,180
+Signing out asks first, because your inspections stay in your account.
+
+17
+00:00:57,180 --> 00:00:59,200
+Then the forgotten password path.
+
+18
+00:00:59,200 --> 00:01:03,670
+We ask for a link, which works for thirty minutes, choose a new password,
+
+19
+00:01:03,670 --> 00:01:05,630
+and the page signs you in again.
+
+20
+00:01:06,780 --> 00:01:10,510
+Mechanics and body shops register through the same door.
+
+21
+00:01:10,510 --> 00:01:14,980
+A body shop registers and verifies, and can sign in as a body shop,
+
+22
+00:01:14,980 --> 00:01:17,710
+but the response says it is not approved.
+
+23
+00:01:17,710 --> 00:01:19,970
+Registering never grants approval.
+
+24
+00:01:19,970 --> 00:01:24,570
+And nobody can register as an administrator: that request is refused.
+
+25
+00:01:25,720 --> 00:01:27,530
+Here is what to remember.
+
+26
+00:01:27,530 --> 00:01:30,870
+Accounts need a verified email before sign in.
+
+27
+00:01:30,870 --> 00:01:32,830
+Links expire and work once.
+
+28
+00:01:32,830 --> 00:01:38,190
+Providers wait for approval, and administrators cannot be self registered.
+
+29
+00:01:38,190 --> 00:01:42,040
+Next, journey two: administering mechanics and shops.

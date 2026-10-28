@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 01 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="01" data-video-title="Sign up and sign in" data-parts="Introduction|The app|Providers|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 01</div>
+  <h1>Sign up and sign in</h1>
+  <p class="lead">Register, verify, sign in, reset and sign out, on the real stack</p>
+</section>
+
+<section id="signup" data-part="1" data-cue="Start on the sign-up page." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Validation, then an account</h3>
+    <p class="muted">Chromium against the real API. The mailbox is a local adapter; no email is sent.</p>
+  </aside>
+</section>
+
+<section id="providers" data-part="2" data-cue="Mechanics and body shops register through the same door." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Pending approval</h3>
+    <p class="muted">A provider signs in as a provider with isApproved false. Admin cannot be self-registered.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="3" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>A verified email comes before sign in</li>
+    <li>Links expire and work once</li>
+    <li>Providers wait for approval; no self-registered admins</li>
+  </ul>
+  <p class="small muted">Next: Journey 02, administer mechanics and shops</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

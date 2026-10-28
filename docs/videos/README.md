@@ -17,6 +17,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | # | Demo | Runtime | Journey |
 |---|---|---|---|
 | J00 | [Initial setup and platform](journeys/00-initial-setup-and-platform/README.md) | 2:12 | Initial setup and platform |
+| J01 | [Sign up and sign in](journeys/01-sign-up-and-sign-in/README.md) | 1:45 | Sign up and sign in |
 
 ## Making or updating a video
 
