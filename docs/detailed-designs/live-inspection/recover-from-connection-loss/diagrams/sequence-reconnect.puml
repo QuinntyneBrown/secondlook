@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Reconnect after a dropped connection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "CallRoomClient" as room
+end box
+room -> page : Connection lost
+page -> page : Set status "Reconnecting"
+page --> actor : Show overlay "Your connection dropped" with "We’re reconnecting you. The mechanic and the seller can still hear each other." (L2-042)
+room -> room : Retry the media connection (retry policy not yet specified)
+alt Connection restored
+  room -> page : Connection restored
+  page -> page : Remove the overlay and set status "Live"
+  page --> actor : Call resumes without any action (L2-042)
+else Reconnect fails
+  room -> page : Reconnect failed
+  page -> page : Set status "Disconnected"
+  page --> actor : Show alert "We couldn’t reconnect" with "Your seller and mechanic are still on the call. Rejoin to carry on; your place is saved." and "Rejoin the call" (L2-042)
+end
+@enduml

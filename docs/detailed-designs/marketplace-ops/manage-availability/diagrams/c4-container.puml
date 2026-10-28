@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Manage availability
+
+Person(provider, "Mechanic or body shop", "Sets availability")
+Person(buyer, "Buyer", "Schedules an inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Availability screen (TO SUPPLY) and booking step Schedule")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Availability endpoints and slot listing; Application and Domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Providers, availability windows, slot holds and inspections")
+}
+
+Rel(provider, spa, "Uses", "HTTPS")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

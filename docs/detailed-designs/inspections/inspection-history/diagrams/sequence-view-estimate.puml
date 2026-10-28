@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — View a past estimate
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DashboardPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetInspectionEstimateQueryHandler" as est
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select a past inspection (L2-022)
+page -> client : Get estimate for the inspection
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> est : Send GetInspectionEstimateQuery
+est -> db : Load report and findings for the inspection
+db --> est : Report or none
+alt Inspection not owned by the buyer
+  est --> controller : Not found
+  controller --> client : 404 response
+  client --> page : Not available
+  page --> actor : Not-found or forbidden state, copy <TO SUPPLY>
+else Report delivered
+  est --> controller : EstimateView
+  controller --> client : Response
+  client --> page : Estimate
+  page --> actor : Estimate of the past inspection (L2-022)
+else Cancelled or no report
+  est --> controller : No estimate
+  controller --> client : Response
+  client --> page : No estimate
+  page --> actor : Past inspection without an estimate, copy <TO SUPPLY>
+end
+@enduml

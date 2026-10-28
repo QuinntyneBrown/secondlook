@@ -1,0 +1,66 @@
+@startuml
+title UML sequence behaviour — Cancel the inspection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CancelInspectionDialog" as dialog
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "CancelInspectionCommandHandler" as handler
+  participant "Inspection" as entity
+  participant "RefundBookingCommandHandler" as refund
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gateway
+  participant "SmsSender" as sms
+  database "SecondLook database" as db
+end box
+actor -> dialog : Select "Cancel inspection"
+alt No reason chosen
+  dialog --> actor : "Choose a reason so we can improve." (L2-037), field marked invalid
+else Reason chosen
+  dialog -> dialog : Mark confirm busy
+  dialog -> client : Cancel (reason)
+  client -> controller : POST (HTTPS)
+  controller -> controller : Authenticate and scope to current buyer (L2-057)
+  controller -> handler : Send CancelInspectionCommand
+  handler -> db : Load inspection, booking and payment
+  db --> handler : Current state
+  alt Cancellation cannot be made
+    handler --> controller : Failure
+    controller --> client : ProblemDetails
+    client --> dialog : Failure
+    dialog --> actor : "We couldn’t cancel it" with "Nothing changed; the inspection is still booked. Try again, or contact support." and "Try again" (L2-037)
+  else Cancellation accepted
+    handler -> entity : Cancel with reason, release the slot
+    handler -> refund : Send RefundBookingCommand (buyer cancellation, L2-032)
+    refund -> gateway : Refund per RefundPolicy
+    gateway --> refund : Refund result
+    refund --> handler : Refund recorded
+    handler -> db : Save inspection, booking, payment and refund in one unit of work
+    db --> handler : Commit result
+    handler -> sms : Tell the seller (L2-037)
+    handler --> controller : CancelResult
+    controller --> client : Response
+    client --> dialog : Cancelled
+    dialog --> actor : Dialog closes; the inspection opens as cancelled
+  end
+end
+@enduml

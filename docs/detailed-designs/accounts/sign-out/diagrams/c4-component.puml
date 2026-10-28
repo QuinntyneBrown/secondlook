@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Sign out
+
+Container_Boundary(app, "SecondLook app") {
+  Component(dash, "DashboardPage", "Angular page", "Opens the dialog from the account menu; entry point")
+  Component(dialog, "SignOutDialog", "Angular CDK Dialog", "Confirmation with Cancel and Sign out")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed call to /api/auth")
+  Component(session, "SessionStore", "Angular service", "Holds and clears the JWT and role")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Authenticated sign-out endpoint")
+}
+Container_Boundary(appl, "SecondLook.Application") {
+  Component(handler, "SignOutCommandHandler", "MediatR handler", "Ends the server-side session; revocation scheme <TO SUPPLY>")
+}
+Rel(dash, dialog, "Opens")
+Rel(dialog, client, "Calls signOut on")
+Rel(dialog, session, "Clears session in")
+Rel(client, ctrl, "POST sign-out", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SignOutCommand")
+@enduml

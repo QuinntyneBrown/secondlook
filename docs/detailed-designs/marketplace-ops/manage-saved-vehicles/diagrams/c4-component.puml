@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage saved vehicles
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(screen, "Vehicle screens and dialogs (TO SUPPLY)", "Angular page and CDK dialogs", "List, add, edit, remove")
+  Component(client, "VehiclesApi (VEHICLES_API)", "Angular API client", "Typed vehicle requests")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "VehiclesController", "ASP.NET Core controller", "Authenticates, scopes to current buyer")
+  Component(add, "AddVehicleCommandHandler", "MediatR handler", "Creates a Vehicle")
+  Component(edit, "UpdateVehicleCommandHandler", "MediatR handler", "Saves changes")
+  Component(remove, "RemoveVehicleCommandHandler", "MediatR handler", "Removes from the list")
+  Component(list, "ListVehiclesQueryHandler", "MediatR handler", "Lists the buyer vehicles")
+  Component(entity, "Vehicle", "Domain entity", "BuyerId, Vin, OdometerKm and listing fields")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Vehicle")
+
+Rel(screen, client, "Calls")
+Rel(client, ctrl, "Sends vehicle requests", "JSON/HTTPS")
+Rel(ctrl, add, "Sends AddVehicleCommand")
+Rel(ctrl, edit, "Sends UpdateVehicleCommand")
+Rel(ctrl, remove, "Sends RemoveVehicleCommand")
+Rel(ctrl, list, "Sends ListVehiclesQuery")
+Rel(add, entity, "Creates")
+Rel(edit, entity, "Changes")
+Rel(add, db, "Persists", "EF Core")
+Rel(edit, db, "Persists", "EF Core")
+Rel(remove, db, "Persists", "EF Core")
+Rel(list, db, "Reads", "EF Core")
+@enduml

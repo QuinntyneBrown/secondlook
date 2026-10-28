@@ -1,0 +1,80 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Dialog behaviour
+
+class DialogService {
+  +open<TDialog, TResult>(component: Type<TDialog>, options: DialogOptions): DialogRef<TResult>
+}
+class DialogOptions {
+  +bool Destructive
+  +string SafeActionSelector
+  +string TriggerElement
+  +object Data
+}
+class DialogShell <<sl-dialog>> {
+  +string Title
+  +string Description
+  +bool Destructive
+  +DialogRequestState State
+  +string FailureTitle
+  +string FailureMessage
+  +CloseRequested: event
+  +Retry: event
+}
+enum DialogRequestState {
+  Idle
+  Invalid
+  Busy
+  Failed
+}
+class DialogRef<TResult> {
+  +close(result: TResult): void
+  +closed: Observable<TResult>
+}
+class DialogRequestRunner {
+  +run<T>(request: Observable<T>): Observable<T>
+}
+class FieldError {
+  +string FieldId
+  +string MessageId
+  +string Message
+}
+class CancelInspectionDialog
+class DeleteAccountDialog
+class EndCallDialog
+class SignOutDialog
+class OtherDialogs {
+  AddAnotherCarDialog
+  AddPaymentMethodDialog
+  RescheduleDialog
+  ShareReportDialog
+  DownloadReportDialog
+  ReportIssueDialog
+}
+DialogService ..> DialogOptions : takes
+DialogService --> DialogRef : returns
+DialogShell --> DialogRequestState : has
+DialogShell ..> FieldError : links invalid fields to
+CancelInspectionDialog ..> DialogShell : renders
+DeleteAccountDialog ..> DialogShell : renders
+EndCallDialog ..> DialogShell : renders
+SignOutDialog ..> DialogShell : renders
+OtherDialogs ..> DialogShell : render
+CancelInspectionDialog ..> DialogRequestRunner : runs request through
+DeleteAccountDialog ..> DialogRequestRunner : runs request through
+EndCallDialog ..> DialogRequestRunner : runs request through
+SignOutDialog ..> DialogRequestRunner : runs request through
+OtherDialogs ..> DialogRequestRunner : run request through
+DialogRequestRunner ..> DialogShell : sets State
+@enduml

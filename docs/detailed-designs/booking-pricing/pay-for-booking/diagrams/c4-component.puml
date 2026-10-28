@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Pay for a booking
+
+System_Ext(processor, "Payment processor", "Charges cards; name <TO SUPPLY>")
+
+Container_Boundary(api, "SecondLook backend") {
+  Component(bctrl, "BookingsController", "ASP.NET Core controller", "POST /api/bookings with Idempotency-Key")
+  Component(pctrl, "PaymentsController", "ASP.NET Core controller", "POST /api/payments with Idempotency-Key")
+  Component(bhandler, "CreateBookingCommandHandler", "MediatR handler", "Returns existing booking for a repeated key")
+  Component(validator, "PayForBookingCommandValidator", "FluentValidation", "Checks booking, token and seller acknowledgement")
+  Component(phandler, "PayForBookingCommandHandler", "MediatR handler", "Returns existing payment for a repeated key; otherwise charges")
+  Component(payment, "Payment", "Domain entity", "Pending, Succeeded or Declined")
+  Component(booking, "Booking", "Domain entity", "Moves to Paid on success")
+  Component(port, "IPaymentGateway", "Application port", "Charge with idempotency key")
+  Component(adapter, "PaymentGateway", "Infrastructure adapter", "Calls the processor")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists bookings and payments")
+}
+
+Rel(bctrl, bhandler, "Sends CreateBookingCommand")
+Rel(pctrl, validator, "Validates")
+Rel(pctrl, phandler, "Sends PayForBookingCommand")
+Rel(phandler, payment, "Creates and updates")
+Rel(phandler, booking, "Marks Paid")
+Rel(phandler, port, "Charges through")
+Rel(adapter, port, "Implements")
+Rel(adapter, processor, "Charges", "HTTPS")
+Rel(bhandler, db, "Finds by key, saves", "EF Core")
+Rel(phandler, db, "Finds by key, saves", "EF Core")
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Return to the inspection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "MechanicProfilePage" as page
+  participant "Router" as router
+end box
+alt Profile loaded
+  actor -> page : Select "View inspection" (L2-056)
+  page -> router : Navigate to /inspections/{id}
+  router --> actor : Inspection detail page
+else Profile failed to load
+  actor -> page : Select "Back to inspection" (L2-056)
+  page -> router : Navigate to /inspections/{id}
+  router --> actor : Inspection detail page
+else Profile failed to load
+  actor -> page : Select "Try again" (L2-056)
+  page -> page : Request the profile again
+  page --> actor : Loading state, then profile or error
+end
+@enduml

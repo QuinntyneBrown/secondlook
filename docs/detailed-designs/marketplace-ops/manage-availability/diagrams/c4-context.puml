@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Manage availability
+
+Person(provider, "Mechanic or body shop", "Sets the times it can take inspections")
+Person(buyer, "Buyer", "Chooses a time from the slots offered")
+System(secondlook, "SecondLook", "Used-car video inspection platform")
+
+Rel(provider, secondlook, "Sets availability in")
+Rel(buyer, secondlook, "Schedules an inspection in")
+@enduml

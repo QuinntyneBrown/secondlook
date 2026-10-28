@@ -1,0 +1,85 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Enter vehicle details
+
+enum BookingStatus {
+  Draft
+  SlotHeld
+  Paid
+  Cancelled
+  Completed
+}
+
+class Vehicle {
+  +Guid Id
+  +Guid BuyerId
+  +string Vin
+  +int OdometerKm
+  +decimal AskingPrice
+  +string ListingUrl
+  +string SellerName
+  +string SellerPhone
+}
+
+class Booking {
+  +Guid Id
+  +Guid BuyerId
+  +Guid VehicleId
+  +BookingStatus Status
+  +string IdempotencyKey
+}
+
+class PricingPolicy {
+  +Quote(buyerId, reviewType, now): PriceBreakdown
+}
+
+interface IVinLookup {
+  +Lookup(vin: string): Task<VinMatch>
+}
+
+class SaveVehicleDetailsCommand {
+  +string Vin
+  +int OdometerKm
+  +decimal AskingPrice
+  +string ListingUrl
+  +string SellerName
+  +string SellerPhone
+  +string IdempotencyKey
+}
+
+class SaveVehicleDetailsCommandValidator {
+  +Validate(command): ValidationResult
+}
+
+class SaveVehicleDetailsCommandHandler {
+  +Handle(command): Task<SaveVehicleDetailsResult>
+}
+
+class BookingsController {
+  +SaveVehicle(request): Task<ActionResult>
+}
+
+class VinLookupClient
+
+SaveVehicleDetailsCommandHandler ..> SaveVehicleDetailsCommand : handles
+SaveVehicleDetailsCommandHandler ..> SaveVehicleDetailsCommandValidator : validates with
+SaveVehicleDetailsCommandHandler --> IVinLookup : looks up VIN
+SaveVehicleDetailsCommandHandler --> PricingPolicy : prices draft
+SaveVehicleDetailsCommandHandler --> Vehicle : creates / updates
+SaveVehicleDetailsCommandHandler --> Booking : creates / updates
+BookingsController ..> SaveVehicleDetailsCommand : sends
+VinLookupClient ..|> IVinLookup
+Booking --> BookingStatus : has
+Booking "1" --> "1" Vehicle
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Track the pricing window
+
+Person(buyer, "Buyer", "Watches the pricing window and is told when it is closing")
+System(sl, "SecondLook", "Remote used-car inspection and estimate platform")
+System_Ext(notify, "Notification channel", "Delivers the closing notice; channel is TO SUPPLY")
+
+Rel(buyer, sl, "Sees the window banner in")
+Rel(sl, notify, "Sends the closing notice through", "HTTPS")
+Rel(notify, buyer, "Notifies")
+@enduml

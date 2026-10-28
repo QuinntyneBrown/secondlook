@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Submit an estimate
+
+Person(mechanic, "Mechanic", "Completed the inspection call and submits a repair cost estimate")
+Person(buyer, "Buyer", "Reviews the estimate as the report and decides")
+System(secondlook, "SecondLook", "Used-car safety app")
+System_Ext(email, "Email provider", "Delivers the report-ready email (vendor TO SUPPLY)")
+
+Rel(mechanic, secondlook, "Submits the estimate to")
+Rel(secondlook, email, "Sends report-ready email via")
+Rel(email, buyer, "Notifies")
+Rel(buyer, secondlook, "Reviews the report in")
+@enduml

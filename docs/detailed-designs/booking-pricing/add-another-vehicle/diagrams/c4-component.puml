@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Add another vehicle
+
+Container_Boundary(spa, "SecondLook app") {
+  Component(dialog, "AddAnotherCarDialog", "Angular CDK Dialog", "Collects VIN and review type")
+  Component(client, "BookingsApi", "Angular HTTP client", "Contract bound to BOOKINGS_API")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Exposes the add-vehicle endpoint")
+  Component(validator, "AddAnotherVehicleCommandValidator", "FluentValidation", "Checks the 17-character VIN")
+  Component(handler, "AddAnotherVehicleCommandHandler", "MediatR handler", "Adds the vehicle inside the open window")
+  Component(pricing, "PricingPolicy", "Domain service", "Prices the booking")
+  Component(window, "PricingWindow", "Domain entity", "Defines when the window opens and closes")
+  Component(vinport, "IVinLookup", "Application port", "Resolves a VIN to a vehicle name")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists vehicle and booking")
+}
+Rel(dialog, client, "Submits through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, validator, "Validates command with")
+Rel(ctrl, handler, "Sends AddAnotherVehicleCommand")
+Rel(handler, window, "Confirms the window is open")
+Rel(handler, pricing, "Prices the booking with")
+Rel(handler, vinport, "Looks up the VIN with")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

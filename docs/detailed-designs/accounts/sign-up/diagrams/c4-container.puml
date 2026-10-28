@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Sign up
+
+Person(visitor, "Visitor", "Creates an account")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "SignUpPage at /sign-up")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController at /api/auth")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users and email verification tokens")
+}
+System_Ext(email, "Email provider", "Delivers the verification email")
+
+Rel(visitor, app, "Uses", "HTTPS")
+Rel(app, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, email, "Sends verification email via", "IEmailSender")
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Notify the buyer that the window is closing
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Backend — SecondLook.Worker" #D1FADF
+  participant "WindowClosingJob" as job
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "PricingWindow" as window
+  participant "NotificationPreference" as pref
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "SmsSender" as sms
+  database "AppDbContext" as db
+end box
+job -> db : Load open windows not yet notified
+db --> job : Windows
+loop each window
+  job -> window : StateAt(now) using IClock
+  window --> job : Open, Closing or Closed
+  alt State is Closing
+    job -> pref : Check "Tell me when my window is closing"
+    alt Preference is on
+      pref --> job : On
+      job -> sms : Send closing notice (channel is TO SUPPLY) (L2-034)
+      sms --> job : Delivery result
+      job -> db : Record notice sent so it is not repeated
+      sms --> actor : "Your window closes in 2 days"
+    else Preference is off
+      pref --> job : Off
+      job -> job : Skip the window
+    end
+  else State is Open or Closed
+    job -> job : Skip the window
+  end
+end
+@enduml

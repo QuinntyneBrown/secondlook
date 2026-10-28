@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Manage saved vehicles
+
+Person(buyer, "Buyer", "Adds, edits and removes saved vehicles")
+System(secondlook, "SecondLook", "Used-car video inspection platform")
+
+Rel(buyer, secondlook, "Manages vehicles in")
+@enduml

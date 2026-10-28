@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Cancel an inspection
+
+Person(buyer, "Buyer", "Cancels a booked inspection and sees it afterwards")
+System(secondlook, "SecondLook", "Used-car video inspection and estimate platform")
+System_Ext(processor, "Payment processor", "Returns money to the card; vendor <TO SUPPLY>")
+System_Ext(sms, "SMS provider", "Tells the seller; vendor <TO SUPPLY>")
+
+Rel(buyer, secondlook, "Cancels and reviews using")
+Rel(secondlook, processor, "Requests the refund from", "HTTPS")
+Rel(secondlook, sms, "Tells the seller via", "SMS")
+@enduml

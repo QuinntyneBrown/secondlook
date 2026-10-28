@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Load an inspection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "InspectionDetailPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetInspectionQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections/{id}
+page -> page : Mark page busy (L2-035)
+page -> client : Get inspection
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send GetInspectionQuery
+handler -> db : Load inspection, booking, vehicle, providers, payment
+db --> handler : Rows or none
+alt Request fails
+  controller --> client : 5xx or network error
+  client --> page : Failure
+  page --> actor : "We couldn’t load this inspection" with "Try again" and "All inspections" (L2-035)
+else Not owned or not assigned
+  handler --> controller : Not permitted
+  controller --> client : 403 or 404 response
+  client --> page : Not permitted
+  page --> actor : Forbidden state from the mock, copy outside L2-035
+else Loaded
+  handler --> controller : InspectionDetailView
+  controller --> client : Response
+  client --> page : View model
+  page --> actor : Vehicle, "Booked Wed 28 Oct 2026", status, VIN, odometer, price, reviews, seller, "Your team", actions, "Paid" (L2-035)
+end
+@enduml

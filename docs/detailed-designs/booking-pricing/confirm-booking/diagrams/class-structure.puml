@@ -1,0 +1,93 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Confirm a booking
+
+class BookingConfirmedPage {
+  +confirmation: BookingConfirmationDto
+  +addAnotherCar(): void
+  +viewInspection(): void
+}
+
+interface BookingsApi {
+  +getConfirmation(bookingId: Guid): Observable<BookingConfirmationDto>
+}
+
+class GetBookingConfirmationQuery {
+  +Guid BookingId
+}
+
+class GetBookingConfirmationQueryHandler {
+  +Handle(query: GetBookingConfirmationQuery): Task<BookingConfirmationDto>
+}
+
+class BookingConfirmationDto {
+  +DateTimeOffset SlotStart
+  +string MechanicName
+  +string VehicleShortName
+  +string VehicleName
+  +string SellerName
+  +decimal Total
+  +ReviewType ReviewType
+  +string BuyerEmail
+  +DateTimeOffset WindowClosesAt
+}
+
+class Booking {
+  +Guid Id
+  +BookingStatus Status
+  +ReviewType ReviewType
+}
+
+class Vehicle {
+  +string SellerName
+  +string SellerPhone
+}
+
+class Payment {
+  +PaymentStatus Status
+  +decimal Amount
+}
+
+class PricingWindow {
+  +DateTimeOffset ClosesAt
+}
+
+class Receipt {
+  +Guid Id
+  +Guid PaymentId
+  +DateTimeOffset IssuedAt
+  +string Description
+}
+
+interface ISmsSender {
+  +Send(phone: string, message: string): Task
+}
+
+class SmsSender
+class ToastService {
+  +show(title: string, message: string): void
+}
+
+BookingConfirmedPage ..> BookingsApi : depends on token
+BookingConfirmedPage ..> ToastService : raises success toast
+BookingConfirmedPage --> BookingConfirmationDto : renders
+GetBookingConfirmationQueryHandler ..> GetBookingConfirmationQuery : handles
+GetBookingConfirmationQueryHandler --> Booking : loads
+GetBookingConfirmationQueryHandler --> BookingConfirmationDto : returns
+Booking "1" --> "1" Vehicle : of
+Booking "1" --> "1" Payment : paid by
+Booking "*" --> "1" PricingWindow : priced within
+Payment "1" --> "0..1" Receipt : issues
+SmsSender ..|> ISmsSender
+@enduml

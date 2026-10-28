@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — In-call banners
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "LiveInspectionPage", "Angular page", "Hosts the banner region")
+  Component(svc, "CallBannerService", "Angular service", "Maps events to banners and times them")
+  Component(banner, "sl-banner", "Shared component", "Renders info, success, warning, danger and persistent")
+  Component(events, "CallEvents / CALL_EVENTS", "Event contract and token", "Delivers CallEvent values")
+  Component(client, "CallsApi / CALLS_API", "API contract and token", "Typed resend request")
+}
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "CallsController", "ASP.NET Core controller", "Authenticates and dispatches ResendSellerLinkCommand")
+  Component(handler, "ResendSellerLinkCommandHandler", "MediatR handler", "Texts the seller a rejoin link")
+  Component(session, "CallSession", "Domain entity", "Holds RecordingStartedAt")
+  Component(sms, "ISmsSender", "Application port", "Sends text messages")
+  Component(retention, "RecordingRetentionService", "Worker hosted service", "Deletes recordings after 30 days")
+  Component(store, "IRecordingStore", "Application port", "Recording storage")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists sessions")
+}
+Rel(events, svc, "Delivers events to")
+Rel(svc, banner, "Renders through")
+Rel(page, svc, "Hosts banners from")
+Rel(page, client, "Resends through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ResendSellerLinkCommand")
+Rel(handler, sms, "Sends text with")
+Rel(handler, db, "Loads", "EF Core")
+Rel(retention, session, "Finds sessions older than 30 days")
+Rel(retention, store, "Deletes recordings with")
+Rel(retention, db, "Reads", "EF Core")
+@enduml

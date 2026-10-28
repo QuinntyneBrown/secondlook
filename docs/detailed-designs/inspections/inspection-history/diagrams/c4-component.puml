@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Inspection history
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "DashboardPage", "Angular page", "Hosts the Active and Past tabs")
+  Component(token, "INSPECTIONS_API", "Injection token", "Contract the page depends on")
+  Component(client, "InspectionsApi", "Angular service in projects/api", "Typed HTTP client")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Exposes /api/inspections")
+  Component(listh, "ListInspectionsQueryHandler", "MediatR handler", "Returns past inspections with estimates")
+  Component(est, "GetInspectionEstimateQueryHandler", "MediatR handler", "Returns the estimate of one past inspection")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists inspections and reports")
+Rel(page, token, "Depends on")
+Rel(token, client, "Resolves to")
+Rel(client, ctrl, "GET", "JSON/HTTPS")
+Rel(ctrl, listh, "Sends ListInspectionsQuery (Tab Past)")
+Rel(ctrl, est, "Sends GetInspectionEstimateQuery")
+Rel(listh, db, "Queries", "EF Core")
+Rel(est, db, "Queries", "EF Core")
+@enduml

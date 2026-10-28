@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Toggle mute and camera
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "CallRoomClient" as room
+end box
+actor -> page : Select "Mute" or "Camera off" (L2-041)
+page -> page : Flip aria-pressed on the pressed button
+alt "Mute"
+  page -> room : Set microphone enabled to the inverse of the pressed state
+else "Camera off"
+  page -> room : Set camera enabled to the inverse of the pressed state
+end
+room --> page : Track state updated
+page --> actor : Show new pressed state
+@enduml

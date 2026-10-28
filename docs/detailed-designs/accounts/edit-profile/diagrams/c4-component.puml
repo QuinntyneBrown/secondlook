@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Edit profile
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "SettingsPage", "Angular page", "Profile form and its states")
+  Component(client, "AccountApi (ACCOUNT_API)", "Angular API client", "Typed profile requests")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "AccountController", "ASP.NET Core controller", "Authenticates and dispatches")
+  Component(get, "GetProfileQueryHandler", "MediatR handler", "Returns name and email")
+  Component(save, "UpdateProfileCommandHandler", "MediatR handler", "Validates and saves")
+  Component(val, "UpdateProfileCommandValidator", "FluentValidation", "Name and email rules")
+  Component(user, "User", "Domain entity", "FullName and Email")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Users")
+
+Rel(page, client, "Calls")
+Rel(client, ctrl, "GETs and PUTs profile", "JSON/HTTPS")
+Rel(ctrl, get, "Sends GetProfileQuery")
+Rel(ctrl, save, "Sends UpdateProfileCommand")
+Rel(save, val, "Validated by")
+Rel(save, user, "Mutates")
+Rel(get, db, "Reads", "EF Core")
+Rel(save, db, "Persists", "EF Core")
+@enduml

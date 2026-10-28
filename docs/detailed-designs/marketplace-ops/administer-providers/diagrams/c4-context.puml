@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Administer mechanics and body shops
+
+Person(admin, "Administrator", "Onboards, approves and deactivates providers")
+Person_Ext(provider, "Mechanic or body shop", "Takes inspections once approved")
+System(secondlook, "SecondLook", "Used-car video inspection platform")
+
+Rel(admin, secondlook, "Administers providers in")
+Rel(provider, secondlook, "Takes inspections in")
+@enduml

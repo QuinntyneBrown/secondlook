@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Notification preferences
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "SettingsPage", "Angular page", "Hosts the three switches")
+  Component(client, "AccountApi (ACCOUNT_API)", "Angular API client", "Typed preference requests")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "AccountController", "ASP.NET Core controller", "Authenticates and dispatches")
+  Component(get, "GetNotificationPreferencesQueryHandler", "MediatR handler", "Returns the stored or default values")
+  Component(set, "SetNotificationPreferenceCommandHandler", "MediatR handler", "Saves one changed switch")
+  Component(pref, "NotificationPreference", "Domain entity", "Three booleans per user")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "NotificationPreference rows")
+
+Rel(page, client, "Calls")
+Rel(client, ctrl, "GETs and PUTs preferences", "JSON/HTTPS")
+Rel(ctrl, get, "Sends GetNotificationPreferencesQuery")
+Rel(ctrl, set, "Sends SetNotificationPreferenceCommand")
+Rel(set, pref, "Mutates")
+Rel(get, db, "Reads", "EF Core")
+Rel(set, db, "Persists", "EF Core")
+@enduml

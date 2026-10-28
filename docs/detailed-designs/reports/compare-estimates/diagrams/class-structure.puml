@@ -1,0 +1,58 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Compare estimates
+
+class GetComparisonQuery
+class GetComparisonQueryHandler {
+  +Handle(query: GetComparisonQuery): Task<ComparisonView>
+}
+class ComparisonView {
+  +int ReportCount
+  +IReadOnlyList<ComparisonColumn> Columns
+}
+class ComparisonColumn {
+  +Guid ReportId
+  +string VehicleTitle
+  +int OdometerKm
+  +string Location
+  +decimal AskingPrice
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+  +decimal AllInMin
+  +decimal AllInMax
+  +bool IsLowestAllIn
+}
+class PricingWindow {
+  +DateTime OpensAt
+  +DateTime ClosesAt
+}
+class Report
+class Vehicle {
+  +decimal AskingPrice
+  +int OdometerKm
+}
+class ComparisonsController {
+  +Get(): Task<ComparisonView>
+}
+class ComparePage {
+  +state: loading|default|empty|error
+  +retry(): void
+}
+GetComparisonQueryHandler ..> GetComparisonQuery : handles
+GetComparisonQueryHandler --> PricingWindow : reads
+GetComparisonQueryHandler --> Report : reads
+GetComparisonQueryHandler --> ComparisonView : returns
+ComparisonView "1" *-- "*" ComparisonColumn
+Report --> Vehicle
+ComparisonsController ..> GetComparisonQuery : sends
+ComparePage ..> ComparisonsController : via COMPARISONS_API
+@enduml

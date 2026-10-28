@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Cookie consent
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(prompt, "CookieConsent", "Angular component", "Region labelled Cookie preferences with three buttons")
+  Component(service, "ConsentService", "Angular service", "Decides whether to show the prompt; saves and expires the choice")
+  Component(token, "CONSENT_STORE", "Injection token and contract", "Reads and writes the stored choice")
+  Component(toast, "ToastService", "Angular service", "Shows the Preferences saved toast")
+  ComponentDb(store, "Consent store", "<TO SUPPLY>", "Holds the choice and its decision date")
+}
+Rel(prompt, service, "Asks shouldShow; sends choice")
+Rel(service, token, "Reads and writes through")
+Rel(token, store, "Persists to", "<TO SUPPLY>")
+Rel(service, toast, "Raises Preferences saved via")
+@enduml

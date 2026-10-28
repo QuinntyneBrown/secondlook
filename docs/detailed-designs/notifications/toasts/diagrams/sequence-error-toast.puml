@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Raise a payment-failed or PDF-failed error toast
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page (CheckoutPage or ReportPage)" as page
+  participant "Api client" as client
+  participant "ToastService" as service
+  participant "sl-toast" as toast
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "Controller" as controller
+end box
+actor -> page : Pay, or download the PDF
+page -> client : Send request
+client -> controller : HTTPS request
+controller --> client : Failure (declined card or PDF not produced)
+client --> page : Failure result
+page -> service : show(Danger, title, text, action)
+service -> service : Add to queue; start no timer (L2-054)
+service --> toast : Render with role="alert" (L2-054)
+toast --> actor : "We couldn’t make your PDF" with "Try again", or "Your card was declined"
+alt buyer selects the action
+  actor -> toast : Select action ("Try again" or "Add a different card")
+  toast -> page : Run action
+else buyer selects Dismiss
+  actor -> toast : Select "Dismiss"
+  toast -> service : dismiss(id) (L2-054)
+end
+note over service, toast
+  The toast stays until dismissed or the action runs. Whether the action also closes it is <TO SUPPLY>.
+end note
+@enduml

@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Recover from connection loss
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "LiveInspectionPage", "Angular page", "Shows reconnecting overlay or disconnected alert")
+  Component(room, "CallRoomClient", "Angular service", "Raises connection lost, restored and failed signals")
+  Component(client, "CallsApi / CALLS_API", "API contract and token", "Typed rejoin request")
+}
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "CallsController", "ASP.NET Core controller", "Authenticates and dispatches RejoinCallCommand")
+  Component(handler, "RejoinCallCommandHandler", "MediatR handler", "Returns the saved session with a fresh credential")
+  Component(session, "CallSession", "Domain entity", "Holds the buyer's place")
+  Component(vroom, "IVideoRoom", "Application port", "Join credential")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists sessions")
+}
+Rel(room, page, "Signals connection state to")
+Rel(page, client, "Rejoins through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends RejoinCallCommand")
+Rel(handler, session, "Loads")
+Rel(handler, vroom, "Requests fresh credential from")
+Rel(handler, db, "Loads", "EF Core")
+@enduml

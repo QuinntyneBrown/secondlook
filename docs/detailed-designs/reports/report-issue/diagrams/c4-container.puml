@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Report an issue
+
+Person(buyer, "Buyer", "Reports the issue")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "ReportIssueDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ReportsController")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Report issues and notifications")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

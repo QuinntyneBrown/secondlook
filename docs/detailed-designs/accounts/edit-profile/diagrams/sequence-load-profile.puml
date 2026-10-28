@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Load profile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "AccountApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AccountController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetProfileQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /settings
+page -> page : Show busy placeholder (L2-015)
+page -> client : Request profile
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send GetProfileQuery
+handler -> db : Load current User
+alt Load succeeds
+  db --> handler : FullName and Email
+  handler --> controller : ProfileDto
+  controller --> client : 200 response
+  client --> page : Profile
+  page --> actor : Show "Settings", "Your account and how we reach you.", Profile form (L2-015)
+else Load fails
+  db --> handler : Failure
+  handler --> controller : Error
+  controller --> client : ProblemDetails
+  client --> page : Load failed
+  page --> actor : Show "We couldn’t load your settings", "Nothing has changed. Try again.", "Try again" (L2-015)
+end
+@enduml

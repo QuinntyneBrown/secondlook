@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Add a vehicle
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Vehicle dialog or screen (TO SUPPLY)" as page
+  participant "VehiclesApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "VehiclesController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "AddVehicleCommandHandler" as handler
+  participant "Vehicle" as vehicle
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Enter vehicle details, confirm
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, take BuyerId from the token (L2-057)
+controller -> handler : Send AddVehicleCommand
+alt Validation fails (rules TO SUPPLY)
+  handler --> controller : Validation result
+  controller --> client : 400 ProblemDetails
+  client --> page : Errors
+  page --> actor : Show errors in the dialog (copy TO SUPPLY)
+else Valid
+  handler -> vehicle : Create for the current buyer (L2-063)
+  vehicle --> handler : Vehicle
+  handler -> db : Save
+  db --> handler : Commit result
+  handler --> controller : VehicleView
+  controller --> client : 201 response
+  client --> page : Saved
+  page --> actor : Vehicle listed (L2-063)
+end
+@enduml

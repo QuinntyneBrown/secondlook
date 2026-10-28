@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Create an account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignUpPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignUpCommandHandler" as handler
+  participant "User" as user
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "EmailSender" as mail
+  database "SecondLook database" as db
+end box
+actor -> page : Submit valid values with terms checked
+page -> page : Set fields read-only; button "Creating account" with aria-busy (L2-006)
+page -> client : signUp(request)
+client -> controller : POST sign-up (anonymous)
+controller -> handler : Send SignUpCommand
+handler -> db : Find user by email
+db --> handler : Existing user or none
+alt No account for the email
+  handler -> user : Create with Role Buyer and hashed password
+  handler -> db : Save user and EmailVerificationToken (24 hours)
+  db --> handler : Committed
+  handler -> mail : Send verification link
+  mail --> handler : Accepted
+  handler --> controller : Created
+  controller --> client : 201 Created
+  client --> page : Success
+  page --> actor : Navigate to verify-email "Check your email" (L2-006, L2-012)
+else Account already exists for the email
+  handler --> controller : Email-taken result
+  controller --> client : 409 ProblemDetails
+  client --> page : Duplicate-email error
+  page --> actor : Alert "There’s already an account for that email" with "Sign in" link (L2-006)
+end
+@enduml

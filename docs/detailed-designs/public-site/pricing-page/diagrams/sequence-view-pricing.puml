@@ -1,0 +1,32 @@
+@startuml
+title UML sequence behaviour — View the pricing page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "PricingPage" as page
+  participant "PricingCalculator" as calc
+  participant "Router" as router
+end box
+actor -> router : Open "/pricing"
+router -> router : Match the public route, no authentication guard
+router -> page : Activate PricingPage
+page -> page : Render cards "First inspection" $50, "Each additional car" $25, "Mechanic + body shop" +$20 (L2-002)
+page -> calc : Compute total and savings for the initial count of 3
+calc --> page : Total $100, savings $50
+page -> page : Render "3 vehicles", "$100", "You save $50" (L2-002)
+page -> page : Render the 3 pricing questions collapsed (L2-002)
+page --> actor : Show the pricing page
+@enduml

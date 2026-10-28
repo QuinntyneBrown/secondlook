@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Toasts
+
+Person(buyer, "Buyer", "Receives brief status messages while using the app")
+System(secondlook, "SecondLook", "Used-car safety app: remote mechanic inspections and estimates")
+
+Rel(buyer, secondlook, "Reads, hovers, focuses and dismisses toasts in")
+@enduml

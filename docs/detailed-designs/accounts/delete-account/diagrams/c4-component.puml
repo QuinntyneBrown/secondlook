@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Delete account
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "SettingsPage", "Angular page", "Opens the dialog from Delete my account")
+  Component(dlg, "DeleteAccountDialog", "CDK Dialog", "Typed confirmation and states")
+  Component(client, "AccountApi (ACCOUNT_API)", "Angular API client", "Delete request")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "AccountController", "ASP.NET Core controller", "Authenticates and dispatches")
+  Component(handler, "DeleteAccountCommandHandler", "MediatR handler", "Cancels, refunds, marks for deletion")
+  Component(refund, "RefundPolicy", "Domain service", "Refund rules")
+  Component(gw, "IPaymentGateway", "Application port", "Refund call")
+  Component(user, "User", "Domain entity", "Account state")
+}
+Container_Boundary(worker, "SecondLook.Worker") {
+  Component(purge, "AccountPurgeService", "Hosted service", "Deletes reports and recordings within 30 days")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Users, bookings, receipts, reports")
+
+Rel(page, dlg, "Opens")
+Rel(dlg, client, "Calls")
+Rel(client, ctrl, "DELETEs account", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends DeleteAccountCommand")
+Rel(handler, refund, "Applies refund rules from")
+Rel(handler, gw, "Refunds through")
+Rel(handler, user, "Marks deleted")
+Rel(handler, db, "Persists", "EF Core")
+Rel(purge, db, "Deletes reports and recordings in", "EF Core")
+@enduml

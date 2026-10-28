@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Buyer data scoping
+
+Person(buyer, "Buyer", "Views own vehicles, inspections and estimates")
+Person_Ext(other, "Another buyer", "Holds separate data in the same system")
+System(sl, "SecondLook", "Used-car safety inspection platform")
+Rel(buyer, sl, "Requests own vehicles, inspections and estimates from")
+Rel(other, sl, "Owns resources that stay private from the first buyer in")
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Legal pages
+
+class PrivacyPage {
+  +document: LegalDocument
+}
+
+class TermsPage {
+  +document: LegalDocument
+}
+
+class LegalDocument {
+  +title: string
+  +lastUpdated: string
+  +sections: LegalSection[]
+}
+
+class LegalSection {
+  +heading: string
+  +body: string
+}
+
+PrivacyPage "1" --> "1" LegalDocument : shows
+TermsPage "1" --> "1" LegalDocument : shows
+LegalDocument "1" *-- "4" LegalSection : contains
+@enduml

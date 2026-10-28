@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — End call
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "LiveInspectionPage", "Angular page", "Opens the dialog and renders the ended state")
+  Component(dlg, "EndCallDialog", "CDK Dialog", "Confirms and shows the busy state")
+  Component(client, "CallsApi / CALLS_API", "API contract and token", "Typed end request")
+}
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "CallsController", "ASP.NET Core controller", "Authenticates and dispatches EndCallCommand")
+  Component(handler, "EndCallCommandHandler", "MediatR handler", "Ends the call for everyone")
+  Component(session, "CallSession", "Domain entity", "Records EndedAt")
+  Component(insp, "Inspection", "Domain entity", "Moves to CallEnded")
+  Component(vroom, "IVideoRoom", "Application port", "Closes the room")
+  Component(rec, "IRecordingStore", "Application port", "Stops the recording")
+  Component(clock, "IClock", "Application port", "Current time")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists end state")
+}
+Rel(page, dlg, "Opens")
+Rel(dlg, client, "Ends the call through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends EndCallCommand")
+Rel(handler, session, "Ends")
+Rel(handler, insp, "Sets CallEnded on")
+Rel(handler, vroom, "Closes the room with")
+Rel(handler, rec, "Stops the recording with")
+Rel(handler, clock, "Reads time from")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

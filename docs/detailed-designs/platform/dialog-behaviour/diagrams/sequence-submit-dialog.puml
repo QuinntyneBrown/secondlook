@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Submit a dialog request
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Dialog component" as dlg
+  participant "DialogShell" as shell
+  participant "DialogRequestRunner" as runner
+  participant "API client" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "Controller of the dialog" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "Handler of the dialog" as handler
+end box
+actor -> dlg : Select the primary action
+dlg -> dlg : Validate the fields
+alt a field has an invalid value
+  dlg -> shell : State Invalid
+  shell --> actor : Mark field aria-invalid true and link it to its message with aria-describedby (L2-065 criterion 6)
+else all fields are valid
+  dlg -> runner : run(request)
+  runner -> shell : State Busy
+  shell --> actor : Disable "Close" and the cancel action, mark the primary action aria-busy true (L2-065 criterion 4)
+  runner -> client : Send request
+  client -> controller : HTTPS request
+  controller -> handler : Send command
+  alt request succeeds
+    handler --> controller : Result
+    controller --> client : HTTP success
+    client --> runner : Result
+    runner -> dlg : Result
+    dlg -> dlg : Close with result, or show the success state where the dialog has one
+  else request fails
+    handler --> controller : Failure
+    controller --> client : ProblemDetails
+    client --> runner : Error
+    runner -> shell : State Failed with failure title and message
+    shell --> actor : Show alert with role alert and "Try again", keep entered values (L2-065 criterion 5)
+    actor -> shell : Select "Try again"
+    shell -> dlg : Retry event
+    dlg -> runner : run(request) with the retained values
+  end
+end
+@enduml

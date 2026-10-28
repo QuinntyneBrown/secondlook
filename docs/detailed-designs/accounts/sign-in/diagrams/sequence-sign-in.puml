@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Sign in and JWT issuance
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Account holder" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignInPage" as page
+  participant "AuthApi" as client
+  participant "SessionStore" as session
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignInCommandHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PasswordHasher" as hasher
+  participant "JwtTokenService" as tokens
+  database "SecondLook database" as db
+end box
+actor -> page : Submit email and password
+page -> page : Set fields read-only; button "Signing in" with aria-busy (L2-008)
+page -> client : signIn(request)
+client -> controller : POST sign-in (anonymous)
+controller -> handler : Send SignInCommand
+handler -> db : Find user by email
+db --> handler : User or none
+handler -> hasher : Verify password (against a dummy hash when no user)
+hasher --> handler : Match or no match
+alt Credentials match
+  handler -> tokens : Issue JWT with subject and role claims
+  tokens --> handler : Signed token and expiry
+  handler --> controller : SignInResult
+  controller --> client : 200 with token
+  client --> page : Signed in
+  page -> session : Store token and role
+  page --> actor : Navigate to the post-sign-in destination (L2-008; destination <TO SUPPLY>)
+else Credentials do not match
+  handler --> controller : Invalid-credentials result (same for unknown email and wrong password)
+  controller --> client : 401 ProblemDetails
+  client --> page : Mismatch error
+  page --> actor : Alert "That email and password don’t match"; password emptied; email kept (L2-008)
+end
+@enduml

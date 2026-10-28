@@ -1,0 +1,87 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Schedule inspection
+
+enum BookingStatus {
+  Draft
+  SlotHeld
+  Paid
+  Cancelled
+  Completed
+}
+
+class Booking {
+  +Guid Id
+  +Guid SlotId
+  +BookingStatus Status
+  +HoldSlot(slotId: Guid): void
+}
+
+class SlotHold {
+  +Guid Id
+  +Guid BookingId
+  +Guid SlotId
+  +DateTimeOffset ExpiresAt
+}
+
+class SlotView {
+  +Guid SlotId
+  +DateTimeOffset StartsAt
+  +bool IsTaken
+  +string MechanicName
+}
+
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+
+class GetAvailableSlotsQuery {
+  +DateOnly Day
+}
+
+class GetAvailableSlotsQueryHandler {
+  +Handle(query): Task<SlotsResult>
+}
+
+class HoldSlotCommand {
+  +Guid BookingId
+  +Guid SlotId
+  +string IdempotencyKey
+}
+
+class HoldSlotCommandHandler {
+  +Handle(command): Task<HoldResult>
+}
+
+class HoldExpiryService {
+  +ReleaseExpired(): Task
+}
+
+class BookingsController {
+  +GetSlots(day): Task<ActionResult>
+  +HoldSlot(id, request): Task<ActionResult>
+}
+
+GetAvailableSlotsQueryHandler ..> GetAvailableSlotsQuery : handles
+GetAvailableSlotsQueryHandler --> SlotView : returns
+HoldSlotCommandHandler ..> HoldSlotCommand : handles
+HoldSlotCommandHandler --> Booking : loads / mutates
+HoldSlotCommandHandler --> SlotHold : creates
+HoldSlotCommandHandler --> IClock : reads time
+HoldExpiryService --> SlotHold : releases when expired
+BookingsController ..> GetAvailableSlotsQuery : sends
+BookingsController ..> HoldSlotCommand : sends
+Booking --> BookingStatus : has
+Booking "1" --> "0..1" SlotHold
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Schedule inspection
+
+Person(buyer, "Buyer", "Books an inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Booking wizard, step Schedule")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Slot listing and slot hold endpoints; Application and Domain logic")
+  Container(worker, "SecondLook.Worker", ".NET worker", "Releases expired slot holds")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Slots, slot holds and bookings")
+}
+
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(worker, db, "Releases expired holds in", "EF Core")
+@enduml

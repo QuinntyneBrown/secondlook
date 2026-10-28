@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theming — SecondLook DS</title>
+<meta name="description" content="How light, dark and high-contrast resolve from one set of semantic tokens.">
+<link rel="stylesheet" href="../tokens/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<link rel="stylesheet" href="../assets/ds.css">
+</head>
+<body id="top">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="ds-shell">
+<nav class="ds-nav" aria-label="Design system">
+<div class="ds-nav__brand"><a href="../index.html">SecondLook DS</a><button class="ds-theme-toggle" type="button" aria-pressed="false">☾ Dark</button></div>
+<details open><summary>Foundations</summary><ul><li><a href="../foundations/color.html">Color</a></li><li><a href="../foundations/typography.html">Typography</a></li><li><a href="../foundations/spacing.html">Spacing</a></li><li><a href="../foundations/layout.html">Layout and grid</a></li><li><a href="../foundations/elevation.html">Elevation</a></li><li><a href="../foundations/shape.html">Shape</a></li><li><a href="../foundations/motion.html">Motion</a></li><li><a href="../foundations/iconography.html">Iconography</a></li><li><a href="../foundations/theming.html">Theming</a></li><li><a href="../foundations/responsive.html">Responsive</a></li><li><a href="../foundations/accessibility.html">Accessibility</a></li><li><a href="../foundations/content.html">Content</a></li></ul></details>
+<details open><summary>Components</summary><ul><li><a href="../components/button.html">Button</a></li><li><a href="../components/button-group.html">Button group</a></li><li><a href="../components/link.html">Link</a></li><li><a href="../components/menu.html">Menu</a></li><li><a href="../components/text-field.html">Text field</a></li><li><a href="../components/textarea.html">Textarea</a></li><li><a href="../components/select.html">Select</a></li><li><a href="../components/checkbox.html">Checkbox</a></li><li><a href="../components/radio-group.html">Radio group</a></li><li><a href="../components/switch.html">Switch</a></li><li><a href="../components/form-field.html">Form field</a></li><li><a href="../components/form-layout.html">Form layout</a></li><li><a href="../components/topbar.html">Top bar</a></li><li><a href="../components/sidebar.html">Sidebar navigation</a></li><li><a href="../components/tabs.html">Tabs</a></li><li><a href="../components/breadcrumb.html">Breadcrumb</a></li><li><a href="../components/pagination.html">Pagination</a></li><li><a href="../components/stepper.html">Stepper</a></li><li><a href="../components/footer.html">Footer</a></li><li><a href="../components/skip-link.html">Skip link</a></li><li><a href="../components/card.html">Card</a></li><li><a href="../components/accordion.html">Accordion</a></li><li><a href="../components/dialog.html">Dialog</a></li><li><a href="../components/drawer.html">Drawer</a></li><li><a href="../components/popover.html">Popover</a></li><li><a href="../components/tooltip.html">Tooltip</a></li><li><a href="../components/divider.html">Divider</a></li><li><a href="../components/layout.html">Container, stack and grid</a></li><li><a href="../components/table.html">Table</a></li><li><a href="../components/list.html">List</a></li><li><a href="../components/description-list.html">Description list</a></li><li><a href="../components/avatar.html">Avatar</a></li><li><a href="../components/badge.html">Badge</a></li><li><a href="../components/status.html">Status pill</a></li><li><a href="../components/chip.html">Chip</a></li><li><a href="../components/stat.html">Stat</a></li><li><a href="../components/timeline.html">Timeline</a></li><li><a href="../components/toast.html">Toast</a></li><li><a href="../components/alert.html">Alert and banner</a></li><li><a href="../components/inline-message.html">Inline message</a></li><li><a href="../components/progress.html">Progress bar</a></li><li><a href="../components/spinner.html">Spinner</a></li><li><a href="../components/skeleton.html">Skeleton</a></li><li><a href="../components/empty-state.html">Empty state</a></li><li><a href="../components/error-page.html">Error page</a></li><li><a href="../components/price-panel.html">Price panel</a></li><li><a href="../components/slot-picker.html">Slot picker</a></li><li><a href="../components/finding.html">Estimate finding</a></li><li><a href="../components/video-tile.html">Video tile</a></li><li><a href="../components/logo.html">Logo and wordmark</a></li></ul></details>
+<details open><summary>Patterns</summary><ul><li><a href="../patterns/forms.html">Forms</a></li><li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li><li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li><li><a href="../patterns/navigation-and-page-structure.html">Navigation and page structure</a></li><li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li><li><a href="../patterns/data-tables-and-lists.html">Data tables and lists</a></li><li><a href="../patterns/notifications.html">Notifications</a></li><li><a href="../patterns/content-and-tone.html">Content and tone</a></li></ul></details>
+</nav>
+<main id="main" class="ds-main">
+<header class="ds-header">
+<p class="ds-kicker">Foundation · Behaviour</p>
+<h1>Theming</h1>
+<p class="ds-lead">How light, dark and high-contrast resolve from one set of semantic tokens.</p>
+<div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span></div>
+<ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#tiers">Token tiers</a></li><li><a href="#compare">Same component, two themes</a></li><li><a href="#adding">Adding a theme</a></li><li><a href="#dos">Do and don't</a></li><li><a href="#tokens-json">Consuming tokens.json</a></li></ul>
+</header>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>Light is the default. Dark applies with <code>[data-theme="dark"]</code>, or automatically when the OS prefers dark and the page has not forced <code>[data-theme="light"]</code>. The root also sets <code>color-scheme</code> so native controls and scrollbars follow. High-contrast tweaks apply under <code>prefers-contrast: more</code> and <code>forced-colors</code>.</p>
+</section>
+<section class="ds-section" id="tiers"><h2><a href="#tiers">Token tiers</a></h2>
+<div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Tier</th><th scope="col">Prefix</th><th scope="col">Rule</th></tr></thead><tbody><tr><td>Primitive</td><td><code>--palette-*</code>, <code>--font-*</code></td><td>Raw values. Never used by components.</td></tr><tr><td>Semantic</td><td><code>--color-*</code>, <code>--text-*</code>, <code>--space-*</code>…</td><td>Meaning-based aliases. Themes override these.</td></tr><tr><td>Component</td><td><code>--btn-*</code>, <code>--alert-*</code></td><td>Declared in <code>components.css</code>, always alias a semantic token.</td></tr></tbody></table></div>
+</section>
+<section class="ds-section" id="compare"><h2><a href="#compare">Same component, two themes</a></h2>
+<div class="ds-themes"><div data-theme="light"><div class="ds-example__canvas" style="padding: 0;"><div class="stack" style="width:100%"><button class="btn btn--primary" type="button">Book a call</button><span class="status status--pass">Passes</span><div class="alert alert--warning"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17.5v.01"/></svg><div class="alert__body"><div class="alert__title">Brake pads are thin</div><p>Estimated $180 to replace.</p></div></div></div></div></div><div data-theme="dark"><div class="ds-example__canvas" style="padding: 0;"><div class="stack" style="width:100%"><button class="btn btn--primary" type="button">Book a call</button><span class="status status--pass">Passes</span><div class="alert alert--warning"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17.5v.01"/></svg><div class="alert__body"><div class="alert__title">Brake pads are thin</div><p>Estimated $180 to replace.</p></div></div></div></div></div></div>
+</section>
+<section class="ds-section" id="adding"><h2><a href="#adding">Adding a theme</a></h2>
+<ol><li>Duplicate the dark block in <code>tokens.css</code> under a new <code>[data-theme]</code> name.</li><li>Override semantic tokens only; leave primitives alone.</li><li>Run <code>check_contrast.py</code>; every pair must pass.</li><li>Regenerate <code>tokens.json</code> with <code>tokens_to_json.py</code>.</li></ol>
+</section>
+<section class="ds-section" id="dos"><h2><a href="#dos">Do and don't</a></h2>
+<div class="ds-dodont"><figure class="ds-do"><div class="ds-example__canvas"><code>color: var(--color-fg-default)</code></div><figcaption>Read a semantic role.</figcaption></figure><figure class="ds-dont"><div class="ds-example__canvas"><code>color: var(--palette-gray-900)</code></div><figcaption>Reach for a primitive: it will not flip in dark mode.</figcaption></figure></div>
+</section>
+<section class="ds-section" id="tokens-json"><h2><a href="#tokens-json">Consuming tokens.json</a></h2>
+<p><code>tokens/tokens.json</code> is a DTCG export generated from <code>tokens.css</code> with <code>scripts/tokens_to_json.py</code>. In the Angular workspace the TypeScript theme remains the source for the product; this file is the design-system reference for tools such as Style Dictionary.</p>
+</section>
+<footer class="ds-footer"><span>SecondLook DS · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+</main>
+</div>
+<script src="../assets/ds.js"></script>
+</body>
+</html>

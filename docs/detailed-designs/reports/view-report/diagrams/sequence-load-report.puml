@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Load and view the report
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ReportPage" as page
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetReportQueryHandler" as handler
+  participant "Report" as report
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections/civic-lx/report
+page -> page : Mark report busy (L2-046 loading)
+page -> client : getReport(inspectionId)
+client -> controller : HTTPS GET report
+controller -> controller : Authenticate and scope to current buyer
+controller -> handler : Send GetReportQuery
+handler -> db : Load report, findings, body shop review, vehicle
+db --> handler : Report data
+alt report loaded and body shop review delivered or not booked
+  handler -> report : Count Required findings, add asking price to cost range (L2-045)
+  handler --> controller : ReportView
+  controller --> client : 200 ReportView
+  client --> page : ReportView
+  page --> actor : Show Your report, findings, Body shop review, Is it worth it?
+else body shop review InProgress
+  handler --> controller : ReportView with BodyShopReviewStatus InProgress
+  controller --> client : 200 ReportView
+  client --> page : ReportView
+  page --> actor : Show report plus In progress body shop card (L2-046)
+else load fails
+  handler --> controller : Failure
+  controller --> client : Error response
+  client --> page : Error
+  page --> actor : Your report didn’t load, Try again, Back to inspections (L2-046)
+end
+opt buyer selects Try again
+  actor -> page : Try again
+  page -> client : getReport(inspectionId)
+end
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Home page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular Router", "Serves / as a public route")
+  Component(page, "HomePage", "Angular page", "Renders hero, steps, sample report and chrome from bundled content")
+  Component(chrome, "Public header and footer", "Shared component, <TO SUPPLY>", "Shows primary links, Sign in and footer links")
+  Component(content, "Home content", "TypeScript constants", "Holds the steps and the sample report")
+}
+Rel(visitor, router, "Opens /")
+Rel(router, page, "Activates")
+Rel(page, chrome, "Renders")
+Rel(page, content, "Reads")
+@enduml

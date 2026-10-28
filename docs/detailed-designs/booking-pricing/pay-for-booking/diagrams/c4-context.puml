@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Pay for a booking
+
+Person(buyer, "Buyer", "Person buying a used car as is; pays for a video inspection")
+System(secondlook, "SecondLook", "Used-car video inspection and safety-certification estimate app")
+System_Ext(processor, "Payment processor", "Tokenises cards and charges them; name <TO SUPPLY>")
+System_Ext(bank, "Card issuer bank", "Approves or declines the charge; may ask the buyer to confirm in its app")
+
+Rel(buyer, secondlook, "Pays for a booking using")
+Rel(secondlook, processor, "Charges the card via", "HTTPS")
+Rel(processor, bank, "Requests authorisation from")
+Rel(bank, buyer, "May ask for approval in bank app")
+@enduml

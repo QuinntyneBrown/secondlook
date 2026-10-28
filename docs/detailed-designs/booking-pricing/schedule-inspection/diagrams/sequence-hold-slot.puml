@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Hold a slot
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookSchedulePage" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "HoldSlotCommandHandler" as handler
+  participant "Booking" as booking
+  participant "SlotHold" as hold
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Pick a slot, select "Continue to payment"
+page -> page : Button "Holding your slot", busy (L2-025)
+page -> client : Build request with Idempotency-Key
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send HoldSlotCommand
+handler -> db : Find hold for idempotency key
+alt Hold already exists for the key
+  db --> handler : Existing SlotHold
+  handler --> controller : Existing hold
+else New request
+  handler -> db : Load Booking and slot, check slot is free
+  alt Slot taken
+    db --> handler : Slot already held or booked
+    handler --> controller : SlotTaken result
+    controller --> client : 409 ProblemDetails
+    client --> page : Slot taken
+    page --> actor : Danger toast "We couldn’t hold that slot", action "Choose another time" (L2-025)
+  else Slot free
+    handler -> hold : Create with ExpiresAt = now + 10 minutes (L2-025)
+    hold --> handler : SlotHold
+    handler -> booking : Set Status SlotHeld
+    booking --> handler : Updated
+    handler -> db : Save hold and booking in one unit of work
+    db --> handler : Commit result
+    handler --> controller : Hold with ExpiresAt
+    controller --> client : 200 response
+    client --> page : Held
+    page --> actor : Go to /book/pay, warning toast "We’re holding your slot for 10 minutes" (L2-026)
+  end
+end
+@enduml

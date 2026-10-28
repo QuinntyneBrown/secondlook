@@ -1,0 +1,69 @@
+@startuml
+title UML sequence behaviour — Send a report by email
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ShareReportDialog" as dlg
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ShareReportCommandValidator" as val
+  participant "ShareReportCommandHandler" as handler
+  participant "ShareLink" as link
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "EmailSender" as mail
+  database "SecondLook database" as db
+end box
+actor -> dlg : Select Share on the report
+dlg -> client : Get or create link
+client -> controller : HTTPS request
+controller -> handler : Ensure ShareLink (expires 14 days from creation, L2-047)
+handler -> link : Create or reuse
+handler -> db : Save link
+controller --> client : Link URL
+client --> dlg : Show Share this report, Send to, Include the body shop review checked, link
+actor -> dlg : Enter email and select Send report
+dlg -> dlg : Mark busy
+dlg -> client : shareReport(email, includeBodyShop)
+client -> controller : HTTPS POST
+controller -> val : Validate email format
+alt email invalid
+  val --> controller : Failure
+  controller --> client : 400 ProblemDetails
+  client --> dlg : Error
+  dlg --> actor : Enter a valid email address, like name@example.com. (L2-047)
+else valid
+  controller -> handler : Send ShareReportCommand
+  handler -> mail : Send report email
+  alt email sent
+    mail --> handler : Accepted
+    handler --> controller : Result
+    controller --> client : 200
+    client --> dlg : Sent
+    dlg --> actor : Report sent to address, Turn off link, Done
+  else email fails
+    mail --> handler : Failure
+    handler --> controller : Failure
+    controller --> client : Error
+    client --> dlg : Error
+    dlg --> actor : We couldn’t send it, Try again (L2-047)
+  end
+end
+@enduml

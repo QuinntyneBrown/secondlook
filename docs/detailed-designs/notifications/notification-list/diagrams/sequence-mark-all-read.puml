@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Mark all notifications as read
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "NotificationsPage" as page
+  participant "NotificationsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "NotificationsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "MarkAllNotificationsReadCommandHandler" as handler
+  participant "Notification" as entity
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Mark all as read"
+page -> client : markAllRead()
+client -> controller : POST request
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send MarkAllNotificationsReadCommand
+handler -> db : Load buyer's unread notifications
+db --> handler : Rows
+handler -> entity : MarkRead(now from IClock) for each
+entity --> handler : ReadAt set
+handler -> db : Save changes in one unit of work
+db --> handler : Commit result
+handler --> controller : NotificationListView with UnreadCount 0
+controller --> client : 200 or ProblemDetails
+client --> page : Result
+alt succeeded
+  page --> actor : Subtitle "All caught up"; "Mark all as read" disabled (L2-053)
+else failed
+  page --> actor : Unread state retained; error presentation <TO SUPPLY>
+end
+@enduml

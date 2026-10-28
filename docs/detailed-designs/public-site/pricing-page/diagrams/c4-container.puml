@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Pricing page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Pricing page, calculator and questions; prices are bundled constants")
+  Container(host, "Static asset host", "<TO SUPPLY>", "Serves the Angular bundle, including the static page content")
+}
+Rel(visitor, host, "Loads the app from", "HTTPS")
+Rel(visitor, spa, "Reads pages in", "HTTPS")
+Rel(host, spa, "Delivers bundle to", "HTTPS")
+@enduml

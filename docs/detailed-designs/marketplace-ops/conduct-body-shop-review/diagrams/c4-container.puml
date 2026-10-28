@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Conduct a body shop review
+
+Person(shop, "Body shop", "Reviews the vehicle")
+Person(buyer, "Buyer", "Reads the report")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Body shop review screens (TO SUPPLY) and ReportPage")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Review and report endpoints; Application and Domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, body shop reviews and reports")
+}
+System_Ext(video, "Video provider (TO SUPPLY)", "Live call")
+
+Rel(shop, spa, "Uses", "HTTPS")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, video, "Issues room access through", "IVideoRoom")
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Request a page while offline
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "User" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page" as page
+  participant "SystemErrorInterceptor" as interceptor
+  participant "OfflinePage" as offline
+end box
+actor -> page : Request a page
+page -> interceptor : HTTP request
+interceptor -> interceptor : Request fails without a response, device reports no connection <TO SUPPLY>
+interceptor -> offline : Navigate to /offline
+offline --> actor : Show "Offline", "You’re not connected" with "You can still read reports you’ve already opened. Booking and live calls need a connection." (L2-060 criterion 3)
+alt user selects "Try again"
+  actor -> offline : Select "Try again"
+  offline -> page : Repeat the failed navigation <TO SUPPLY>
+else user selects "View saved reports"
+  actor -> offline : Select "View saved reports"
+  offline --> actor : Navigate to the report page (saved copy source <TO SUPPLY>)
+end
+@enduml

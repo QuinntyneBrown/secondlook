@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Compare estimates
+
+Person(buyer, "Buyer", "Compares estimates")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "ComparePage at /compare")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ComparisonsController")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Reports, vehicles, pricing windows")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Dialog behaviour
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "Page", "Angular page", "Opens a dialog from a button")
+  Component(service, "DialogService", "Angular service", "Opens every dialog through one code path")
+  Component(cdk, "CDK Dialog", "Angular CDK", "Overlay, focus trap, focus restore, Escape handling")
+  Component(shell, "DialogShell (sl-dialog)", "Angular component in projects/components", "Title, description, Close control, alert, footer, busy state")
+  Component(dlg, "Ten dialog components", "Angular components in app/dialogs", "Content and request of one dialog each")
+  Component(client, "API client", "Angular API client", "Sends the request through its injection token")
+}
+Container(api, "SecondLook.Api", "ASP.NET Core", "Endpoint of the dialog")
+Rel(page, service, "Opens dialog with")
+Rel(service, cdk, "Opens overlay with modal configuration")
+Rel(cdk, dlg, "Attaches")
+Rel(dlg, shell, "Renders inside")
+Rel(dlg, client, "Sends request through")
+Rel(client, api, "Calls", "JSON/HTTPS")
+@enduml

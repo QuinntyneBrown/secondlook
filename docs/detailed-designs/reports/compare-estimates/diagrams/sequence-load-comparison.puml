@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Load the comparison
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ComparePage" as page
+  participant "ComparisonsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ComparisonsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetComparisonQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /compare
+page -> page : Mark columns busy (L2-052)
+page -> client : getComparison()
+client -> controller : HTTPS GET
+controller -> controller : Authenticate and scope to current buyer
+controller -> handler : Send GetComparisonQuery
+handler -> db : Load delivered reports, vehicles and window for the buyer
+db --> handler : Rows
+alt two or more reports in the window
+  handler -> handler : Compute all-in per report, order lowest first, mark lowest (L2-051)
+  handler --> controller : ComparisonView
+  controller --> client : 200
+  client --> page : Columns
+  page --> actor : Compare cars, columns, Lowest all-in, Add another car · $25, note
+else one report
+  handler --> controller : ComparisonView with one column
+  controller --> client : 200
+  client --> page : One report
+  page --> actor : Compare needs two cars, Add a second car (L2-052)
+else load fails
+  handler --> controller : Failure
+  controller --> client : Error
+  client --> page : Error
+  page --> actor : The comparison didn’t load, Try again (L2-052)
+end
+@enduml

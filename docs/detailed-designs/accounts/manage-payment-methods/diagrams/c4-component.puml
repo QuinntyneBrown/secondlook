@@ -1,0 +1,34 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage payment methods
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "SettingsPage", "Angular page", "Payment methods list, Add a card")
+  Component(checkout, "CheckoutPage", "Angular page", "Opens the dialog from Add a different card")
+  Component(dlg, "AddPaymentMethodDialog", "CDK Dialog", "Card form and states")
+  Component(client, "PaymentMethodsApi (PAYMENT_METHODS_API)", "Angular API client", "List and add requests")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "PaymentMethodsController", "ASP.NET Core controller", "Authenticates and dispatches")
+  Component(list, "GetPaymentMethodsQueryHandler", "MediatR handler", "Lists the buyer's cards")
+  Component(add, "AddPaymentMethodCommandHandler", "MediatR handler", "Verifies and stores the card token")
+  Component(val, "AddPaymentMethodCommandValidator", "FluentValidation", "Token, expiry rules")
+  Component(gw, "IPaymentGateway", "Application port", "Verifies the card with the processor")
+  Component(pm, "PaymentMethod", "Domain entity", "Brand, Last4, expiry, IsDefault, ProcessorToken")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "PaymentMethod rows")
+
+Rel(page, dlg, "Opens")
+Rel(checkout, dlg, "Opens")
+Rel(page, client, "Lists through")
+Rel(dlg, client, "Adds through")
+Rel(client, ctrl, "GETs and POSTs", "JSON/HTTPS")
+Rel(ctrl, list, "Sends GetPaymentMethodsQuery")
+Rel(ctrl, add, "Sends AddPaymentMethodCommand")
+Rel(add, val, "Validated by")
+Rel(add, gw, "Verifies card through")
+Rel(add, pm, "Creates")
+Rel(list, db, "Reads", "EF Core")
+Rel(add, db, "Persists", "EF Core")
+@enduml

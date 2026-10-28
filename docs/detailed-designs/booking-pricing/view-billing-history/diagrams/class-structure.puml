@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — View billing history
+
+enum PaymentStatus {
+  Pending
+  Succeeded
+  Declined
+  Refunded
+  PartiallyRefunded
+}
+class Receipt {
+  +Guid Id
+  +Guid PaymentId
+  +DateTimeOffset IssuedAt
+  +string Description
+}
+class Payment {
+  +Guid Id
+  +decimal Amount
+  +PaymentStatus Status
+}
+class GetBillingHistoryQuery {
+}
+class GetBillingHistoryQueryHandler {
+  +Handle(query: GetBillingHistoryQuery): Task<IReadOnlyList<ReceiptRowDto>>
+}
+class ReceiptRowDto {
+  +Guid ReceiptId
+  +DateTimeOffset Date
+  +string For
+  +decimal Amount
+  +string Status
+}
+class ReceiptsController {
+  +GetBillingHistory(): Task<IActionResult>
+  +Download(id: Guid): Task<IActionResult>
+}
+interface ReceiptsApi {
+  +getBillingHistory(): Observable<ReceiptRow[]>
+  +download(id: string): Observable<Blob>
+}
+class BillingHistoryPage {
+  +state: loading | empty | error | loaded
+  +retry(): void
+  +download(id: string): void
+}
+
+ReceiptsController ..> GetBillingHistoryQuery : sends
+GetBillingHistoryQueryHandler ..> GetBillingHistoryQuery : handles
+GetBillingHistoryQueryHandler --> Receipt : reads
+GetBillingHistoryQueryHandler --> ReceiptRowDto : returns
+Receipt "1" --> "1" Payment : for
+Payment --> PaymentStatus : has
+BillingHistoryPage ..> ReceiptsApi : uses via RECEIPTS_API
+ReceiptsApi ..> ReceiptsController : calls
+@enduml

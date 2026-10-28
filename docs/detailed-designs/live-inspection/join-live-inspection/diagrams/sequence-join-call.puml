@@ -1,0 +1,57 @@
+@startuml
+title UML sequence behaviour — Join the call
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "CallsApi" as client
+  participant "CallRoomClient" as room
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "CallsController" as ctl
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "JoinCallCommandHandler" as handler
+  participant "CallSession" as session
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "Video provider adapter (IVideoRoom)" as vroom
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Join the call"
+page --> actor : Show "Connecting to Dev Patel and Sam Whitaker…" with spinner "Connecting" (L2-041)
+page -> client : Build join request
+client -> ctl : HTTPS request
+ctl -> ctl : Authenticate and scope to current buyer (L2-057)
+ctl -> handler : Send JoinCallCommand
+handler -> db : Load buyer's inspection and any CallSession
+db --> handler : Inspection and session or none
+alt No session yet
+  handler -> session : Create with StartedAt from IClock and six checklist items
+  session --> handler : Session with first item Now
+  handler -> db : Save session and set Inspection.Status to Live
+else Session exists
+  handler -> handler : Return existing session (idempotent join)
+end
+handler -> vroom : Issue join credential for the buyer
+vroom --> handler : Credential
+handler --> ctl : JoinCallResult
+ctl --> client : HTTP response
+client --> page : Credential and initial call state
+page -> room : Connect with credential
+room --> page : Remote and local tracks
+page --> actor : Show "Live" with elapsed time, seller video, tiles, controls, "Checklist" and "Notes from Dev" (L2-041)
+@enduml

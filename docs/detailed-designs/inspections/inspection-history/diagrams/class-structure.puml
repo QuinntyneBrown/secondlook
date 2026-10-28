@@ -1,0 +1,74 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Inspection history
+
+enum InspectionTab {
+  Active
+  Past
+}
+class ListInspectionsQuery {
+  +InspectionTab Tab
+  +int Page
+  +int PageSize = 20
+}
+class ListInspectionsQueryHandler {
+  +Handle(query: ListInspectionsQuery): Task<InspectionPage>
+}
+class InspectionPage {
+  +int TotalCount
+  +IReadOnlyList<InspectionListItem> Items
+}
+class InspectionListItem {
+  +Guid InspectionId
+  +string VehicleName
+  +InspectionStatus Status
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class GetInspectionEstimateQuery {
+  +Guid InspectionId
+}
+class GetInspectionEstimateQueryHandler {
+  +Handle(query: GetInspectionEstimateQuery): Task<EstimateView>
+}
+class EstimateView {
+  +Guid InspectionId
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+  +IReadOnlyList<FindingView> Findings
+}
+class FindingView {
+  +string Title
+  +Severity Severity
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class Report {
+  +Guid Id
+  +Guid InspectionId
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +InspectionStatus Status
+}
+ListInspectionsQueryHandler ..> ListInspectionsQuery : handles
+ListInspectionsQueryHandler --> InspectionPage : returns
+InspectionPage "1" *-- "*" InspectionListItem
+GetInspectionEstimateQueryHandler ..> GetInspectionEstimateQuery : handles
+GetInspectionEstimateQueryHandler --> Report : reads (scoped to buyer)
+GetInspectionEstimateQueryHandler --> EstimateView : returns
+EstimateView "1" *-- "*" FindingView
+Report "1" --> "1" Inspection
+@enduml

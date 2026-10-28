@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Choose a review type
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookReviewPage" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ChooseReviewTypeCommandHandler" as handler
+  participant "Booking" as booking
+  participant "PricingPolicy" as pricing
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+page --> actor : Show options with "Both" selected (L2-024)
+actor -> page : Select an option
+page --> actor : Update order summary, "Mechanic + body shop" +$20 for Both (L2-024)
+actor -> page : Select continue
+page -> page : Button "Saving", busy (L2-024)
+page -> client : Build request with Idempotency-Key
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send ChooseReviewTypeCommand
+handler -> db : Load draft Booking owned by buyer
+db --> handler : Booking
+handler -> pricing : Quote for review type (L2-027)
+pricing --> handler : Price breakdown
+handler -> booking : Set ReviewType and price
+booking --> handler : Updated
+handler -> db : Save changes in one unit of work
+alt Save succeeds
+  db --> handler : Commit result
+  handler --> controller : Price breakdown
+  controller --> client : 200 response
+  client --> page : Saved
+  page --> actor : Go to /book/schedule
+else Save fails
+  db --> handler : Failure
+  handler --> controller : Error result
+  controller --> client : ProblemDetails
+  client --> page : Error
+  page --> actor : Show "We couldn’t save your choice" (L2-024)
+end
+actor -> page : Select "Back"
+page --> actor : Return to /book/vehicle (L2-024)
+@enduml

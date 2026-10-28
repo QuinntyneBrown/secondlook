@@ -1,0 +1,73 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — View the report
+
+enum Severity {
+  Required
+  Recommended
+  Passes
+}
+enum BodyShopReviewStatus {
+  InProgress
+  Delivered
+}
+class Report {
+  +Guid Id
+  +Guid InspectionId
+  +string WrittenBy
+  +DateTime DeliveredAt
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+}
+class Finding {
+  +string Title
+  +string Note
+  +Severity Severity
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class BodyShopReview {
+  +BodyShopReviewStatus Status
+}
+class GetReportQuery {
+  +Guid InspectionId
+}
+class GetReportQueryHandler {
+  +Handle(query: GetReportQuery): Task<ReportView>
+}
+class ReportView {
+  +int RequiredRepairCount
+  +decimal AllInMin
+  +decimal AllInMax
+  +string BodyShopProviderName
+}
+class ReportsController {
+  +Get(inspectionId: Guid): Task<ReportView>
+}
+class ReportPage {
+  +state: loading|default|partial|error
+  +retry(): void
+}
+class ReportsApi {
+  +getReport(inspectionId: string): Observable<ReportView>
+}
+Report "1" *-- "*" Finding
+Report "1" o-- "0..1" BodyShopReview
+BodyShopReview "1" *-- "*" Finding
+Finding --> Severity
+BodyShopReview --> BodyShopReviewStatus
+GetReportQueryHandler ..> GetReportQuery : handles
+GetReportQueryHandler --> Report : loads
+GetReportQueryHandler --> ReportView : returns
+ReportsController ..> GetReportQuery : sends
+ReportPage ..> ReportsApi : uses via REPORTS_API
+@enduml

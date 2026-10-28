@@ -1,0 +1,47 @@
+@startuml
+title UML sequence behaviour — View a cancelled inspection
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "InspectionDetailPage" as page
+  participant "InspectionsApi" as client
+  participant "Router" as router
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetInspectionQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections/{id}
+page -> client : Get inspection
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send GetInspectionQuery
+handler -> db : Load inspection, payment and refund
+db --> handler : Cancelled state
+handler --> controller : InspectionDetailView with CancelledAt and RefundedAmount
+controller --> client : Response
+client --> page : View model
+page --> actor : "Cancelled on Wed 28 Oct 2026" with "We refunded $45.00 to the card ending 4242. Rebook any time; your answers are saved." and "Rebook this car" (L2-038)
+page --> actor : Status "Cancelled · refunded $45"; "Join the call", "Reschedule" and "Cancel inspection" not offered (L2-038)
+actor -> page : Select "Rebook this car"
+page -> router : Navigate to /book/vehicle with the saved answers
+router --> actor : Book: vehicle
+@enduml

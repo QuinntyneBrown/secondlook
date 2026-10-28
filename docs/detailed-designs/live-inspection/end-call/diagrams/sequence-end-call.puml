@@ -1,0 +1,66 @@
+@startuml
+title UML sequence behaviour — End the call
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "EndCallDialog" as dlg
+  participant "CallsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "CallsController" as ctl
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "EndCallCommandHandler" as handler
+  participant "CallSession" as session
+  participant "Inspection" as insp
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "Video provider adapter (IVideoRoom)" as vroom
+  participant "Recording store adapter (IRecordingStore)" as rec
+  database "SecondLook database" as db
+end box
+actor -> page : Select "End call"
+page -> dlg : Open CDK Dialog
+dlg --> actor : Ask "End the call for everyone?" with items left; focus "Stay on the call" (L2-043)
+actor -> dlg : Select "End call" in the dialog (L2-043)
+dlg -> dlg : Set aria-busy on "End call" and disable the other buttons
+dlg -> client : Build end request with Idempotency-Key
+client -> ctl : HTTPS request
+ctl -> ctl : Authenticate and scope to current buyer (L2-057)
+ctl -> handler : Send EndCallCommand
+handler -> db : Load buyer's CallSession and Inspection
+db --> handler : Session and inspection
+alt Call still live
+  handler -> session : End with IClock
+  session --> handler : EndedAt set
+  handler -> insp : Set status CallEnded
+  insp --> handler : Updated
+  handler -> vroom : Close the room for everyone
+  vroom --> handler : Participants disconnected
+  handler -> rec : Stop the recording
+  rec --> handler : Recording closed
+  handler -> db : Save in one unit of work
+  db --> handler : Commit result
+else Call already ended
+  handler -> handler : Return stored summary (idempotent)
+end
+handler --> ctl : EndCallResult with CallSummary
+ctl --> client : HTTP response
+client --> dlg : EndCallResult
+dlg -> page : Close with result
+page --> actor : Show "Call ended" with length, checked, could not see, "Back to inspection" and "Add another car for $25" (L2-043)
+@enduml

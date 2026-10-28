@@ -1,0 +1,84 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Add another vehicle
+
+enum ReviewType {
+  Mechanic
+  BodyShop
+  Both
+}
+class Vehicle {
+  +Guid Id
+  +Guid BuyerId
+  +string Vin
+}
+class Booking {
+  +Guid Id
+  +Guid BuyerId
+  +Guid VehicleId
+  +ReviewType ReviewType
+  +BookingStatus Status
+  +Guid PricingWindowId
+  +string IdempotencyKey
+}
+class PricingWindow {
+  +Guid Id
+  +Guid BuyerId
+  +DateTimeOffset OpensAt
+  +DateTimeOffset ClosesAt
+  +IsOpen(now: DateTimeOffset): bool
+}
+class PricingPolicy {
+  +Price(reviewType: ReviewType, windowOpen: bool): PriceBreakdown
+}
+class AddAnotherVehicleCommand {
+  +string Vin
+  +ReviewType ReviewType
+  +string IdempotencyKey
+}
+class AddAnotherVehicleCommandValidator {
+  +Validate(command: AddAnotherVehicleCommand): ValidationResult
+}
+class AddAnotherVehicleCommandHandler {
+  +Handle(command: AddAnotherVehicleCommand): Task<AddedVehicleDto>
+}
+class AddedVehicleDto {
+  +string VehicleName
+  +decimal Price
+  +int CarsInWindow
+}
+interface IVinLookup {
+  +Lookup(vin: string): Task<VinInfo>
+}
+class AddAnotherCarDialog {
+  +vin: string
+  +reviewType: ReviewType
+  +busy: bool
+  +submit(): void
+}
+interface BookingsApi {
+  +addAnotherVehicle(request): Observable<AddedVehicle>
+}
+
+AddAnotherVehicleCommandHandler ..> AddAnotherVehicleCommand : handles
+AddAnotherVehicleCommandValidator ..> AddAnotherVehicleCommand : validates
+AddAnotherVehicleCommandHandler --> PricingWindow : checks
+AddAnotherVehicleCommandHandler --> PricingPolicy : prices with
+AddAnotherVehicleCommandHandler ..> IVinLookup : uses
+AddAnotherVehicleCommandHandler --> Vehicle : creates
+AddAnotherVehicleCommandHandler --> Booking : creates
+AddAnotherVehicleCommandHandler --> AddedVehicleDto : returns
+Booking --> ReviewType : has
+Booking "*" --> "1" PricingWindow : inside
+Booking "1" --> "1" Vehicle : for
+AddAnotherCarDialog ..> BookingsApi : uses via BOOKINGS_API
+@enduml

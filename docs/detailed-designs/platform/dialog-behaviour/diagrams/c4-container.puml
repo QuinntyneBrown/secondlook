@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Dialog behaviour
+
+Person(buyer, "Buyer", "Uses dialogs")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular, Angular CDK", "Dialog shell, dialog service and ten dialogs")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Endpoints that each dialog calls")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Sends the request of a dialog", "JSON/HTTPS")
+@enduml

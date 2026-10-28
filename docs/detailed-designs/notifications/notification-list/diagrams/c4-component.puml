@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Notification list
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "NotificationsPage", "Angular page", "Renders loading, default, read, empty and error states at /notifications")
+  Component(client, "NotificationsApi / NOTIFICATIONS_API", "Contract and injection token", "Typed client in projects/api")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "NotificationsController", "ASP.NET Core controller", "Exposes /api/notifications; scopes to the current buyer")
+  Component(query, "GetNotificationsQueryHandler", "MediatR handler", "Returns the buyer's notifications and unread count")
+  Component(markAll, "MarkAllNotificationsReadCommandHandler", "MediatR handler", "Sets ReadAt on each unread notification")
+  Component(entity, "Notification", "Domain entity", "Owns ReadAt and MarkRead")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists notifications")
+}
+Rel(page, client, "Calls")
+Rel(client, ctrl, "Sends requests", "JSON/HTTPS")
+Rel(ctrl, query, "Sends GetNotificationsQuery")
+Rel(ctrl, markAll, "Sends MarkAllNotificationsReadCommand")
+Rel(query, db, "Reads", "EF Core")
+Rel(markAll, entity, "Loads and mutates")
+Rel(markAll, db, "Persists", "EF Core")
+@enduml

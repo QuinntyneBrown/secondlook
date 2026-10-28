@@ -1,0 +1,72 @@
+@startuml
+title UML sequence behaviour — Add another car
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "AddAnotherCarDialog" as dialog
+  participant "BookingsApi" as client
+  participant "Window banner" as banner
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "AddAnotherVehicleCommandValidator" as validator
+  participant "AddAnotherVehicleCommandHandler" as handler
+  participant "PricingPolicy" as pricing
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "VinLookupClient" as vin
+  database "AppDbContext" as db
+end box
+actor -> dialog : Select "Add another car" (L2-033)
+dialog --> actor : Show "Add another car for $25" with VIN field, review types and note
+actor -> dialog : Choose review type and select continue
+alt VIN is empty
+  dialog -> dialog : Move focus to VIN field
+  dialog --> actor : Show "Enter the full 17-character VIN." (L2-033)
+else VIN present
+  dialog -> dialog : Mark VIN read-only and primary button busy (L2-033)
+  dialog -> client : addAnotherVehicle(vin, reviewType, idempotencyKey)
+  client -> controller : POST /api/bookings/vehicles with Idempotency-Key header
+  controller -> controller : Authenticate and scope to current buyer (L2-057)
+  controller -> validator : Validate command
+  controller -> handler : Send AddAnotherVehicleCommand
+  handler -> db : Load buyer's PricingWindow and any booking with the key
+  alt Booking already exists for the key
+    db --> handler : Existing booking
+    handler --> controller : Existing result
+  else New request
+    handler -> vin : Lookup(vin)
+    vin --> handler : Vehicle name
+    handler -> pricing : Price(reviewType, windowOpen)
+    pricing --> handler : $25, or $45 for Both
+    handler -> db : Save Vehicle and Booking in the window
+    db --> handler : Commit result
+    handler --> controller : AddedVehicleDto
+  end
+  alt Request succeeds
+    controller --> client : 200 OK
+    client --> dialog : Result
+    dialog --> actor : Close dialog
+    banner --> actor : Show "Corolla LE added for $25" and "Compare cars" (L2-033)
+  else Request fails
+    controller --> client : Error response
+    client --> dialog : Error
+    dialog --> actor : Show alert "We couldn’t add the car" and "Try again", keep entered values (L2-033)
+  end
+end
+@enduml

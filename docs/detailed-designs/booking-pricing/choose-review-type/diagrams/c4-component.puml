@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Choose review type
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "BookReviewPage", "Angular page", "Review option group, order summary, Back")
+  Component(client, "BookingsApi (BOOKINGS_API)", "Angular API client", "Typed requests with Idempotency-Key header")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Authenticates and dispatches the command")
+  Component(handler, "ChooseReviewTypeCommandHandler", "MediatR handler", "Sets review type, reprices, persists")
+  Component(pricing, "PricingPolicy", "Domain service", "Adds the +$20 Both line")
+  Component(booking, "Booking", "Domain entity", "Holds ReviewType and price breakdown")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  ComponentDb(db, "SecondLook database", "SQL Server", "Booking rows")
+}
+
+Rel(page, client, "Calls")
+Rel(client, ctrl, "PUTs review type", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends ChooseReviewTypeCommand")
+Rel(handler, booking, "Loads and mutates")
+Rel(handler, pricing, "Gets price lines from")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

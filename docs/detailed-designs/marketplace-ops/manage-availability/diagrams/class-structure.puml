@@ -1,0 +1,67 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage availability
+
+enum ApprovalStatus {
+  Pending
+  Approved
+  Deactivated
+}
+class Provider {
+  +Guid Id
+  +Guid UserId
+  +ApprovalStatus ApprovalStatus
+}
+class AvailabilityWindow {
+  +Guid ProviderId
+  +DateTimeOffset Start
+  +DateTimeOffset End
+}
+class SetAvailabilityCommand {
+  +List<AvailabilityWindowInput> Windows
+}
+class SetAvailabilityCommandHandler {
+  +Handle(command): Task<Result>
+}
+class GetAvailabilityQuery
+class GetAvailabilityQueryHandler {
+  +Handle(query): Task<List<AvailabilityWindow>>
+}
+class GetAvailableSlotsQueryHandler {
+  +Handle(query): Task<SlotsResult>
+}
+class SlotHold {
+  +Guid SlotId
+  +DateTimeOffset ExpiresAt
+}
+class Inspection {
+  +Guid MechanicId
+  +DateTimeOffset ScheduledAt
+}
+class AvailabilityController {
+  +Get(): Task<ActionResult>
+  +Set(request): Task<ActionResult>
+}
+
+AvailabilityController ..> SetAvailabilityCommand : sends
+AvailabilityController ..> GetAvailabilityQuery : sends
+SetAvailabilityCommandHandler ..> SetAvailabilityCommand : handles
+SetAvailabilityCommandHandler --> AvailabilityWindow : replaces
+GetAvailabilityQueryHandler ..> GetAvailabilityQuery : handles
+GetAvailableSlotsQueryHandler --> AvailabilityWindow : reads
+GetAvailableSlotsQueryHandler --> SlotHold : excludes held
+GetAvailableSlotsQueryHandler --> Inspection : excludes booked
+Provider "1" --> "*" AvailabilityWindow
+Provider --> ApprovalStatus : has
+@enduml

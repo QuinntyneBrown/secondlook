@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Confirm a booking
+
+Person(buyer, "Buyer", "Views the confirmation")
+System_Boundary(secondlook, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "Booking confirmed page at /book/confirmed and success toast")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Confirmation endpoint; SMS port")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Bookings, vehicles, payments, windows")
+}
+System_Ext(sms, "SMS provider", "Texts the seller; name <TO SUPPLY>")
+
+Rel(buyer, app, "Uses", "HTTPS")
+Rel(app, api, "Requests confirmation", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, sms, "Sends seller text", "HTTPS")
+@enduml

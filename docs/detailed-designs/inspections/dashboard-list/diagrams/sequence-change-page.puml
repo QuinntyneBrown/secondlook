@@ -1,0 +1,43 @@
+@startuml
+title UML sequence behaviour — Change page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DashboardPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ListInspectionsQueryHandler" as handler
+  participant "GetPricingWindowQueryHandler" as winh
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Next" or a page number
+page -> page : Mark list busy and keep the current rows
+page -> client : List inspections (tab, requested page)
+client -> controller : GET (HTTPS)
+controller -> handler : Send ListInspectionsQuery
+handler -> db : Load requested page for the buyer
+db --> handler : Up to 20 rows
+handler --> controller : InspectionPage
+controller --> client : Response
+client --> page : Page model
+page --> actor : Rows and "Showing 21–40 of 143"; L2-021 "Previous" enabled after page 1
+@enduml

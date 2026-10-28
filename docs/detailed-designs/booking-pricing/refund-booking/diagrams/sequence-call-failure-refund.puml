@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Full refund when the call cannot happen or complete
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Mechanic call screen" as page
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "RefundBookingCommandHandler" as handler
+  participant "RefundPolicy" as policy
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gateway
+  database "AppDbContext" as db
+end box
+actor -> page : Report seller no-show or incomplete inspection (mechanic UI is TO SUPPLY)
+page -> controller : Report outcome (endpoint is TO SUPPLY)
+controller -> handler : Send RefundBookingCommand (trigger SellerNoShow or MechanicIncomplete)
+handler -> db : Load booking and payment
+db --> handler : Booking and payment
+handler -> policy : Decide(booking, payment, trigger, now)
+policy --> handler : Refund in full (L2-032)
+handler -> gateway : Refund full amount to the card used
+gateway --> handler : Refund reference
+handler -> db : Save Refund with reason, set Payment Refunded
+handler --> controller : Refunded in full
+controller --> page : 200 OK
+@enduml

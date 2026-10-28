@@ -1,0 +1,73 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — End call
+
+class LiveInspectionPage {
+  +CallViewState State
+  +OpenEndCallDialog(): void
+  +ShowEnded(summary: CallSummary): void
+}
+class EndCallDialog {
+  +string[] ItemsLeft
+  +bool Busy
+  +Confirm(): void
+  +Stay(): void
+}
+interface CallsApi {
+  +End(inspectionId: Guid, idempotencyKey: string): Observable<EndCallResult>
+}
+class EndCallCommand {
+  +Guid InspectionId
+}
+class EndCallCommandHandler {
+  +Handle(command: EndCallCommand): Task<EndCallResult>
+}
+class EndCallResult {
+  +CallSummary Summary
+}
+class CallSummary {
+  +TimeSpan Length
+  +string[] Checked
+  +string CouldNotSee
+}
+class CallSession {
+  +Guid Id
+  +DateTimeOffset StartedAt
+  +DateTimeOffset? EndedAt
+  +End(clock: IClock): void
+}
+class Inspection {
+  +Guid Id
+  +InspectionStatus Status
+}
+interface IVideoRoom {
+  +Close(inspectionId: Guid): Task
+}
+interface IRecordingStore {
+  +Stop(inspectionId: Guid): Task
+}
+interface IClock {
+  +UtcNow(): DateTimeOffset
+}
+LiveInspectionPage ..> EndCallDialog : opens
+EndCallDialog ..> CallsApi : calls
+EndCallCommandHandler ..> EndCallCommand : handles
+EndCallCommandHandler --> CallSession : ends
+EndCallCommandHandler --> Inspection : sets CallEnded
+EndCallCommandHandler ..> IVideoRoom : uses
+EndCallCommandHandler ..> IRecordingStore : uses
+EndCallCommandHandler ..> IClock : uses
+EndCallCommandHandler --> EndCallResult : returns
+EndCallResult --> CallSummary : has
+@enduml

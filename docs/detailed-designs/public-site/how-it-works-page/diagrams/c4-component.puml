@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — How it works page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular Router", "Serves /how-it-works as a public route")
+  Component(page, "HowItWorksPage", "Angular page", "Renders steps, questions and the call to action")
+  Component(content, "How-it-works content", "TypeScript constants", "Holds steps and question text")
+  Component(chrome, "Public header and footer", "Shared component, <TO SUPPLY>", "Shows primary links and footer links")
+}
+Rel(visitor, router, "Opens /how-it-works")
+Rel(router, page, "Activates")
+Rel(page, content, "Reads")
+Rel(page, chrome, "Renders")
+@enduml

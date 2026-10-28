@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — View billing history
+
+Person(buyer, "Buyer", "Person buying a used vehicle as is")
+System(sl, "SecondLook", "Remote used-car inspection and estimate platform")
+
+Rel(buyer, sl, "Reviews receipts and downloads a receipt using")
+@enduml

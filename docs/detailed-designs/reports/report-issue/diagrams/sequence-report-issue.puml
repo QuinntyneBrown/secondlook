@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Report an issue
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ReportIssueDialog" as dlg
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ReportIssueCommandValidator" as val
+  participant "ReportIssueCommandHandler" as handler
+  participant "ReportIssue" as issue
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> dlg : Select Report an issue
+dlg --> actor : Report an issue, What’s wrong? choices, Tell us more (optional) (L2-049)
+actor -> dlg : Select Send
+alt no choice made
+  dlg --> actor : Choose what’s wrong. (L2-049)
+else choice made
+  dlg -> dlg : Mark busy
+  dlg -> client : reportIssue(reportId, kind, details)
+  client -> controller : HTTPS POST
+  controller -> controller : Authenticate and scope to current buyer
+  controller -> val : Validate Kind is present
+  controller -> handler : Send ReportIssueCommand
+  handler -> issue : Create ReportIssue
+  handler -> db : Save issue and mechanic Notification
+  alt saved
+    db --> handler : Committed
+    handler --> controller : Result
+    controller --> client : 200
+    client --> dlg : Sent
+    dlg --> actor : Thanks. Dev will take another look., Done (L2-049)
+  else save or request fails
+    db --> handler : Failure
+    handler --> controller : Failure
+    controller --> client : Error
+    client --> dlg : Error
+    dlg --> actor : We couldn’t send that, Nothing was lost. Try again., Try again (L2-049)
+  end
+end
+@enduml

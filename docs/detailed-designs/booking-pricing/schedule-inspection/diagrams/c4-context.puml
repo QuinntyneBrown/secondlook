@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Schedule inspection
+
+Person(buyer, "Buyer", "Person buying a used vehicle as is")
+Person_Ext(mechanic, "Mechanic", "Local mechanic assigned to the inspection")
+System(secondlook, "SecondLook", "Used-car video inspection and booking platform")
+
+Rel(buyer, secondlook, "Chooses and holds a time slot using")
+Rel(secondlook, mechanic, "Assigns to the booked slot")
+@enduml

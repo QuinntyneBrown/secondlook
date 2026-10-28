@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Open a report that is not shared with the user
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Signed-in user" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ReportPage" as page
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetReportQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections/civic-lx/report
+page -> client : Request report (view state loading)
+client -> controller : HTTPS request with bearer token
+controller -> handler : Send GetReportQuery
+handler -> db : Read report within access scope and share-link state
+db --> handler : No visible row
+handler --> controller : Result marked not visible
+controller --> client : Refusal status <TO SUPPLY>
+client --> page : ForbiddenError
+page -> page : Set view state forbidden
+page --> actor : Show "This report isn’t shared with you" with "The owner turned off the link. Ask them for a new one." and "Back to your inspections" (L2-059 criterion 3)
+@enduml

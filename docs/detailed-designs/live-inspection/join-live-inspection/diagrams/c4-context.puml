@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Join live inspection
+
+Person(buyer, "Buyer", "Watches the inspection and follows the checklist")
+Person_Ext(mechanic, "Mechanic", "Inspects the vehicle through the seller's camera")
+Person_Ext(seller, "Seller", "Shows the vehicle from a text link")
+System(sl, "SecondLook", "Used-car safety app with live video inspections")
+System_Ext(video, "Video provider", "Carries call media; vendor not yet chosen")
+Rel(buyer, sl, "Joins the call using")
+Rel(mechanic, sl, "Runs the checklist using")
+Rel(seller, sl, "Joins from a text link to")
+Rel(sl, video, "Creates the room and issues join credentials through")
+@enduml

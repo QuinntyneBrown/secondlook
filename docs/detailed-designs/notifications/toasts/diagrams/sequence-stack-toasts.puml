@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Stack toasts with a limit of three
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Pages" as page
+  participant "ToastService" as service
+  participant "sl-toast-region" as region
+end box
+page -> service : show(fourth toast)
+service -> service : Append to queue (newest last)
+alt queue length is three or fewer
+  service --> region : Visible = all toasts; CollapsedCount = 0
+else queue length exceeds three
+  service -> service : Visible = newest three; CollapsedCount = queue length - 3 (L2-054)
+  service --> region : Visible and CollapsedCount
+end
+region --> actor : Up to three toasts, plus a count of older ones
+note over region
+  Wording and placement of the count are <TO SUPPLY>.
+  Whether a collapsed toast keeps its timer is <TO SUPPLY>.
+end note
+actor -> region : Dismiss a visible toast
+region -> service : dismiss(id)
+service -> service : Remove toast; restore of a collapsed toast <TO SUPPLY>
+service --> region : Visible and CollapsedCount
+@enduml

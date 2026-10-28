@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Meet a server fault
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "User" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page" as page
+  participant "SystemErrorInterceptor" as interceptor
+  participant "ServerErrorPage" as error
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "Exception-handling middleware" as mw
+end box
+actor -> page : Request a page
+page -> interceptor : HTTP request
+interceptor -> mw : Forward request
+mw --> interceptor : ProblemDetails with status 500
+interceptor -> error : Navigate to /500
+error --> actor : Show "500", "That one’s on us" with "Something broke on our side. Your booking and payment are safe. Try again, and if it keeps happening, tell us." (L2-060 criterion 2)
+alt user selects "Try again"
+  actor -> error : Select "Try again"
+  error -> page : Repeat the failed navigation <TO SUPPLY>
+  page --> actor : Present the page or this page again
+else user selects "Contact support"
+  actor -> error : Select "Contact support"
+  error --> actor : Navigate to /help
+end
+@enduml

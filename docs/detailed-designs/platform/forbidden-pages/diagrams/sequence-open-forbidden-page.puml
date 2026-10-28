@@ -1,0 +1,34 @@
+@startuml
+title UML sequence behaviour — Open the forbidden page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "User without access" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Router" as router
+  participant "ForbiddenPage" as page
+  participant "Empty-state component" as empty
+end box
+actor -> router : Navigate to /403
+router -> page : Activate route
+page -> empty : Render lock icon, "403", title and message
+empty --> actor : Show "403", "This inspection isn’t on your account" and "Only the buyer who booked it can see the report. If someone shared this link with you, ask them to share the report from their account." (L2-059 criterion 2)
+alt user selects "Go to inspections"
+  actor -> page : Select "Go to inspections"
+  page --> actor : Navigate to /inspections
+else user selects "Contact support"
+  actor -> page : Select "Contact support"
+  page --> actor : Navigate to /help
+end
+@enduml

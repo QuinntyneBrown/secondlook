@@ -1,0 +1,9 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Dialog behaviour
+
+Person(buyer, "Buyer", "Confirms or edits something in a dialog, by pointer or keyboard")
+System(sl, "SecondLook", "Used-car safety inspection platform")
+Rel(buyer, sl, "Opens, completes and dismisses dialogs in")
+@enduml

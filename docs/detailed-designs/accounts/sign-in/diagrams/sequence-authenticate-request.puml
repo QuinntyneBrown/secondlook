@@ -1,0 +1,43 @@
+@startuml
+title UML sequence behaviour — Authenticate a request
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Account holder" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page" as page
+  participant "SessionStore" as session
+  participant "API client" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "JWT bearer middleware" as bearer
+  participant "Controller" as controller
+end box
+actor -> page : Use a signed-in screen
+page -> client : Call an endpoint
+client -> session : Read token
+client -> controller : HTTPS request with Authorization: Bearer
+bearer -> bearer : Validate signature, issuer, audience and expiry
+alt Endpoint marked AllowAnonymous (sign-up, sign-in, password reset, verification)
+  bearer --> controller : Skip authentication
+  controller --> client : Response
+else Token valid
+  bearer --> controller : Principal with user id and role
+  controller --> client : Response scoped to the current user (L2-057)
+else Token missing, invalid or expired
+  bearer --> client : 401
+  client --> page : Session ended
+  page --> actor : Navigate to /sign-in
+end
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+title UML sequence behaviour — Start recording and retain it for 30 days
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CallEvents" as events
+  participant "CallBannerService" as svc
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "CallSession" as session
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "Recording store adapter (IRecordingStore)" as store
+  participant "RecordingRetentionService (SecondLook.Worker)" as retention
+  database "SecondLook database" as db
+end box
+store -> session : Recording started (trigger not yet specified)
+session -> session : Set RecordingStartedAt from IClock
+session -> db : Save RecordingStartedAt
+session -> events : Publish RecordingStarted
+events -> svc : Deliver RecordingStarted
+svc --> actor : Show "Recording started" and persistent "This call is being recorded" (L2-044)
+...30 days after RecordingStartedAt...
+retention -> db : Find sessions with RecordingStartedAt older than 30 days
+db --> retention : Expired sessions
+retention -> store : Delete the recording
+store --> retention : Deleted
+@enduml

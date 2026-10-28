@@ -1,0 +1,59 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Mechanic and body shop accounts
+
+enum Role {
+  Buyer
+  Mechanic
+  BodyShop
+  Admin
+}
+enum ProviderKind {
+  Mechanic
+  BodyShop
+}
+enum ApprovalStatus {
+  Pending
+  Approved
+  Deactivated
+}
+class User {
+  +Guid Id
+  +string Email
+  +string PasswordHash
+  +string FullName
+  +Role Role
+  +DateTime? EmailVerifiedAt
+}
+class Provider {
+  +Guid Id
+  +Guid UserId
+  +ProviderKind Kind
+  +string DisplayName
+  +string LicenceNumber
+  +string Location
+  +ApprovalStatus ApprovalStatus
+}
+class SignInCommandHandler {
+  +Handle(command: SignInCommand): Task<SignInResult>
+}
+interface ITokenService {
+  +Issue(user: User): AccessToken
+}
+
+User --> Role : has
+User "1" --> "0..1" Provider
+Provider --> ProviderKind : has
+Provider --> ApprovalStatus : has
+SignInCommandHandler --> User : loads
+SignInCommandHandler ..> ITokenService
+@enduml

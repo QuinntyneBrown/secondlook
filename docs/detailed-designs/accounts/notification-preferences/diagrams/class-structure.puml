@@ -1,0 +1,64 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Notification preferences
+
+class NotificationPreference {
+  +Guid UserId
+  +bool EmailWhenReportReady
+  +bool TextBeforeCall
+  +bool WindowClosingAlert
+  +static Defaults(userId: Guid): NotificationPreference
+  +Set(kind: PreferenceKind, value: bool): void
+}
+enum PreferenceKind {
+  EmailWhenReportReady
+  TextBeforeCall
+  WindowClosingAlert
+}
+class NotificationPreferencesDto {
+  +bool EmailWhenReportReady
+  +bool TextBeforeCall
+  +bool WindowClosingAlert
+}
+class GetNotificationPreferencesQuery
+class GetNotificationPreferencesQueryHandler {
+  +Handle(query): Task<NotificationPreferencesDto>
+}
+class SetNotificationPreferenceCommand {
+  +PreferenceKind Kind
+  +bool Value
+}
+class SetNotificationPreferenceCommandHandler {
+  +Handle(command): Task<NotificationPreferencesDto>
+}
+class AccountController {
+  +GetNotificationPreferences(): Task<ActionResult>
+  +SetNotificationPreference(request): Task<ActionResult>
+}
+interface AccountApi {
+  +getNotificationPreferences(): Observable<NotificationPreferencesDto>
+  +setNotificationPreference(kind, value): Observable<NotificationPreferencesDto>
+}
+class SettingsPage
+
+GetNotificationPreferencesQueryHandler ..> GetNotificationPreferencesQuery : handles
+GetNotificationPreferencesQueryHandler --> NotificationPreference : reads or defaults
+GetNotificationPreferencesQueryHandler --> NotificationPreferencesDto : returns
+SetNotificationPreferenceCommandHandler ..> SetNotificationPreferenceCommand : handles
+SetNotificationPreferenceCommandHandler --> NotificationPreference : loads / mutates
+SetNotificationPreferenceCommand --> PreferenceKind : has
+AccountController ..> GetNotificationPreferencesQuery : sends
+AccountController ..> SetNotificationPreferenceCommand : sends
+SettingsPage ..> AccountApi : injected via ACCOUNT_API
+@enduml

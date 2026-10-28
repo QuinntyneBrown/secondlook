@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Track the pricing window
+
+Person(buyer, "Buyer", "Watches the window")
+System_Ext(notify, "Notification channel", "Channel is TO SUPPLY")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Dashboard window banner")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Pricing window endpoint, application logic and domain")
+  Container(worker, "SecondLook.Worker", "Background service", "Raises window-closing notifications")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Pricing windows and notification preferences")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(worker, db, "Reads windows and preferences, records notices sent", "EF Core")
+Rel(worker, notify, "Sends the closing notice through", "HTTPS")
+@enduml

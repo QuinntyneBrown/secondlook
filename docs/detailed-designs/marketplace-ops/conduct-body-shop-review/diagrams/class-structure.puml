@@ -1,0 +1,84 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Conduct a body shop review
+
+enum Severity {
+  Required
+  Recommended
+  Passes
+}
+enum ReviewStatus {
+  InProgress
+  Delivered
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +Guid? BodyShopId
+}
+class BodyShopReview {
+  +Guid InspectionId
+  +ReviewStatus Status
+  +SetFindings(findings): void
+  +Deliver(): void
+}
+class Finding {
+  +string Title
+  +string Note
+  +Severity Severity
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class Report {
+  +Guid Id
+  +Guid InspectionId
+  +DateTimeOffset DeliveredAt
+}
+class SaveBodyShopFindingsCommand {
+  +Guid InspectionId
+  +List<Finding> Findings
+}
+class SaveBodyShopFindingsCommandHandler {
+  +Handle(command): Task<Result>
+}
+class SubmitBodyShopReviewCommand {
+  +Guid InspectionId
+}
+class SubmitBodyShopReviewCommandHandler {
+  +Handle(command): Task<Result>
+}
+class GetReportQueryHandler {
+  +Handle(query): Task<ReportView>
+}
+class ReportsController {
+  +SaveFindings(id, request): Task<ActionResult>
+  +SubmitReview(id): Task<ActionResult>
+  +Get(id): Task<ActionResult>
+}
+class CallsController
+
+ReportsController ..> SaveBodyShopFindingsCommand : sends
+ReportsController ..> SubmitBodyShopReviewCommand : sends
+SaveBodyShopFindingsCommandHandler ..> SaveBodyShopFindingsCommand : handles
+SaveBodyShopFindingsCommandHandler --> BodyShopReview : loads / mutates
+SubmitBodyShopReviewCommandHandler ..> SubmitBodyShopReviewCommand : handles
+SubmitBodyShopReviewCommandHandler --> BodyShopReview : delivers
+GetReportQueryHandler --> Report : reads
+Inspection "1" --> "0..1" BodyShopReview
+Report "1" --> "0..1" BodyShopReview : includes
+BodyShopReview "1" --> "*" Finding
+BodyShopReview --> ReviewStatus : has
+Finding --> Severity : has
+CallsController ..> Inspection : checks BodyShopId
+@enduml

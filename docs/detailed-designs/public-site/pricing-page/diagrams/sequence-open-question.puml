@@ -1,0 +1,28 @@
+@startuml
+title UML sequence behaviour — Open a pricing question
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "PricingPage" as page
+end box
+actor -> page : Select "How long is the window?", "When am I charged?" or "Is there a fee for the report?"
+alt Question is collapsed
+  page -> page : Expand the item and reveal its answer (L2-002)
+else Question is open
+  page -> page : Collapse the item (behaviour not stated by L2-002, <TO SUPPLY>)
+end
+page --> actor : Show the item state
+@enduml

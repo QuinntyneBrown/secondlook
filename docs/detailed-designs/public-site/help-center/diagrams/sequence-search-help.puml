@@ -1,0 +1,36 @@
+@startuml
+title UML sequence behaviour — Search the help questions
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HelpPage" as page
+  participant "HelpSearch" as search
+end box
+actor -> page : Type a query in "Search help"
+page -> search : Filter the 5 questions by the query (matching rule is <TO SUPPLY>)
+alt Questions match
+  search --> page : Matching questions
+  page --> actor : Show the matching questions
+else Nothing matches, for example "brake"
+  search --> page : No questions
+  page --> actor : Show "Nothing matches “brake”" with "Clear search" and "Email support" (L2-005)
+end
+opt Visitor selects "Clear search"
+  actor -> page : Select "Clear search"
+  page -> page : Empty the field and restore the 5 questions
+  page --> actor : Show the default state
+end
+@enduml

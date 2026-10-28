@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — View billing history
+
+Person(buyer, "Buyer", "Reviews receipts")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Billing history page at /settings/billing")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticated receipts endpoints")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Payments and receipts")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+@enduml

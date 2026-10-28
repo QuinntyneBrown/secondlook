@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Mechanic profile
+
+Person(buyer, "Buyer", "Checks who the assigned mechanic is")
+System(secondlook, "SecondLook", "Used-car video inspection and estimate platform")
+
+Rel(buyer, secondlook, "Views the mechanic profile using")
+@enduml

@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Toggle a notification preference
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "AccountApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AccountController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SetNotificationPreferenceCommandHandler" as handler
+  participant "NotificationPreference" as pref
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Toggle a switch
+page -> page : Show the new switch position
+page -> client : Build request with kind and value
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send SetNotificationPreferenceCommand
+handler -> db : Load or create NotificationPreference
+db --> handler : NotificationPreference
+handler -> pref : Set(kind, value)
+pref --> handler : Updated
+handler -> db : Save changes in one unit of work
+alt Save succeeds
+  db --> handler : Commit result
+  handler --> controller : NotificationPreferencesDto
+  controller --> client : 200 response
+  client --> page : Saved
+  page --> actor : Value persists; no save button (L2-016)
+else Save fails
+  db --> handler : Failure
+  handler --> controller : Error
+  controller --> client : ProblemDetails
+  client --> page : Save failed
+  page --> actor : Switch returns to its stored position; failure message <TO SUPPLY>
+end
+@enduml

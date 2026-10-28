@@ -1,0 +1,25 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Refund a booking
+
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Exposes /api/bookings cancel endpoint")
+  Component(handler, "RefundBookingCommandHandler", "MediatR handler", "Decides and records the refund")
+  Component(policy, "RefundPolicy", "Domain service", "Single source of the refund rules")
+  Component(booking, "Booking", "Domain entity", "Holds status and slot time")
+  Component(payment, "Payment and Refund", "Domain entities", "Hold amounts and refund records")
+  Component(clock, "IClock", "Application port", "Supplies the current time")
+  Component(gateway, "PaymentGateway", "Infrastructure adapter of IPaymentGateway", "Issues the refund at the processor")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists changes")
+}
+System_Ext(processor, "Payment processor", "Vendor is TO SUPPLY")
+Rel(ctrl, handler, "Sends RefundBookingCommand")
+Rel(handler, policy, "Asks for the refund decision")
+Rel(handler, clock, "Reads current time")
+Rel(handler, booking, "Loads and cancels")
+Rel(handler, payment, "Records Refund and updates status")
+Rel(handler, gateway, "Requests refund through IPaymentGateway")
+Rel(gateway, processor, "Refunds the card", "HTTPS")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

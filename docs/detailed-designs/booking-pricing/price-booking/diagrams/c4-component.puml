@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Price a booking
+
+Container(app, "SecondLook app", "Angular", "Booking pages render OrderSummary from the quote")
+
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Exposes the quote endpoint under /api/bookings")
+  Component(wctrl, "PricingWindowsController", "ASP.NET Core controller", "Exposes the buyer's current window")
+  Component(handler, "QuoteBookingQueryHandler", "MediatR handler", "Builds the quote without writing state")
+  Component(policy, "PricingPolicy", "Domain service", "Single source of the pricing rules")
+  Component(window, "PricingWindow", "Domain entity", "Fourteen-day window per buyer")
+  Component(clock, "IClock", "Application port", "Supplies the current time")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists windows and bookings")
+}
+
+Rel(app, ctrl, "Requests quote", "JSON/HTTPS")
+Rel(app, wctrl, "Requests current window", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends QuoteBookingQuery")
+Rel(wctrl, handler, "Sends GetPricingWindowQuery")
+Rel(handler, clock, "Reads current time")
+Rel(handler, policy, "Applies L2-027 rules")
+Rel(policy, window, "Checks whether open")
+Rel(handler, db, "Loads buyer's window", "EF Core")
+@enduml

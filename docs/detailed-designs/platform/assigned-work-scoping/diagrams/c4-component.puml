@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Assigned work scoping
+
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Authenticates and dispatches; holds no scoping rules")
+  Component(user, "ICurrentUser", "Application port", "Exposes the authenticated user id and role")
+  Component(handlers, "ListInspectionsQueryHandler and GetInspectionQueryHandler", "MediatR handlers", "Choose the scope by role and apply it")
+  Component(assigned, "AssignedScope", "Application query extension", "Restricts inspections to those assigned to the provider")
+  Component(buyer, "BuyerScope", "Application query extension", "Buyer branch (L2-057)")
+  Component(ctx, "IAppDbContext", "Application port", "Query access to Provider and Inspection")
+}
+ContainerDb(db, "SecondLook database", "SQL Server", "Providers and inspections")
+Rel(ctrl, handlers, "Sends queries")
+Rel(handlers, user, "Reads current user from")
+Rel(handlers, assigned, "Applies for Mechanic and BodyShop")
+Rel(handlers, buyer, "Applies for Buyer")
+Rel(assigned, ctx, "Filters")
+Rel(ctx, db, "Reads", "EF Core")
+@enduml

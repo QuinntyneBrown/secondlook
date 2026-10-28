@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Help center
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Help page and in-browser search; topics are bundled")
+  Container(host, "Static asset host", "<TO SUPPLY>", "Serves the Angular bundle, including the static page content")
+}
+System_Ext(mail, "Visitor mail app", "Opens the message to help@secondlook.example")
+Rel(visitor, host, "Loads the app from", "HTTPS")
+Rel(visitor, spa, "Reads and searches help in", "HTTPS")
+Rel(host, spa, "Delivers bundle to", "HTTPS")
+Rel(spa, mail, "Hands off the mailto link to", "mailto")
+@enduml

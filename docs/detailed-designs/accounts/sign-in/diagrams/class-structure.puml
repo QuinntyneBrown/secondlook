@@ -1,0 +1,69 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Sign in and JWT issuance
+
+class User {
+  +Guid Id
+  +string Email
+  +string PasswordHash
+  +Role Role
+}
+class SignInCommand {
+  +string Email
+  +string Password
+}
+class SignInCommandValidator {
+  +Validate(command: SignInCommand): ValidationResult
+}
+class SignInCommandHandler {
+  +Handle(command: SignInCommand): Task<SignInResult>
+}
+class SignInResult {
+  +string AccessToken
+  +DateTime ExpiresAt
+  +Role Role
+}
+interface IPasswordHasher {
+  +Verify(hash: string, password: string): bool
+}
+interface ITokenService {
+  +Issue(user: User): AccessToken
+}
+interface IClock {
+  +UtcNow: DateTime
+}
+class AuthController {
+  +SignIn(request: SignInRequest): Task<IActionResult>
+}
+class SignInPage {
+  +state: default|invalid|submitting|error
+  +submit(): void
+}
+interface AuthApi {
+  +signIn(request: SignInRequest): Observable<SignInResult>
+}
+class SessionStore {
+  +set(result: SignInResult): void
+  +clear(): void
+}
+
+AuthController ..> SignInCommand : sends
+SignInCommandHandler ..> SignInCommand : handles
+SignInCommandValidator ..> SignInCommand : validates
+SignInCommandHandler --> User : loads
+SignInCommandHandler ..> IPasswordHasher
+SignInCommandHandler ..> ITokenService
+ITokenService ..> IClock
+SignInCommandHandler --> SignInResult : returns
+SignInPage ..> AuthApi : AUTH_API
+SignInPage --> SessionStore : stores result
+@enduml

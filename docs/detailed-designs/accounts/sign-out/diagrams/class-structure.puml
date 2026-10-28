@@ -1,0 +1,40 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Sign out
+
+class SignOutDialog {
+  +state: default|busy
+  +cancel(): void
+  +confirm(): void
+}
+interface AuthApi {
+  +signOut(): Observable<void>
+}
+class SessionStore {
+  +set(result: SignInResult): void
+  +clear(): void
+}
+class AuthController {
+  +SignOut(): Task<IActionResult>
+}
+class SignOutCommand {
+  +Guid UserId
+}
+class SignOutCommandHandler {
+  +Handle(command: SignOutCommand): Task
+}
+
+SignOutDialog ..> AuthApi : AUTH_API
+SignOutDialog --> SessionStore : clears
+AuthController ..> SignOutCommand : sends
+SignOutCommandHandler ..> SignOutCommand : handles
+@enduml

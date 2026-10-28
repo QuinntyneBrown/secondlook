@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Toasts
+
+Person(buyer, "Buyer", "Receives toasts")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Raises toasts from pages and dialogs; hosts the toast region")
+  Container(lib, "components library", "Angular library", "sl-toast, sl-toast-region and ToastService")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Outcomes that cause toasts: failed payment, report ready, PDF failure")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, lib, "Imports toast components and ToastService from")
+Rel(spa, api, "Calls; the outcome decides which toast is raised", "JSON/HTTPS")
+@enduml

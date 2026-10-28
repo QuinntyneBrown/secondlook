@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — First visit and consent choice
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CookieConsent" as prompt
+  participant "ConsentService" as service
+  participant "CONSENT_STORE" as store
+  participant "ToastService" as toast
+end box
+actor -> prompt : Load any page
+prompt -> service : shouldShow(now)
+service -> store : read()
+store --> service : No record
+service --> prompt : true
+prompt --> actor : "Cookies, kept to the basics" with "Accept all", "Reject optional", "Manage" (L2-055)
+alt Accept all
+  actor -> prompt : Select "Accept all"
+  prompt -> service : choose(AcceptAll)
+else Reject optional
+  actor -> prompt : Select "Reject optional"
+  prompt -> service : choose(RejectOptional)
+else Manage
+  actor -> prompt : Select "Manage"
+  note right of prompt
+    The Manage screen or dialog, and whether
+    leaving it counts as a choice, are <TO SUPPLY>.
+  end note
+end
+service -> service : Build record; ExpiresAt = DecidedAt + 12 months (L2-055)
+service -> store : write(record)
+store --> service : Saved
+service -> toast : show(Success, "Preferences saved", "You can change them any time from the footer.")
+service --> prompt : Choice made
+prompt --> actor : Prompt closes; toast shown (L2-055)
+@enduml

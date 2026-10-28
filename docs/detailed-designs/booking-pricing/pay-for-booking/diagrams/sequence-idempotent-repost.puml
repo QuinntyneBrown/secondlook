@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Repeated booking and payment requests
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CheckoutPage" as page
+  participant "PaymentsApi and BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController and PaymentsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "CreateBookingCommandHandler and PayForBookingCommandHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gateway
+  database "SecondLook database" as db
+end box
+actor -> page : Press pay twice, or retry after a network timeout
+page -> client : Send request with the same Idempotency-Key
+client -> controller : POST /api/bookings or POST /api/payments
+controller -> handler : Send command with IdempotencyKey
+handler -> db : Find resource by buyer and IdempotencyKey
+db --> handler : Existing booking or payment
+alt Resource exists
+  handler --> controller : Existing resource (L2-029)
+  note right of handler : No second booking is created\nand no second charge is made
+else No resource, first request
+  handler -> gateway : Charge once, passing the key to the processor
+  gateway --> handler : Result
+  handler -> db : Save new resource
+  handler --> controller : New resource
+end
+controller --> client : Same status and body as the first response
+client --> page : Resource
+page --> actor : Present the single result
+@enduml

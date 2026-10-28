@@ -1,0 +1,77 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage payment methods
+
+class PaymentMethod {
+  +Guid Id
+  +Guid UserId
+  +string Brand
+  +string Last4
+  +int ExpiryMonth
+  +int ExpiryYear
+  +bool IsDefault
+  +string ProcessorToken
+}
+class PaymentMethodDto {
+  +Guid Id
+  +string Brand
+  +string Last4
+  +string Expires
+  +bool IsDefault
+}
+class GetPaymentMethodsQuery
+class GetPaymentMethodsQueryHandler {
+  +Handle(query): Task<IReadOnlyList<PaymentMethodDto>>
+}
+class AddPaymentMethodCommand {
+  +string ProcessorToken
+  +bool UseForFutureBookings
+  +string IdempotencyKey
+}
+class AddPaymentMethodCommandValidator {
+  +Validate(command): ValidationResult
+}
+class AddPaymentMethodCommandHandler {
+  +Handle(command): Task<AddCardResult>
+}
+interface IPaymentGateway {
+  +VerifyCard(token): Task<CardVerification>
+}
+class PaymentMethodsController {
+  +List(): Task<ActionResult>
+  +Add(request): Task<ActionResult>
+}
+interface PaymentMethodsApi {
+  +list(): Observable<PaymentMethodDto[]>
+  +add(request, key): Observable<PaymentMethodDto>
+}
+class AddPaymentMethodDialog {
+  +state: default|invalid|busy|failed
+}
+class SettingsPage
+class CheckoutPage
+
+GetPaymentMethodsQueryHandler ..> GetPaymentMethodsQuery : handles
+GetPaymentMethodsQueryHandler --> PaymentMethodDto : returns
+AddPaymentMethodCommandHandler ..> AddPaymentMethodCommand : handles
+AddPaymentMethodCommandHandler ..> AddPaymentMethodCommandValidator : validates with
+AddPaymentMethodCommandHandler --> IPaymentGateway : verifies through
+AddPaymentMethodCommandHandler --> PaymentMethod : creates
+PaymentMethodsController ..> GetPaymentMethodsQuery : sends
+PaymentMethodsController ..> AddPaymentMethodCommand : sends
+SettingsPage ..> AddPaymentMethodDialog : opens
+CheckoutPage ..> AddPaymentMethodDialog : opens
+AddPaymentMethodDialog ..> PaymentMethodsApi : injected via PAYMENT_METHODS_API
+SettingsPage ..> PaymentMethodsApi : injected via PAYMENT_METHODS_API
+@enduml

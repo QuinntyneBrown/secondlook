@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Buyer reads the findings in the report
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ReportPage" as page
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetReportQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open the report
+page -> client : Request report
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer (L2-057)
+controller -> handler : Send GetReportQuery
+handler -> db : Load Report and BodyShopReview for the buyer Inspection
+db --> handler : Report, review and findings
+alt BodyShopReview is Delivered
+  handler --> controller : Report including BodyShopReview findings
+  controller --> client : 200 response
+  client --> page : Report
+  page --> actor : Findings readable in the report (L2-062)
+else Review absent or InProgress
+  handler --> controller : Report without body shop findings
+  controller --> client : 200 response
+  client --> page : Report
+  page --> actor : Body shop section state (copy TO SUPPLY)
+end
+@enduml

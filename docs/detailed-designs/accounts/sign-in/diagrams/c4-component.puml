@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Sign in and JWT issuance
+
+Container_Boundary(app, "SecondLook app") {
+  Component(page, "SignInPage", "Angular page", "Form, summary, mismatch alert")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed calls to /api/auth")
+  Component(session, "SessionStore", "Angular service", "Holds the JWT and role; storage mechanism <TO SUPPLY>")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Anonymous sign-in endpoint")
+  Component(bearer, "JWT bearer middleware", "ASP.NET Core authentication", "Validates tokens on every other endpoint")
+}
+Container_Boundary(appl, "SecondLook.Application and Domain") {
+  Component(handler, "SignInCommandHandler", "MediatR handler", "Checks credentials and requests a token")
+  Component(validator, "SignInCommandValidator", "FluentValidation", "Validates email format and password presence")
+  Component(user, "User", "Domain entity", "Account, Role and PasswordHash")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(hasher, "PasswordHasher", "IPasswordHasher adapter", "Verifies the password")
+  Component(tokens, "JwtTokenService", "ITokenService adapter", "Issues the signed JWT")
+  ComponentDb(db, "AppDbContext", "EF Core, SQL Server", "Persists users")
+}
+Rel(page, client, "Calls")
+Rel(page, session, "Stores the signed-in session in")
+Rel(client, ctrl, "POST sign-in", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SignInCommand")
+Rel(handler, validator, "Is validated by")
+Rel(handler, user, "Loads")
+Rel(handler, hasher, "Verifies password with")
+Rel(handler, tokens, "Requests JWT from")
+Rel(handler, db, "Reads", "EF Core")
+Rel(client, bearer, "Sends bearer token to", "HTTPS")
+@enduml

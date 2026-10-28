@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Undo a reschedule
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ToastService" as toast
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "UndoRescheduleCommandHandler" as handler
+  participant "Inspection" as entity
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> toast : Select "Undo" (L2-036)
+toast -> client : Undo reschedule
+client -> controller : POST (HTTPS)
+controller -> handler : Send UndoRescheduleCommand
+handler -> db : Load inspection and previous time
+db --> handler : Current state
+alt Previous slot is still free and undo is allowed
+  handler -> entity : Restore previous time
+  handler -> db : Save changes
+  handler --> controller : Result
+  controller --> client : Response
+  client --> toast : Restored
+  toast --> actor : Outcome copy <TO SUPPLY>
+else Previous slot taken or undo window closed
+  handler --> controller : Failure
+  controller --> client : ProblemDetails
+  client --> toast : Failure
+  toast --> actor : Failure copy <TO SUPPLY>
+end
+@enduml

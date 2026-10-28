@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Validate sign-in values
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignInPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignInCommandValidator" as validator
+end box
+actor -> page : Submit "jordan.lee@" and an empty password, or press Enter in a field (L2-009)
+page -> page : Check email format and password presence
+alt Any field invalid
+  page -> page : Mark fields invalid; build summary "Fix 2 things to sign in" (L2-009)
+  page --> actor : Move focus to the summary; show inline messages
+else Both fields valid
+  page -> client : signIn(request)
+  client -> controller : POST sign-in
+  controller -> validator : Validate SignInCommand
+  validator --> controller : Valid or field errors
+  controller --> client : Proceed to credential check, or 400 ProblemDetails
+end
+@enduml

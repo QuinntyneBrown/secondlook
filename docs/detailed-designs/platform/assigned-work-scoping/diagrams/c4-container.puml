@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Assigned work scoping
+
+Person(pro, "Mechanic or body shop", "Requests assigned inspections")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Screens that show inspections to providers <TO SUPPLY>")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticates the caller and dispatches queries")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Providers and inspections")
+}
+Rel(pro, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls with a bearer token", "JSON/HTTPS")
+Rel(api, db, "Reads inspections filtered by assignment", "EF Core")
+@enduml

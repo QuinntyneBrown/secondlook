@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Forbidden pages
+
+Person(user, "Signed-in user", "Opens inspection and report links")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Renders the forbidden states")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Refuses resources the caller may not see")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, reports and share links")
+}
+Rel(user, spa, "Opens", "HTTPS")
+Rel(spa, api, "Requests inspection or report", "JSON/HTTPS")
+Rel(api, db, "Reads within the access scope", "EF Core")
+@enduml

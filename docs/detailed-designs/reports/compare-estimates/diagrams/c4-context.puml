@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Compare estimates
+
+Person(buyer, "Buyer", "Compares the cars inspected in the same window")
+System(secondlook, "SecondLook", "Used-car safety app")
+
+Rel(buyer, secondlook, "Compares estimates in")
+@enduml

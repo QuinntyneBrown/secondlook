@@ -1,0 +1,37 @@
+@startuml
+title UML sequence behaviour — Return visit within and after 12 months
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CookieConsent" as prompt
+  participant "ConsentService" as service
+  participant "CONSENT_STORE" as store
+end box
+actor -> prompt : Load any page
+prompt -> service : shouldShow(now)
+service -> store : read()
+store --> service : ConsentRecord or none
+alt record exists and now is before ExpiresAt
+  service --> prompt : false (L2-055)
+  prompt --> actor : No prompt
+else record is missing or 12 months have passed
+  service --> prompt : true
+  prompt --> actor : Prompt shown again (L2-055)
+end
+note over service, store
+  Behaviour when the store is unavailable is <TO SUPPLY>.
+end note
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+title UML sequence behaviour — Save profile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "AccountApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AccountController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "UpdateProfileCommandHandler" as handler
+  participant "UpdateProfileCommandValidator" as validator
+  participant "User" as user
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Save changes"
+page -> page : Check name and email on the client
+alt Client check fails
+  page --> actor : Summary "Fix 2 things to save" with a link to each field (L2-015)
+else Client check passes
+  page -> page : Fields read-only, button "Saving", busy (L2-015)
+  page -> client : Build request
+  client -> controller : HTTPS request
+  controller -> controller : Authenticate, scope to current buyer
+  controller -> handler : Send UpdateProfileCommand
+  handler -> validator : Validate name and email
+  alt Server validation fails
+    validator --> handler : Errors
+    handler --> controller : Validation result
+    controller --> client : 400 ProblemDetails
+    client --> page : Field errors
+    page --> actor : Error summary and field messages (L2-015)
+  else Valid
+    handler -> db : Load User
+    db --> handler : User
+    handler -> user : UpdateProfile
+    user --> handler : Updated
+    handler -> db : Save changes in one unit of work
+    db --> handler : Commit result
+    handler --> controller : ProfileDto
+    controller --> client : 200 response
+    client --> page : Saved
+    page --> actor : Status "Settings saved"; focus moves to it; no reload (L2-015)
+  end
+end
+@enduml

@@ -1,0 +1,68 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Manage saved vehicles
+
+class Vehicle {
+  +Guid Id
+  +Guid BuyerId
+  +string Vin
+  +int OdometerKm
+  +decimal AskingPrice
+  +string ListingUrl
+  +string SellerName
+  +string SellerPhone
+  +ApplyChanges(details): void
+}
+class AddVehicleCommand {
+  +VehicleDetails Details
+}
+class AddVehicleCommandValidator
+class AddVehicleCommandHandler {
+  +Handle(command): Task<VehicleView>
+}
+class UpdateVehicleCommand {
+  +Guid VehicleId
+  +VehicleDetails Details
+}
+class UpdateVehicleCommandHandler {
+  +Handle(command): Task<VehicleView>
+}
+class RemoveVehicleCommand {
+  +Guid VehicleId
+}
+class RemoveVehicleCommandHandler {
+  +Handle(command): Task<Result>
+}
+class ListVehiclesQueryHandler {
+  +Handle(query): Task<List<VehicleView>>
+}
+class VehiclesController {
+  +List(): Task<ActionResult>
+  +Add(request): Task<ActionResult>
+  +Update(id, request): Task<ActionResult>
+  +Remove(id): Task<ActionResult>
+}
+
+VehiclesController ..> AddVehicleCommand : sends
+VehiclesController ..> UpdateVehicleCommand : sends
+VehiclesController ..> RemoveVehicleCommand : sends
+AddVehicleCommandHandler ..> AddVehicleCommand : handles
+AddVehicleCommandValidator ..> AddVehicleCommand : validates
+AddVehicleCommandHandler --> Vehicle : creates
+UpdateVehicleCommandHandler ..> UpdateVehicleCommand : handles
+UpdateVehicleCommandHandler --> Vehicle : loads / mutates
+RemoveVehicleCommandHandler ..> RemoveVehicleCommand : handles
+RemoveVehicleCommandHandler --> Vehicle : removes
+ListVehiclesQueryHandler --> Vehicle : reads
+@enduml

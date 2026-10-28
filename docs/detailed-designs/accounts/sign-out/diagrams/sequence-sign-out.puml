@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Sign out
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Signed-in buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignOutDialog" as dialog
+  participant "AuthApi" as client
+  participant "SessionStore" as session
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignOutCommandHandler" as handler
+end box
+actor -> dialog : Choose to sign out
+dialog --> actor : "Sign out of SecondLook?" with "Cancel" and "Sign out" (L2-013)
+alt Buyer selects "Cancel"
+  actor -> dialog : Cancel
+  dialog --> actor : Close dialog; session unchanged (L2-013)
+else Buyer selects "Sign out"
+  actor -> dialog : Sign out
+  dialog -> dialog : Button marked aria-busy (L2-013)
+  dialog -> client : signOut()
+  client -> controller : POST sign-out with bearer token
+  controller -> handler : Send SignOutCommand
+  handler --> controller : Done (revocation <TO SUPPLY>)
+  controller --> client : 204 No Content
+  client --> dialog : Completed
+  dialog -> session : Clear token and role
+  dialog --> actor : Close dialog; navigate to destination <TO SUPPLY>
+end
+@enduml

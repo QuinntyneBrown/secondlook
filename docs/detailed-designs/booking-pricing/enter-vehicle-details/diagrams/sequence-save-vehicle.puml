@@ -1,0 +1,70 @@
+@startuml
+title UML sequence behaviour — Save vehicle details
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookVehiclePage" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SaveVehicleDetailsCommandHandler" as handler
+  participant "SaveVehicleDetailsCommandValidator" as validator
+  participant "PricingPolicy" as pricing
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "VinLookupClient" as vin
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Continue to review type"
+page -> page : Set fields read-only, button "Checking the VIN" busy (L2-023)
+page -> client : Build request with Idempotency-Key
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send SaveVehicleDetailsCommand
+handler -> validator : Validate fields
+alt Validation fails (L2-023)
+  validator --> handler : Errors for VIN and seller phone
+  handler --> controller : Validation result
+  controller --> client : 400 ProblemDetails with field errors
+  client --> page : Field errors
+  page --> actor : Show "Fix 2 things to continue" and field messages
+else Validation passes
+  validator --> handler : Valid
+  handler -> vin : Lookup VIN
+  alt Lookup does not respond
+    vin --> handler : Timeout or failure
+    handler -> db : Save answers on draft Booking (idempotent)
+    db --> handler : Saved
+    handler --> controller : Saved, VIN unchecked
+    controller --> client : Response with lookup-unavailable flag
+    client --> page : Lookup unavailable
+    page --> actor : Show "We couldn’t check that VIN right now" and "Try again"
+  else Lookup responds
+    vin --> handler : 2016 Honda Civic LX
+    handler -> db : Upsert Vehicle and draft Booking (idempotent)
+    db --> handler : Saved
+    handler -> pricing : Get price lines (L2-027)
+    pricing --> handler : Price lines and total
+    handler --> controller : Description and quote
+    controller --> client : 200 response
+    client --> page : Result
+    page --> actor : Show "Looks like a 2016 Honda Civic LX", go to /book/review
+  end
+end
+@enduml

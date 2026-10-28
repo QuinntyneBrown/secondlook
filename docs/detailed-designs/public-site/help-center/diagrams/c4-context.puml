@@ -1,0 +1,9 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Help center
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+System(secondlook, "SecondLook", "Used-car safety app; the help page answers common questions")
+Rel(visitor, secondlook, "Reads and searches help topics of", "HTTPS")
+@enduml

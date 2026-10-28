@@ -1,0 +1,30 @@
+@startuml
+title UML sequence behaviour — Open a row
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DashboardPage" as page
+  participant "Router" as router
+end box
+actor -> page : Select the vehicle in a row
+alt Status is a call time or "Call done · report in progress"
+  page -> router : Navigate to /inspections/{id} (L2-019)
+  router --> actor : Inspection detail page
+else Status is "Report ready"
+  page -> router : Navigate to /inspections/{id}/report (L2-019)
+  router --> actor : Report page
+end
+@enduml

@@ -1,0 +1,82 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Administer mechanics and body shops
+
+enum ProviderKind {
+  Mechanic
+  BodyShop
+}
+enum ApprovalStatus {
+  Pending
+  Approved
+  Deactivated
+}
+class Provider {
+  +Guid Id
+  +Guid UserId
+  +ProviderKind Kind
+  +string DisplayName
+  +string LicenceNumber
+  +string Location
+  +ApprovalStatus ApprovalStatus
+  +Approve(): void
+  +Deactivate(): void
+  +CanTakeInspections(): bool
+}
+class OnboardProviderCommand {
+  +ProviderKind Kind
+  +string DisplayName
+  +string LicenceNumber
+  +string Location
+}
+class OnboardProviderCommandHandler {
+  +Handle(command): Task<ProviderView>
+}
+class ApproveProviderCommand {
+  +Guid ProviderId
+}
+class ApproveProviderCommandHandler {
+  +Handle(command): Task<Result>
+}
+class DeactivateProviderCommand {
+  +Guid ProviderId
+}
+class DeactivateProviderCommandHandler {
+  +Handle(command): Task<Result>
+}
+class ListProvidersQueryHandler {
+  +Handle(query): Task<List<ProviderView>>
+}
+class GetAvailableSlotsQueryHandler
+class AdminProvidersController {
+  +List(): Task<ActionResult>
+  +Onboard(request): Task<ActionResult>
+  +Approve(id): Task<ActionResult>
+  +Deactivate(id): Task<ActionResult>
+}
+
+AdminProvidersController ..> OnboardProviderCommand : sends
+AdminProvidersController ..> ApproveProviderCommand : sends
+AdminProvidersController ..> DeactivateProviderCommand : sends
+OnboardProviderCommandHandler ..> OnboardProviderCommand : handles
+OnboardProviderCommandHandler --> Provider : creates Pending
+ApproveProviderCommandHandler ..> ApproveProviderCommand : handles
+ApproveProviderCommandHandler --> Provider : approves
+DeactivateProviderCommandHandler ..> DeactivateProviderCommand : handles
+DeactivateProviderCommandHandler --> Provider : deactivates
+ListProvidersQueryHandler --> Provider : reads
+GetAvailableSlotsQueryHandler --> Provider : only CanTakeInspections
+Provider --> ApprovalStatus : has
+Provider --> ProviderKind : has
+@enduml

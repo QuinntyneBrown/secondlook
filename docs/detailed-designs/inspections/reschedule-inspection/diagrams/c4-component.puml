@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Reschedule an inspection
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(dialog, "RescheduleDialog", "CDK Dialog", "Day choices, slots and submit")
+  Component(toast, "ToastService", "Angular service", "Raises the Rescheduled toast with Undo")
+  Component(client, "InspectionsApi", "Angular service in projects/api", "Typed HTTP client behind INSPECTIONS_API")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Exposes the reschedule and undo endpoints")
+  Component(slots, "GetRescheduleSlotsQueryHandler", "MediatR handler", "Lists free slots of the assigned mechanic")
+  Component(move, "RescheduleInspectionCommandHandler", "MediatR handler", "Moves the call and texts the seller")
+  Component(undo, "UndoRescheduleCommandHandler", "MediatR handler", "Restores the previous time")
+  Component(entity, "Inspection", "Domain entity", "ScheduledAt and status")
+  Component(sms, "ISmsSender", "Application port", "Texts the seller")
+  Component(clock, "IClock", "Application port", "Current time")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists inspections and availability")
+Rel(dialog, client, "Calls")
+Rel(dialog, toast, "Raises toast on success")
+Rel(client, ctrl, "HTTPS", "JSON")
+Rel(ctrl, slots, "Sends GetRescheduleSlotsQuery")
+Rel(ctrl, move, "Sends RescheduleInspectionCommand")
+Rel(ctrl, undo, "Sends UndoRescheduleCommand")
+Rel(move, entity, "Applies the new time to")
+Rel(move, sms, "Texts the new time via")
+Rel(move, clock, "Reads time from")
+Rel(move, db, "Persists", "EF Core")
+Rel(slots, db, "Queries", "EF Core")
+Rel(undo, db, "Persists", "EF Core")
+@enduml

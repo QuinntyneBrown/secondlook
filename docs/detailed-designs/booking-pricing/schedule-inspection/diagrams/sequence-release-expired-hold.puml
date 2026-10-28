@@ -1,0 +1,39 @@
+@startuml
+title UML sequence behaviour — Release an expired hold
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Backend — SecondLook.Worker" #D1FADF
+  participant "HoldExpiryService" as worker
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "IClock" as clock
+  participant "SlotHold" as hold
+  participant "Booking" as booking
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+worker -> clock : Read current time
+clock --> worker : now
+worker -> db : Load holds with ExpiresAt before now
+db --> worker : Expired SlotHolds
+loop Each expired hold
+  worker -> hold : Release
+  worker -> booking : Return Status to Draft unless paid
+end
+worker -> db : Save changes in one unit of work
+db --> worker : Commit result
+note right of worker : Run interval and the Status of a booking after release are <TO SUPPLY>
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Notification preferences
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System(sl, "SecondLook", "Used-car video inspection app")
+System_Ext(msg, "Email and SMS providers", "Deliver notifications (vendors <TO SUPPLY>)")
+
+Rel(buyer, sl, "Switches notifications on and off in")
+Rel(sl, msg, "Sends messages that honour the switches through")
+@enduml

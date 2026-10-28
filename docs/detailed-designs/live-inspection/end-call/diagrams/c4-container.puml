@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — End call
+
+Person(buyer, "Buyer", "Ends the call")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "LiveInspectionPage and EndCallDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "CallsController and EndCallCommand")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Call sessions and inspection status")
+}
+System_Ext(video, "Video provider", "Room; vendor not yet chosen")
+System_Ext(rec, "Recording store", "Recordings; vendor not yet chosen")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Ends the call", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, video, "Closes the room through", "IVideoRoom")
+Rel(api, rec, "Stops the recording through", "IRecordingStore")
+@enduml

@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Edit a vehicle
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Vehicle dialog or screen (TO SUPPLY)" as page
+  participant "VehiclesApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "VehiclesController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "UpdateVehicleCommandHandler" as handler
+  participant "Vehicle" as vehicle
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Change vehicle details, confirm
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, take BuyerId from the token (L2-057)
+controller -> handler : Send UpdateVehicleCommand
+handler -> db : Load Vehicle by id and BuyerId
+alt Not found or owned by another buyer
+  db --> handler : Nothing
+  handler --> controller : NotFound result
+  controller --> client : 404 ProblemDetails
+  client --> page : Not found
+  page --> actor : Show failure (copy TO SUPPLY)
+else Found
+  handler -> vehicle : Apply changes
+  vehicle --> handler : Updated
+  handler -> db : Save (L2-063)
+  db --> handler : Commit result
+  handler --> controller : VehicleView
+  controller --> client : 200 response
+  client --> page : Saved
+  page --> actor : Changes shown (L2-063)
+end
+@enduml

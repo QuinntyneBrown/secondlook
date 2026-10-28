@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Share a report
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(dlg, "ShareReportDialog", "Angular CDK Dialog", "Email, body shop toggle, link, states")
+  Component(client, "ReportsApi / REPORTS_API", "Contract and token", "Share requests")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticated share endpoints; anonymous shared-report read")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(send, "ShareReportCommandHandler", "MediatR handler", "Validates, sends email")
+  Component(off, "TurnOffShareLinkCommandHandler", "MediatR handler", "Sets DisabledAt")
+  Component(shared, "GetSharedReportQueryHandler", "MediatR handler", "Resolves token to report")
+  Component(link, "ShareLink", "Domain entity", "Token, ExpiresAt, DisabledAt")
+  Component(mail, "IEmailSender", "Application port", "Sends the email")
+  Component(clock, "IClock", "Application port", "Current time")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists links")
+Rel(dlg, client, "Depends on token")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, send, "Sends ShareReportCommand")
+Rel(ctrl, off, "Sends TurnOffShareLinkCommand")
+Rel(ctrl, shared, "Sends GetSharedReportQuery")
+Rel(send, link, "Creates or reuses")
+Rel(send, mail, "Sends via")
+Rel(send, clock, "Reads time from")
+Rel(off, link, "Disables")
+Rel(shared, link, "Checks active")
+Rel(send, db, "Persists", "EF Core")
+Rel(off, db, "Persists", "EF Core")
+Rel(shared, db, "Loads", "EF Core")
+@enduml

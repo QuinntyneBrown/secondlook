@@ -1,0 +1,30 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Enter vehicle details
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "BookVehiclePage", "Angular page", "Vehicle form, validation summary, order summary")
+  Component(client, "BookingsApi (BOOKINGS_API)", "Angular API client", "Typed requests with Idempotency-Key header")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Authenticates and dispatches the command")
+  Component(handler, "SaveVehicleDetailsCommandHandler", "MediatR handler", "Validates, looks up VIN, prices, persists")
+  Component(validator, "SaveVehicleDetailsCommandValidator", "FluentValidation", "VIN length and phone digit rules")
+  Component(pricing, "PricingPolicy", "Domain service", "Price lines for the draft")
+  Component(port, "IVinLookup", "Application port", "VIN recognition contract")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(vinclient, "VinLookupClient", "HTTP adapter", "Implements IVinLookup")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Vehicle and Booking rows")
+}
+
+Rel(page, client, "Calls")
+Rel(client, ctrl, "POSTs vehicle details", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SaveVehicleDetailsCommand")
+Rel(handler, validator, "Validates with")
+Rel(handler, pricing, "Gets price lines from")
+Rel(handler, port, "Looks up VIN through")
+Rel(vinclient, port, "Implements")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

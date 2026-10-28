@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Administer mechanics and body shops
+
+Person(admin, "Administrator", "Administers providers")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Provider administration screens (TO SUPPLY)")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Admin provider endpoints; Application and Domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users and providers")
+}
+
+Rel(admin, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

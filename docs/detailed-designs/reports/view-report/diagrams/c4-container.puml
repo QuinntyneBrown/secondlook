@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — View the report
+
+Person(buyer, "Buyer", "Reads the report")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "ReportPage at /inspections/civic-lx/report")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ReportsController, authentication, buyer scoping")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Reports, findings, body shop reviews, vehicles")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Join live inspection
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "LiveInspectionPage", "Angular page", "Renders connecting and live states, checklist and notes")
+  Component(room, "CallRoomClient", "Angular service", "Connects media and toggles local tracks")
+  Component(client, "CallsApi / CALLS_API", "API contract and token", "Typed join request")
+  Component(events, "CallEvents / CALL_EVENTS", "Event contract and token", "Checklist and note changes")
+}
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "CallsController", "ASP.NET Core controller", "Authenticates and dispatches JoinCallCommand")
+  Component(handler, "JoinCallCommandHandler", "MediatR handler", "Creates or returns the call session")
+  Component(session, "CallSession", "Domain entity", "Owns start time and checklist")
+  Component(item, "ChecklistItem", "Domain entity", "Done, Now or Next")
+  Component(vroom, "IVideoRoom", "Application port", "Join credential and presence")
+  Component(clock, "IClock", "Application port", "Current time")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists sessions")
+}
+Rel(page, client, "Joins through")
+Rel(page, room, "Connects media through")
+Rel(page, events, "Receives checklist changes from")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends JoinCallCommand")
+Rel(handler, session, "Creates or loads")
+Rel(session, item, "Owns six")
+Rel(handler, vroom, "Requests join credential from")
+Rel(handler, clock, "Reads time from")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

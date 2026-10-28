@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Notification list
+
+Person(buyer, "Buyer", "Reads notifications about inspections, reports, the pricing window and receipts")
+System(secondlook, "SecondLook", "Used-car safety app: remote mechanic inspections and estimates")
+
+Rel(buyer, secondlook, "Opens the notification list and follows its links in")
+@enduml

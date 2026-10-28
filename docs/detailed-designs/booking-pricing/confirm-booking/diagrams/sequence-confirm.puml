@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Show the booking confirmation
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookingConfirmedPage" as page
+  participant "BookingsApi" as client
+  participant "ToastService" as toast
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetBookingConfirmationQueryHandler" as handler
+  participant "Booking" as booking
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "SmsSender" as sms
+  database "SecondLook database" as db
+end box
+note over handler, sms : After payment succeeds, the seller text is sent through ISmsSender\n(trigger <TO SUPPLY>)
+handler -> sms : Text seller the join link
+actor -> page : Payment succeeds, route /book/confirmed
+page -> client : getConfirmation(bookingId)
+client -> controller : GET /api/bookings/{id}/confirmation (authenticated)
+controller -> handler : Send GetBookingConfirmationQuery
+handler -> db : Load current buyer's booking, vehicle, payment, window
+db --> handler : Booking data or none
+alt Booking not owned by buyer or not found
+  handler --> controller : Not found
+  controller --> client : 404
+  client --> page : Error
+  page --> actor : Present not-found state
+else Payment not Succeeded
+  handler --> controller : Not paid
+  controller --> client : 409
+  client --> page : Not paid
+  page --> actor : Redirect to /book/pay
+else Paid
+  handler -> booking : Read slot, review type, status Paid
+  booking --> handler : Booking facts
+  handler --> controller : BookingConfirmationDto
+  controller --> client : 200 confirmation
+  client --> page : Confirmation
+  page --> actor : Heading "You’re booked for Thursday at 6:30 PM" and lead text (L2-030)
+  page --> actor : "What happens next" in order: Booked and paid, We text Sam Whitaker, Video call, Your report (L2-030)
+  page --> actor : Offer "Add another car" and "View inspection" (L2-030)
+  page -> toast : show("You’re booked", "Civic LX, Thu 29 Oct at 6:30 PM. A receipt is on its way.")
+  toast --> actor : Success toast (L2-030)
+end
+@enduml

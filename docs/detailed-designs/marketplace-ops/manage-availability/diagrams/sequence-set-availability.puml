@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Set availability
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic or body shop" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Availability screen (TO SUPPLY)" as page
+  participant "AvailabilityApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AvailabilityController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SetAvailabilityCommandHandler" as handler
+  participant "AvailabilityWindow" as win
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Enter the times available for inspections
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, require role Mechanic or BodyShop
+controller -> handler : Send SetAvailabilityCommand
+handler -> db : Load Provider owned by the caller
+alt Validation fails (rules TO SUPPLY)
+  handler --> controller : Validation result
+  controller --> client : 400 ProblemDetails
+  client --> page : Errors
+  page --> actor : Show errors (copy TO SUPPLY)
+else Valid
+  handler -> win : Create windows for the provider (L2-061)
+  win --> handler : AvailabilityWindow list
+  handler -> db : Save windows in one unit of work (L2-061)
+  db --> handler : Commit result
+  handler --> controller : Saved windows
+  controller --> client : 200 response
+  client --> page : Saved
+  page --> actor : Show saved times (copy TO SUPPLY)
+end
+@enduml

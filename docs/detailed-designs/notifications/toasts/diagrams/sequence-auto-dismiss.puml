@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Show a toast and auto-dismiss it
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page (for example ReportPage)" as page
+  participant "ToastService" as service
+  participant "sl-toast-region" as region
+  participant "sl-toast" as toast
+end box
+page -> service : show(Success, "Your report is ready", text, "View report")
+service -> service : Add to queue; start 8 s timer because variant is not Danger (L2-054)
+service --> region : Visible toasts updated
+region -> toast : Render toast (no role="alert")
+toast --> actor : Toast with Dismiss button and progress bar
+alt buyer hovers or focuses the toast
+  actor -> toast : Hover or focus
+  toast -> service : pause(id)
+  service -> service : Stop timer (L2-054)
+  actor -> toast : Leave or blur
+  toast -> service : resume(id)
+  service -> service : Restart timer; resume point <TO SUPPLY>
+end
+alt buyer selects Dismiss
+  actor -> toast : Select "Dismiss"
+  toast -> service : dismiss(id) (L2-054)
+else timer elapses
+  service -> service : 8 s elapsed; dismiss(id) (L2-054)
+end
+service --> region : Toast removed from Visible
+region --> actor : Toast closes
+@enduml

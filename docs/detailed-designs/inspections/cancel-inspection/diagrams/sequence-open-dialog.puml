@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Open the cancel dialog
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "InspectionDetailPage" as page
+  participant "CancelInspectionDialog" as dialog
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetCancellationQuoteQueryHandler" as handler
+  participant "RefundPolicy" as policy
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Cancel inspection"
+page -> dialog : Open CDK Dialog
+dialog -> client : Get cancellation quote
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send GetCancellationQuoteQuery
+handler -> db : Load inspection, booking and payment
+db --> handler : Current state
+handler -> policy : Decide refund for a buyer cancellation now (L2-032)
+policy --> handler : RefundDecision
+handler --> controller : CancellationQuote
+controller --> client : Response
+client --> dialog : Quote
+dialog --> actor : "Cancel the Civic inspection?" with the slot text and reason field (L2-037); focus on "Keep inspection"
+alt More than 2 hours before the call
+  dialog --> actor : "You’ll get $45.00 back" with the full-refund text (L2-037)
+else Less than 2 hours before the call
+  dialog --> actor : Partial-refund copy <TO SUPPLY>
+end
+@enduml

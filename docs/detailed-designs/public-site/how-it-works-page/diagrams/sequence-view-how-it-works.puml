@@ -1,0 +1,30 @@
+@startuml
+title UML sequence behaviour — View the how-it-works page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HowItWorksPage" as page
+  participant "Router" as router
+end box
+actor -> router : Open "/how-it-works"
+router -> router : Match the public route, no authentication guard
+router -> page : Activate HowItWorksPage
+page -> page : Render "How SecondLook works" (L2-003)
+page -> page : Render steps Book, Schedule, Video call, Report in order (L2-003)
+page -> page : Render "Questions buyers ask" with "Does the seller need an app?" open, 3 others closed (L2-003)
+page -> page : Render "Book an inspection"
+page --> actor : Show the how-it-works page
+@enduml

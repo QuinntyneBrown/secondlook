@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Mechanic profile
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "MechanicProfilePage", "Angular page", "Renders profile, notes, at-a-glance and booked time")
+  Component(token, "PROVIDERS_API", "Injection token", "Contract the page depends on")
+  Component(client, "ProvidersApi", "Angular service in projects/api", "Typed HTTP client")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ProvidersController", "ASP.NET Core controller", "Exposes /api/providers")
+  Component(handler, "GetMechanicProfileQueryHandler", "MediatR handler", "Builds ProviderProfile for a buyer with an inspection")
+  Component(entity, "Provider", "Domain entity", "Mechanic identity and licence")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists providers, notes and inspections")
+Rel(page, token, "Depends on")
+Rel(token, client, "Resolves to")
+Rel(client, ctrl, "GET", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetMechanicProfileQuery")
+Rel(handler, entity, "Reads")
+Rel(handler, db, "Queries", "EF Core")
+@enduml

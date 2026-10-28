@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — In-call banners
+
+Person(buyer, "Buyer", "Reads call banners during the inspection")
+Person_Ext(seller, "Seller", "Receives a rejoin link by text")
+System(sl, "SecondLook", "Used-car safety app with live video inspections")
+System_Ext(video, "Video provider", "Reports call events; vendor not yet chosen")
+System_Ext(sms, "SMS provider", "Delivers texts; vendor not yet chosen")
+Rel(video, sl, "Reports joins, leaves and connection quality to")
+Rel(sl, buyer, "Shows banners to")
+Rel(sl, sms, "Sends the seller a rejoin link through")
+Rel(sms, seller, "Texts")
+@enduml

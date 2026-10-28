@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Help center
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular Router", "Serves /help as a public route")
+  Component(page, "HelpPage", "Angular page", "Renders topics, search field, no-results state and support card")
+  Component(search, "HelpSearch", "TypeScript function", "Filters topics by the query")
+  Component(content, "Help content", "TypeScript constants", "Holds the five topics and the support address")
+}
+Rel(visitor, router, "Opens /help")
+Rel(router, page, "Activates")
+Rel(page, search, "Filters with")
+Rel(page, content, "Reads")
+@enduml

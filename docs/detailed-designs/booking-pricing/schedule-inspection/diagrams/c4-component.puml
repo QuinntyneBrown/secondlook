@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Schedule inspection
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "BookSchedulePage", "Angular page", "Day choices, slots, states, toasts")
+  Component(client, "BookingsApi (BOOKINGS_API)", "Angular API client", "Typed requests with Idempotency-Key header")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "Authenticates and dispatches")
+  Component(slots, "GetAvailableSlotsQueryHandler", "MediatR handler", "Lists slots and assigned mechanic")
+  Component(hold, "HoldSlotCommandHandler", "MediatR handler", "Creates the 10-minute SlotHold")
+  Component(entity, "SlotHold", "Domain entity", "Owns ExpiresAt")
+  Component(clock, "IClock", "Application port", "Current time")
+}
+Container_Boundary(worker, "SecondLook.Worker") {
+  Component(expiry, "HoldExpiryService", "Hosted service", "Releases expired holds")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Slots, holds, bookings")
+
+Rel(page, client, "Calls")
+Rel(client, ctrl, "GETs slots, POSTs hold", "JSON/HTTPS")
+Rel(ctrl, slots, "Sends GetAvailableSlotsQuery")
+Rel(ctrl, hold, "Sends HoldSlotCommand")
+Rel(hold, entity, "Creates")
+Rel(hold, clock, "Reads time from")
+Rel(slots, db, "Reads", "EF Core")
+Rel(hold, db, "Persists", "EF Core")
+Rel(expiry, db, "Deletes expired holds in", "EF Core")
+@enduml

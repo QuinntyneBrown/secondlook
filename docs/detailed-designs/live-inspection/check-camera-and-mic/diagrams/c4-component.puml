@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Check camera and mic
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "CallLobbyPage", "Angular page", "Renders loading, default and camera-blocked states")
+  Component(media, "MediaDevicesService", "Angular service", "Lists devices, opens the preview, reports permission denial")
+  Component(client, "CallsApi / CALLS_API", "API contract and token", "Typed lobby request")
+}
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "CallsController", "ASP.NET Core controller", "Authenticates and dispatches GetCallLobbyQuery")
+  Component(handler, "GetCallLobbyQueryHandler", "MediatR handler", "Builds the lobby view for the buyer's inspection")
+  Component(entity, "Inspection", "Domain entity", "Owns schedule and participants")
+  Component(clock, "IClock", "Application port", "Current time")
+  Component(room, "IVideoRoom", "Application port", "Participant presence")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists inspections")
+}
+Rel(page, media, "Opens preview and reads permission from")
+Rel(page, client, "Requests lobby view through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetCallLobbyQuery")
+Rel(handler, entity, "Reads")
+Rel(handler, clock, "Reads time from")
+Rel(handler, room, "Reads presence from")
+Rel(handler, db, "Loads", "EF Core")
+@enduml

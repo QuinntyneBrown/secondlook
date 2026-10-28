@@ -1,0 +1,34 @@
+@startuml
+title UML sequence behaviour — Dismiss a dialog
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CDK Dialog" as cdk
+  participant "DialogShell" as shell
+  participant "DialogService" as service
+  participant "Page" as page
+end box
+actor -> cdk : Press Escape, or select "Close", or select the cancel action
+alt dialog is not busy
+  cdk -> shell : Close requested (L2-065 criterion 2)
+  shell -> service : Close the DialogRef
+  service -> service : Remove inert from the page behind
+  service -> page : Return focus to the element that opened the dialog <TO SUPPLY>
+  page --> actor : Present the page again
+else dialog is busy
+  shell --> actor : "Close" and the cancel action are disabled (L2-065 criterion 4); the effect of Escape is <TO SUPPLY>
+end
+@enduml

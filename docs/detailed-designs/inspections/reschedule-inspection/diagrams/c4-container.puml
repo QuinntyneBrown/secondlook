@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Reschedule an inspection
+
+Person(buyer, "Buyer", "Reschedules an inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Inspection detail page and RescheduleDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticated endpoints scoped to the buyer")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, slots, availability windows")
+}
+System_Ext(sms, "SMS provider", "Vendor <TO SUPPLY>")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, sms, "Texts the seller", "ISmsSender")
+@enduml

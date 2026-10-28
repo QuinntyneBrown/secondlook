@@ -1,0 +1,79 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Check camera and mic
+
+enum LobbyViewState {
+  Loading
+  Default
+  CameraBlocked
+}
+enum CameraPermission {
+  Granted
+  Denied
+}
+class CallLobbyPage {
+  +LobbyViewState State
+  +CameraPermission Camera
+  +Load(): void
+  +CheckAgain(): void
+  +JoinLabel(): string
+}
+class MediaDevicesService {
+  +ListCameras(): Task<MediaDeviceInfo[]>
+  +ListMicrophones(): Task<MediaDeviceInfo[]>
+  +OpenPreview(cameraId, microphoneId): Task<CameraPermission>
+}
+interface CallsApi {
+  +GetLobby(inspectionId: Guid): Observable<CallLobbyView>
+}
+class GetCallLobbyQuery {
+  +Guid InspectionId
+}
+class GetCallLobbyQueryHandler {
+  +Handle(query: GetCallLobbyQuery): Task<CallLobbyView>
+}
+class CallLobbyView {
+  +DateTimeOffset ScheduledAt
+  +int MinutesUntilOpen
+  +string RecordingNotice
+  +LobbyParticipant[] Participants
+}
+class LobbyParticipant {
+  +string DisplayName
+  +string RoleLabel
+  +string StatusLabel
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +DateTimeOffset ScheduledAt
+  +InspectionStatus Status
+}
+interface IClock {
+  +UtcNow(): DateTimeOffset
+}
+interface IVideoRoom {
+  +GetPresence(inspectionId: Guid): Task<Presence[]>
+}
+CallLobbyPage --> LobbyViewState : has
+CallLobbyPage --> CameraPermission : has
+CallLobbyPage --> MediaDevicesService : uses
+CallLobbyPage ..> CallsApi : calls
+GetCallLobbyQueryHandler ..> GetCallLobbyQuery : handles
+GetCallLobbyQueryHandler --> Inspection : loads
+GetCallLobbyQueryHandler --> CallLobbyView : returns
+GetCallLobbyQueryHandler ..> IClock : uses
+GetCallLobbyQueryHandler ..> IVideoRoom : uses
+CallLobbyView "1" *-- "*" LobbyParticipant : lists
+@enduml

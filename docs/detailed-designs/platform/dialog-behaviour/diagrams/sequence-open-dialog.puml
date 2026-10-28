@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Open a dialog
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page" as page
+  participant "DialogService" as service
+  participant "CDK Dialog" as cdk
+  participant "Dialog component" as dlg
+  participant "DialogShell" as shell
+end box
+actor -> page : Select the button that triggers the dialog
+page -> service : open(component, options)
+service -> cdk : Open with role dialog, aria-modal true, aria-labelledby and aria-describedby
+cdk -> dlg : Attach component in overlay
+dlg -> shell : Render title, description and "Close" control (L2-065 criterion 1)
+service -> service : Set inert on the page behind the dialog (L2-065 criterion 1)
+alt dialog confirms a destructive action
+  cdk -> shell : Move focus to the safe action (L2-065 criterion 3)
+else any other dialog
+  cdk -> shell : Move focus to the first tabbable element <TO SUPPLY>
+end
+shell --> actor : Present modal dialog
+service --> page : DialogRef
+@enduml

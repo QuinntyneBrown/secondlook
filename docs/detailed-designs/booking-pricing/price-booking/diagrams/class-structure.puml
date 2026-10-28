@@ -1,0 +1,81 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Price a booking
+
+enum ReviewType {
+  Mechanic
+  BodyShop
+  Both
+}
+
+class PricingWindow {
+  +Guid Id
+  +Guid BuyerId
+  +DateTimeOffset OpensAt
+  +DateTimeOffset ClosesAt
+  +IsOpen(now: DateTimeOffset): bool
+  +{static} Start(buyerId: Guid, now: DateTimeOffset): PricingWindow
+}
+
+class PriceLine {
+  +string Label
+  +decimal Amount
+}
+
+class PriceBreakdown {
+  +IReadOnlyList<PriceLine> Lines
+  +decimal Total
+  +bool StartsNewWindow
+}
+
+class PricingPolicy <<domain service>> {
+  +Price(type: ReviewType, window: PricingWindow?, now: DateTimeOffset): PriceBreakdown
+}
+
+class Booking {
+  +Guid Id
+  +Guid BuyerId
+  +ReviewType ReviewType
+  +Guid PricingWindowId
+  +PriceBreakdown Price
+}
+
+class QuoteBookingQuery {
+  +ReviewType ReviewType
+}
+
+class QuoteBookingQueryHandler {
+  +Handle(query: QuoteBookingQuery): Task<PriceBreakdown>
+}
+
+class CreateBookingCommandHandler {
+  +Handle(command: CreateBookingCommand): Task<Booking>
+}
+
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+
+QuoteBookingQueryHandler ..> QuoteBookingQuery : handles
+QuoteBookingQueryHandler --> PricingPolicy : applies
+QuoteBookingQueryHandler ..> IClock : reads
+CreateBookingCommandHandler --> PricingPolicy : applies same rules
+CreateBookingCommandHandler --> Booking : creates
+PricingPolicy ..> PricingWindow : checks
+PricingPolicy --> PriceBreakdown : returns
+PriceBreakdown "1" *-- "1..*" PriceLine
+Booking --> PriceBreakdown : stores
+Booking --> ReviewType : has
+Booking "*" --> "1" PricingWindow : priced within
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Verify email
+
+Person(user, "New account holder", "Opens the verification link")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "VerifyEmailPage at /verify-email")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController; anonymous verification endpoints")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users and email verification tokens")
+}
+System_Ext(email, "Email provider", "Delivers the verification link")
+
+Rel(user, app, "Uses", "HTTPS")
+Rel(app, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, email, "Sends verification link via", "IEmailSender")
+@enduml

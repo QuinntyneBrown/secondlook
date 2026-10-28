@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Text the seller again
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CallBannerService" as svc
+  participant "CallsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "CallsController" as ctl
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ResendSellerLinkCommandHandler" as handler
+  participant "Inspection" as insp
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "SmsSender (ISmsSender)" as sms
+  database "SecondLook database" as db
+end box
+actor -> svc : Select "Text him again" (L2-044)
+svc -> client : Build resend request
+client -> ctl : HTTPS request
+ctl -> ctl : Authenticate and scope to current buyer (L2-057)
+ctl -> handler : Send ResendSellerLinkCommand
+handler -> db : Load buyer's inspection
+db --> handler : Inspection
+handler -> insp : Confirm the call is live and read seller phone
+insp --> handler : Live status and seller phone
+alt Not texted within the repeat interval
+  handler -> sms : Send rejoin link to the seller
+  sms --> handler : Accepted
+else Texted within the interval
+  handler -> handler : Return without sending a duplicate (interval not yet specified)
+end
+handler --> ctl : Result
+ctl --> client : HTTP response
+client --> svc : Result
+svc --> actor : Keep the "Sam Whitaker left the call" banner
+@enduml

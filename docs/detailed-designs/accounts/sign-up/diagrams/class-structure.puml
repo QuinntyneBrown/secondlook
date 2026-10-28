@@ -1,0 +1,76 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Sign up
+
+enum Role {
+  Buyer
+  Mechanic
+  BodyShop
+  Admin
+}
+class User {
+  +Guid Id
+  +string Email
+  +string PasswordHash
+  +string FullName
+  +Role Role
+  +DateTime? EmailVerifiedAt
+}
+class EmailVerificationToken {
+  +Guid UserId
+  +string TokenHash
+  +DateTime ExpiresAt
+}
+class SignUpCommand {
+  +string FullName
+  +string Email
+  +string Password
+  +bool AcceptedTerms
+}
+class SignUpCommandValidator {
+  +Validate(command: SignUpCommand): ValidationResult
+}
+class SignUpCommandHandler {
+  +Handle(command: SignUpCommand): Task<SignUpResult>
+}
+class AuthController {
+  +SignUp(request: SignUpRequest): Task<IActionResult>
+}
+interface IPasswordHasher {
+  +Hash(password: string): string
+}
+interface IEmailSender {
+  +SendAsync(message: EmailMessage): Task
+}
+interface IClock {
+  +UtcNow: DateTime
+}
+class SignUpPage {
+  +state: default|invalid|submitting|error
+  +submit(): void
+}
+interface AuthApi {
+  +signUp(request: SignUpRequest): Observable<SignUpResult>
+}
+
+AuthController ..> SignUpCommand : sends
+SignUpCommandHandler ..> SignUpCommand : handles
+SignUpCommandValidator ..> SignUpCommand : validates
+SignUpCommandHandler --> User : creates
+SignUpCommandHandler --> EmailVerificationToken : creates
+SignUpCommandHandler ..> IPasswordHasher
+SignUpCommandHandler ..> IEmailSender
+SignUpCommandHandler ..> IClock
+User --> Role : has
+User "1" --> "*" EmailVerificationToken
+SignUpPage ..> AuthApi : AUTH_API
+@enduml

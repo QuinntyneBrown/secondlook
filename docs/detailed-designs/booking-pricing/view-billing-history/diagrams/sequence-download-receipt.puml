@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Download a receipt
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BillingHistoryPage" as page
+  participant "ReceiptsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReceiptsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetReceiptDocumentQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "AppDbContext" as db
+end box
+actor -> page : Select the download action on a row (L2-031)
+page -> client : download(receiptId)
+client -> controller : GET /api/receipts/{id}/download
+controller -> controller : Authenticate and resolve current buyer (L2-057)
+controller -> handler : Send GetReceiptDocumentQuery
+handler -> db : Load receipt owned by the buyer
+alt Receipt belongs to the buyer
+  db --> handler : Receipt
+  handler --> controller : Receipt document
+  controller --> client : 200 OK with file
+  client --> page : Blob
+  page --> actor : Save the file
+else Receipt missing or owned by another buyer
+  db --> handler : No match
+  handler --> controller : Not found
+  controller --> client : 404
+  client --> page : Error
+  page --> actor : Report the failure (copy is TO SUPPLY)
+end
+@enduml

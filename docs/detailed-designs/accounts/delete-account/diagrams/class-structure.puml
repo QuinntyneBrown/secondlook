@@ -1,0 +1,62 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Delete account
+
+class User {
+  +Guid Id
+  +DateTimeOffset? DeletedAt
+  +MarkDeleted(at: DateTimeOffset): void
+}
+class DeleteAccountCommand {
+  +string Confirmation
+}
+class DeleteAccountCommandValidator {
+  +Validate(command): ValidationResult
+}
+class DeleteAccountCommandHandler {
+  +Handle(command): Task<Result>
+}
+class RefundPolicy {
+  +Evaluate(booking, now): Refund
+}
+interface IPaymentGateway {
+  +Refund(payment, amount): Task<RefundResult>
+}
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+class AccountController {
+  +DeleteAccount(request): Task<ActionResult>
+}
+interface AccountApi {
+  +deleteAccount(confirmation): Observable<void>
+}
+class DeleteAccountDialog {
+  +state: default|invalid|confirm|busy|failed
+  +confirmation: string
+}
+class AccountPurgeService {
+  +PurgeDeletedAccounts(): Task
+}
+
+DeleteAccountCommandHandler ..> DeleteAccountCommand : handles
+DeleteAccountCommandHandler ..> DeleteAccountCommandValidator : validates with
+DeleteAccountCommandHandler --> User : loads / mutates
+DeleteAccountCommandHandler --> RefundPolicy : applies
+DeleteAccountCommandHandler --> IPaymentGateway : refunds through
+DeleteAccountCommandHandler --> IClock : reads time
+AccountController ..> DeleteAccountCommand : sends
+DeleteAccountDialog ..> AccountApi : injected via ACCOUNT_API
+AccountPurgeService --> User : finds deleted accounts
+@enduml

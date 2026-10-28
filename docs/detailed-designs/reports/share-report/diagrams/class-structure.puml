@@ -1,0 +1,67 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Share a report
+
+class ShareLink {
+  +string Token
+  +Guid ReportId
+  +bool IncludeBodyShopReview
+  +DateTime ExpiresAt
+  +DateTime? DisabledAt
+  +IsActive(now: DateTime): bool
+}
+class ShareReportCommand {
+  +Guid ReportId
+  +string Email
+  +bool IncludeBodyShopReview
+}
+class ShareReportCommandValidator {
+  +Validate(command): ValidationResult
+}
+class ShareReportCommandHandler {
+  +Handle(command: ShareReportCommand): Task<ShareResult>
+}
+class TurnOffShareLinkCommand {
+  +Guid ReportId
+}
+class TurnOffShareLinkCommandHandler {
+  +Handle(command): Task
+}
+class GetSharedReportQuery {
+  +string Token
+}
+class GetSharedReportQueryHandler {
+  +Handle(query): Task<ReportView>
+}
+interface IEmailSender {
+  +SendAsync(message): Task
+}
+interface IClock {
+  +UtcNow: DateTime
+}
+class ShareReportDialog {
+  +state: default|invalid|busy|success|failed
+  +send(): void
+  +copyLink(): void
+  +turnOff(): void
+}
+ShareReportCommandHandler ..> ShareReportCommand : handles
+ShareReportCommandValidator ..> ShareReportCommand : validates
+ShareReportCommandHandler --> ShareLink : creates or reuses
+ShareReportCommandHandler ..> IEmailSender
+ShareReportCommandHandler ..> IClock
+TurnOffShareLinkCommandHandler ..> TurnOffShareLinkCommand : handles
+TurnOffShareLinkCommandHandler --> ShareLink : sets DisabledAt
+GetSharedReportQueryHandler ..> GetSharedReportQuery : handles
+GetSharedReportQueryHandler --> ShareLink : checks IsActive
+ShareReportDialog ..> ShareReportCommand : sends via REPORTS_API
+@enduml

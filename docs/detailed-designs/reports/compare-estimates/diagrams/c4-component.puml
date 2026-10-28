@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Compare estimates
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "ComparePage", "Angular page", "Columns, loading, empty, error states")
+  Component(client, "ComparisonsApi / COMPARISONS_API", "Contract and token", "Comparison request")
+  Component(add, "AddAnotherCarDialog", "Angular CDK Dialog", "Owned by booking-pricing")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ComparisonsController", "ASP.NET Core controller", "Authenticates and scopes to the buyer")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(handler, "GetComparisonQueryHandler", "MediatR handler", "Selects reports in the window, orders by all-in")
+  Component(win, "PricingWindow", "Domain entity", "Defines which reports are compared")
+  Component(report, "Report", "Domain entity", "Cost range")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists reports and vehicles")
+Rel(page, client, "Depends on token")
+Rel(page, add, "Opens")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetComparisonQuery")
+Rel(handler, win, "Reads")
+Rel(handler, report, "Reads")
+Rel(handler, db, "Loads", "EF Core")
+@enduml

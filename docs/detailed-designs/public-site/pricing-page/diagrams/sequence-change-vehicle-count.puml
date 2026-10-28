@@ -1,0 +1,34 @@
+@startuml
+title UML sequence behaviour — Change the vehicle count
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "PricingPage" as page
+  participant "PricingCalculator" as calc
+end box
+alt Visitor selects "More vehicles"
+  actor -> page : Select "More vehicles"
+  page -> page : Increase the vehicle count (upper limit is <TO SUPPLY>)
+else Visitor selects "Fewer vehicles"
+  actor -> page : Select "Fewer vehicles"
+  page -> page : Decrease the vehicle count (lower limit is <TO SUPPLY>)
+end
+page -> calc : Compute total for the new count
+calc --> page : $50 plus $25 for each vehicle after the first (L2-002)
+page -> calc : Compute savings for the new count
+calc --> page : Savings (general formula is <TO SUPPLY>)
+page --> actor : Show updated count, total and savings
+@enduml

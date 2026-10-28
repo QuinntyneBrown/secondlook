@@ -1,0 +1,62 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Mechanic profile
+
+class GetMechanicProfileQuery {
+  +string MechanicRef
+}
+class GetMechanicProfileQueryHandler {
+  +Handle(query: GetMechanicProfileQuery): Task<ProviderProfile>
+}
+class ProviderProfile {
+  +string DisplayName
+  +string Headline
+  +string Bio
+  +string LicenceNumber
+  +bool VerifiedBySecondLook
+  +IReadOnlyList<string> Languages
+  +IReadOnlyList<BuyerNote> RecentBuyerNotes
+  +AtAGlance AtAGlance
+  +Guid BookedInspectionId
+  +DateTimeOffset BookedAt
+}
+class BuyerNote {
+  +string Quote
+  +string Attribution
+}
+class AtAGlance {
+  +int Inspections
+  +int AverageCallMinutes
+  +int ReportWithinMinutes
+}
+class Provider {
+  +Guid Id
+  +ProviderKind Kind
+  +string DisplayName
+  +string LicenceNumber
+  +string Location
+  +ApprovalStatus ApprovalStatus
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +Guid MechanicId
+  +DateTimeOffset ScheduledAt
+}
+GetMechanicProfileQueryHandler ..> GetMechanicProfileQuery : handles
+GetMechanicProfileQueryHandler --> Provider : reads
+GetMechanicProfileQueryHandler --> Inspection : checks buyer has one with this mechanic
+GetMechanicProfileQueryHandler --> ProviderProfile : returns
+ProviderProfile "1" *-- "*" BuyerNote
+ProviderProfile "1" *-- "1" AtAGlance
+Inspection "*" --> "1" Provider
+@enduml

@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Approve a provider
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Administrator" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Provider administration screen (TO SUPPLY)" as page
+  participant "AdminProvidersApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AdminProvidersController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ApproveProviderCommandHandler" as handler
+  participant "Provider" as provider
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Approve the provider
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, require role Admin
+controller -> handler : Send ApproveProviderCommand
+handler -> db : Load Provider
+alt Not found
+  db --> handler : Nothing
+  handler --> controller : NotFound result
+  controller --> client : 404 ProblemDetails
+  client --> page : Not found
+  page --> actor : Show failure (copy TO SUPPLY)
+else Status is not Pending
+  handler --> controller : Conflict result
+  controller --> client : 409 ProblemDetails
+  client --> page : Invalid transition
+  page --> actor : Show failure (copy TO SUPPLY)
+else Pending
+  handler -> provider : Set ApprovalStatus Approved (L2-064)
+  provider --> handler : Approved
+  handler -> db : Save
+  db --> handler : Commit result
+  handler --> controller : ProviderView
+  controller --> client : 200 response
+  client --> page : Approved
+  page --> actor : Provider can take inspections (L2-064)
+end
+@enduml

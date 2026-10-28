@@ -1,0 +1,9 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Pricing page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+System(secondlook, "SecondLook", "Used-car safety app; the pricing page shows prices and a calculator")
+Rel(visitor, secondlook, "Reads prices and uses the calculator of", "HTTPS")
+@enduml

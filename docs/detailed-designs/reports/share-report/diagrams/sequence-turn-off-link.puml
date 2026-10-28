@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Turn off the link
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ShareReportDialog" as dlg
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "TurnOffShareLinkCommandHandler" as handler
+  participant "ShareLink" as link
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> dlg : Select Turn off link
+dlg -> client : turnOffLink(reportId)
+client -> controller : HTTPS request
+controller -> controller : Authenticate and scope to current buyer
+controller -> handler : Send TurnOffShareLinkCommand
+handler -> db : Load link
+handler -> link : Set DisabledAt
+handler -> db : Save changes
+db --> handler : Committed
+handler --> controller : Result
+controller --> client : 200
+client --> dlg : Link off
+dlg --> actor : Confirmation copy (TO SUPPLY)
+@enduml

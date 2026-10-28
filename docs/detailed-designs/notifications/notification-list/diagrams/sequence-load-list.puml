@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Load the notification list
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "NotificationsPage" as page
+  participant "NotificationsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "NotificationsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetNotificationsQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /notifications
+page -> page : Set loading state, mark list aria-busy (L2-053)
+page -> client : list()
+client -> controller : GET request
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send GetNotificationsQuery
+handler -> db : Load buyer's notifications, newest first
+db --> handler : Rows
+handler --> controller : NotificationListView
+controller --> client : 200 or ProblemDetails
+client --> page : Result
+alt list failed
+  page --> actor : "Notifications didn’t load" with "Try again" (L2-053)
+else no notifications
+  page --> actor : "Nothing new" with guidance text (L2-053)
+else unread notifications exist
+  page --> actor : "Notifications", "2 unread" style count, "Mark all as read"; unread items carry hidden "(unread)" text (L2-053)
+else all notifications read
+  page --> actor : "All caught up", "Mark all as read" disabled (L2-053)
+end
+@enduml

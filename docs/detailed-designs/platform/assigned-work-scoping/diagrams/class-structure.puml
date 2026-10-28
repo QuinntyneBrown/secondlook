@@ -1,0 +1,65 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Assigned work scoping
+
+interface ICurrentUser {
+  +Guid UserId
+  +Role Role
+}
+enum Role {
+  Buyer
+  Mechanic
+  BodyShop
+  Admin
+}
+class Provider {
+  +Guid Id
+  +Guid UserId
+  +ProviderKind Kind
+  +ApprovalStatus ApprovalStatus
+}
+enum ProviderKind {
+  Mechanic
+  BodyShop
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +Guid MechanicId
+  +Guid? BodyShopId
+}
+class AssignedScope <<static>> {
+  +AssignedTo(inspections: IQueryable<Inspection>, provider: Provider): IQueryable<Inspection>
+}
+class ListInspectionsQueryHandler {
+  +Handle(query: ListInspectionsQuery): Task<IReadOnlyList<InspectionDto>>
+}
+class GetInspectionQueryHandler {
+  +Handle(query: GetInspectionQuery): Task<Result<InspectionDto>>
+}
+class Result<T> {
+  +bool IsNotVisible
+  +T Value
+}
+ListInspectionsQueryHandler ..> ICurrentUser : reads
+GetInspectionQueryHandler ..> ICurrentUser : reads
+ListInspectionsQueryHandler ..> AssignedScope : applies
+GetInspectionQueryHandler ..> AssignedScope : applies
+ListInspectionsQueryHandler ..> Provider : resolves by UserId
+GetInspectionQueryHandler ..> Provider : resolves by UserId
+AssignedScope ..> Inspection : filters by MechanicId or BodyShopId
+Provider --> ProviderKind : has
+ICurrentUser --> Role : has
+GetInspectionQueryHandler --> Result : returns
+@enduml

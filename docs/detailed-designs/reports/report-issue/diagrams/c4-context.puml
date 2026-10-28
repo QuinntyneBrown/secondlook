@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Report an issue
+
+Person(buyer, "Buyer", "Challenges a finding, a missed item or a cost")
+Person(mechanic, "Mechanic", "Reviews the issue and may update the report")
+System(secondlook, "SecondLook", "Used-car safety app")
+
+Rel(buyer, secondlook, "Reports an issue in")
+Rel(secondlook, mechanic, "Notifies of the issue")
+@enduml

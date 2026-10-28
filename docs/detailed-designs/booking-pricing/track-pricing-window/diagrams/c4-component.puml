@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Track the pricing window
+
+Container_Boundary(spa, "SecondLook app") {
+  Component(banner, "WindowBanner", "Angular component sl-window-banner", "Shows info, warning or danger state")
+  Component(page, "DashboardPage", "Angular page", "Hosts the banner")
+  Component(client, "PricingWindowsApi", "Angular HTTP client", "Contract bound to PRICING_WINDOWS_API")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "PricingWindowsController", "ASP.NET Core controller", "Exposes /api/pricing-windows")
+  Component(handler, "GetPricingWindowQueryHandler", "MediatR handler", "Derives the banner state")
+  Component(window, "PricingWindow", "Domain entity", "Holds OpensAt and ClosesAt")
+  Component(clock, "IClock", "Application port", "Supplies the current time")
+}
+Container_Boundary(worker, "SecondLook.Worker") {
+  Component(job, "WindowClosingJob", "Background job", "Finds windows two days from closing")
+  Component(sms, "ISmsSender", "Application port", "Delivers the notice if SMS is the channel; TO SUPPLY")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists windows and preferences")
+Rel(page, banner, "Renders")
+Rel(page, client, "Requests the window through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetPricingWindowQuery")
+Rel(handler, window, "Derives state from")
+Rel(handler, clock, "Reads current time")
+Rel(handler, db, "Reads", "EF Core")
+Rel(job, db, "Reads windows and preferences", "EF Core")
+Rel(job, sms, "Sends the closing notice through")
+@enduml

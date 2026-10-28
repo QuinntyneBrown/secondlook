@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — In-call banners
+
+Person(buyer, "Buyer", "Reads banners")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "CallBannerService and sl-banner")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "CallsController and ResendSellerLinkCommand")
+  Container(worker, "SecondLook.Worker", ".NET hosted service", "Deletes recordings after 30 days")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Call sessions and recording times")
+}
+System_Ext(video, "Video provider", "Call events; vendor not yet chosen")
+System_Ext(sms, "SMS provider", "Texts; vendor not yet chosen")
+System_Ext(rec, "Recording store", "Recordings; vendor not yet chosen")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(video, spa, "Delivers call events to", "Signalling")
+Rel(spa, api, "Requests a resend", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, sms, "Sends text through", "ISmsSender")
+Rel(worker, db, "Finds old recordings in", "EF Core")
+Rel(worker, rec, "Deletes recordings from", "IRecordingStore")
+@enduml

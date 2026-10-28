@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Quote the order summary
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Booking page (BookReviewPage, BookSchedulePage, CheckoutPage)" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "QuoteBookingQueryHandler" as handler
+  participant "PricingPolicy" as policy
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open a booking step
+page -> client : Request quote for the chosen review type
+client -> controller : GET /api/bookings/quote (authenticated)
+controller -> controller : Resolve current buyer
+controller -> handler : Send QuoteBookingQuery
+handler -> db : Load buyer's latest pricing window
+db --> handler : Window or none
+handler -> policy : Price(reviewType, window, now)
+alt No window, or window closed (ClosesAt reached)
+  policy --> handler : Vehicle line $50, starts new window (L2-027)
+else Window open
+  policy --> handler : Vehicle line $25 (L2-027)
+end
+opt Review type is Both
+  policy --> handler : Add line "Mechanic + body shop" +$20 (L2-027)
+end
+handler --> controller : PriceBreakdown (lines and total)
+controller --> client : 200 with quote and window close date
+client --> page : Quote
+page --> actor : Render "Your order" lines and total from the quote (L2-027)
+@enduml

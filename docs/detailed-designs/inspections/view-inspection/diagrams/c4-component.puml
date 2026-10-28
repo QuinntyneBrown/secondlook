@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View an inspection
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "InspectionDetailPage", "Angular page", "Renders detail, team, actions and payment")
+  Component(token, "INSPECTIONS_API", "Injection token", "Contract the page depends on")
+  Component(client, "InspectionsApi", "Angular service in projects/api", "Typed HTTP client")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Exposes GET /api/inspections/{id}")
+  Component(handler, "GetInspectionQueryHandler", "MediatR handler", "Builds InspectionDetailView for the current buyer")
+  Component(entity, "Inspection", "Domain entity", "Status, schedule and assigned providers")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists inspection, booking, vehicle and payment")
+Rel(page, token, "Depends on")
+Rel(token, client, "Resolves to")
+Rel(client, ctrl, "GET", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetInspectionQuery")
+Rel(handler, entity, "Reads")
+Rel(handler, db, "Queries", "EF Core")
+@enduml

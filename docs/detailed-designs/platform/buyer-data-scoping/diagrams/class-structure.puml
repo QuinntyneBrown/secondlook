@@ -1,0 +1,83 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Buyer data scoping
+
+interface ICurrentUser {
+  +Guid UserId
+  +Role Role
+}
+enum Role {
+  Buyer
+  Mechanic
+  BodyShop
+  Admin
+}
+class Vehicle {
+  +Guid Id
+  +Guid BuyerId
+}
+class Inspection {
+  +Guid Id
+  +Guid BookingId
+  +Guid BuyerId
+}
+class Report {
+  +Guid Id
+  +Guid InspectionId
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+}
+class BuyerScope <<static>> {
+  +ForBuyer(vehicles: IQueryable<Vehicle>, buyerId: Guid): IQueryable<Vehicle>
+  +ForBuyer(inspections: IQueryable<Inspection>, buyerId: Guid): IQueryable<Inspection>
+  +ForBuyer(reports: IQueryable<Report>, inspections: IQueryable<Inspection>, buyerId: Guid): IQueryable<Report>
+}
+class ListVehiclesQueryHandler {
+  +Handle(query: ListVehiclesQuery): Task<IReadOnlyList<VehicleDto>>
+}
+class GetVehicleQueryHandler {
+  +Handle(query: GetVehicleQuery): Task<Result<VehicleDto>>
+}
+class ListInspectionsQueryHandler {
+  +Handle(query: ListInspectionsQuery): Task<IReadOnlyList<InspectionDto>>
+}
+class GetInspectionQueryHandler {
+  +Handle(query: GetInspectionQuery): Task<Result<InspectionDto>>
+}
+class GetEstimateQueryHandler {
+  +Handle(query: GetEstimateQuery): Task<Result<EstimateDto>>
+}
+class Result<T> {
+  +bool IsNotVisible
+  +T Value
+}
+ListVehiclesQueryHandler ..> ICurrentUser : reads
+GetVehicleQueryHandler ..> ICurrentUser : reads
+ListInspectionsQueryHandler ..> ICurrentUser : reads
+GetInspectionQueryHandler ..> ICurrentUser : reads
+GetEstimateQueryHandler ..> ICurrentUser : reads
+ListVehiclesQueryHandler ..> BuyerScope : applies
+GetVehicleQueryHandler ..> BuyerScope : applies
+ListInspectionsQueryHandler ..> BuyerScope : applies
+GetInspectionQueryHandler ..> BuyerScope : applies
+GetEstimateQueryHandler ..> BuyerScope : applies
+BuyerScope ..> Vehicle : filters by BuyerId
+BuyerScope ..> Inspection : filters by BuyerId
+BuyerScope ..> Report : filters through Inspection
+ICurrentUser --> Role : has
+GetVehicleQueryHandler --> Result : returns
+GetInspectionQueryHandler --> Result : returns
+GetEstimateQueryHandler --> Result : returns
+Inspection "1" --> "0..1" Report : has
+@enduml

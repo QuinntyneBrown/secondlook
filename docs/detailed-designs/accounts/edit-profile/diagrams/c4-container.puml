@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Edit profile
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Settings page")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Application and domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

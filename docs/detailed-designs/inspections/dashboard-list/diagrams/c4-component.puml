@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Dashboard list
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "DashboardPage", "Angular page", "Renders states, tabs, rows, banner and pagination")
+  Component(token, "INSPECTIONS_API", "Injection token", "Contract the page depends on")
+  Component(client, "InspectionsApi", "Angular service in projects/api", "Typed HTTP client")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Exposes /api/inspections")
+  Component(listh, "ListInspectionsQueryHandler", "MediatR handler", "Builds one page of rows for the current buyer")
+  Component(winh, "GetPricingWindowQueryHandler", "MediatR handler", "Returns the open window, if any")
+  Component(entity, "Inspection", "Domain entity", "Status and schedule")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists the read model sources")
+Rel(page, token, "Depends on")
+Rel(token, client, "Resolves to")
+Rel(client, ctrl, "GET", "JSON/HTTPS")
+Rel(ctrl, listh, "Sends ListInspectionsQuery")
+Rel(ctrl, winh, "Sends GetPricingWindowQuery")
+Rel(listh, entity, "Reads status from")
+Rel(listh, db, "Queries", "EF Core")
+Rel(winh, db, "Queries", "EF Core")
+@enduml

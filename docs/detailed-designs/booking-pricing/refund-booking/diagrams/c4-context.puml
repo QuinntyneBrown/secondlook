@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Refund a booking
+
+Person(buyer, "Buyer", "Cancels an inspection and receives a refund")
+Person_Ext(mechanic, "Mechanic", "Reports that an inspection could not be completed")
+System(sl, "SecondLook", "Remote used-car inspection and estimate platform")
+System_Ext(processor, "Payment processor", "Returns money to the card used; vendor is TO SUPPLY")
+
+Rel(buyer, sl, "Cancels an inspection using")
+Rel(mechanic, sl, "Reports an incomplete inspection using")
+Rel(sl, processor, "Requests a refund from", "HTTPS")
+@enduml

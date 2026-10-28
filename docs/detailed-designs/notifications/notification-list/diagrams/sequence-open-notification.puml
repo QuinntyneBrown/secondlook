@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Open a notification
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "NotificationsPage" as page
+  participant "Router" as router
+  participant "Destination" as dest
+end box
+actor -> page : Select a notification title
+page -> router : Navigate to the item's TargetUrl (L2-053)
+alt target is a report
+  router -> dest : ReportPage
+else target is an inspection
+  router -> dest : InspectionDetailPage
+else target is the add-another-car dialog
+  router -> dest : AddAnotherCarDialog (CDK Dialog)
+else target is billing history
+  router -> dest : BillingHistoryPage
+end
+dest --> actor : Destination shown
+note over page, router
+  Whether opening an item marks it read is <TO SUPPLY>.
+end note
+@enduml

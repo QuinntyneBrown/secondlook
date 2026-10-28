@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — System pages
+
+Person(user, "User", "Requests pages")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Router, error handling and the four system pages")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Exception handling and maintenance middleware")
+}
+Rel(user, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+@enduml

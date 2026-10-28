@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Confirm a booking
+
+Person(buyer, "Buyer", "Person buying a used car as is; sees the booking confirmation")
+Person_Ext(seller, "Seller", "Owner of the vehicle; joins the video call from a text link")
+System(secondlook, "SecondLook", "Used-car video inspection and safety-certification estimate app")
+System_Ext(sms, "SMS provider", "Delivers texts to the seller; name <TO SUPPLY>")
+System_Ext(email, "Email provider", "Delivers the receipt; name <TO SUPPLY>")
+
+Rel(buyer, secondlook, "Views booking confirmation in")
+Rel(secondlook, sms, "Sends seller join link and reminder via", "HTTPS")
+Rel(sms, seller, "Texts")
+Rel(secondlook, email, "Sends receipt via", "HTTPS")
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Share a report
+
+Person(buyer, "Buyer", "Shares the report")
+Person_Ext(recipient, "Recipient", "Opens the link")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "ShareReportDialog and the shared report page")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ReportsController; one anonymous endpoint")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Reports and share links")
+}
+System_Ext(email, "Email provider", "Sends the report email")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(recipient, spa, "Opens link", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, email, "Sends email via IEmailSender", "protocol TO SUPPLY")
+@enduml

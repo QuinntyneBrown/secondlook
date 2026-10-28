@@ -1,0 +1,50 @@
+@startuml
+title UML sequence behaviour — Open a shared link
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Recipient" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Shared report page" as page
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController (anonymous endpoint)" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetSharedReportQueryHandler" as handler
+  participant "ShareLink" as link
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open link from email
+page -> client : getSharedReport(token)
+client -> controller : HTTPS GET, no credentials
+controller -> handler : Send GetSharedReportQuery
+handler -> db : Load link by token
+db --> handler : Link or none
+handler -> link : IsActive(now)
+alt link active
+  handler --> controller : ReportView (body shop review only if included)
+  controller --> client : 200
+  client --> page : Report
+  page --> actor : Report without an account
+else link turned off, expired or unknown
+  handler --> controller : Not shared
+  controller --> client : Error
+  client --> page : Not shared
+  page --> actor : This report isn’t shared with you, The owner turned off the link. Ask them for a new one. (L2-047)
+end
+@enduml

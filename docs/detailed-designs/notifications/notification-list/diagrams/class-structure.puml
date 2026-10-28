@@ -1,0 +1,73 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Notification list
+
+class Notification {
+  +Guid Id
+  +Guid UserId
+  +string Kind
+  +string Title
+  +string Body
+  +string TargetUrl
+  +DateTimeOffset? ReadAt
+  +DateTimeOffset CreatedAt
+  +MarkRead(now: DateTimeOffset): void
+}
+
+class GetNotificationsQuery {
+}
+
+class GetNotificationsQueryHandler {
+  +Handle(query: GetNotificationsQuery): Task<NotificationListView>
+}
+
+class MarkAllNotificationsReadCommand {
+}
+
+class MarkAllNotificationsReadCommandHandler {
+  +Handle(command: MarkAllNotificationsReadCommand): Task<NotificationListView>
+}
+
+class NotificationListView {
+  +int UnreadCount
+  +List<NotificationView> Items
+}
+
+class NotificationView {
+  +Guid Id
+  +string Title
+  +string Body
+  +string TargetUrl
+  +bool IsUnread
+  +DateTimeOffset CreatedAt
+}
+
+interface NOTIFICATIONS_API {
+  +list(): Observable<NotificationListView>
+  +markAllRead(): Observable<NotificationListView>
+}
+
+class NotificationsPage {
+  +state: loading | default | read | empty | error
+  +load(): void
+  +markAllRead(): void
+  +open(item: NotificationView): void
+}
+
+GetNotificationsQueryHandler ..> GetNotificationsQuery : handles
+MarkAllNotificationsReadCommandHandler ..> MarkAllNotificationsReadCommand : handles
+GetNotificationsQueryHandler --> Notification : reads
+MarkAllNotificationsReadCommandHandler --> Notification : mutates
+GetNotificationsQueryHandler --> NotificationListView : returns
+NotificationListView "1" *-- "*" NotificationView
+NotificationsPage ..> NOTIFICATIONS_API : depends on
+@enduml

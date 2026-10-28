@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — System pages
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular router", "Wildcard route sends unknown URLs to /404")
+  Component(interceptor, "SystemErrorInterceptor", "Angular HTTP interceptor", "Maps 5xx, 503 and network failures to the system pages")
+  Component(nf, "NotFoundPage", "Angular page", "/404")
+  Component(se, "ServerErrorPage", "Angular page", "/500")
+  Component(off, "OfflinePage", "Angular page", "/offline")
+  Component(mt, "MaintenancePage", "Angular page", "/maintenance")
+  Component(empty, "Empty-state component", "projects/components", "Code, heading, text and actions")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(exc, "Exception-handling middleware", "ASP.NET Core middleware", "Returns ProblemDetails with status 500")
+  Component(mw, "Maintenance middleware", "ASP.NET Core middleware", "Returns status 503 while maintenance is on <TO SUPPLY>")
+}
+Rel(router, nf, "Activates for unknown URL")
+Rel(interceptor, se, "Navigates on 500")
+Rel(interceptor, off, "Navigates when offline")
+Rel(interceptor, mt, "Navigates on 503")
+Rel(nf, empty, "Renders")
+Rel(se, empty, "Renders")
+Rel(off, empty, "Renders")
+Rel(mt, empty, "Renders")
+Rel(interceptor, exc, "Receives 500 from", "JSON/HTTPS")
+Rel(interceptor, mw, "Receives 503 from", "JSON/HTTPS")
+@enduml

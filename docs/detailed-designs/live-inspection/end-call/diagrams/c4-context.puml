@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — End call
+
+Person(buyer, "Buyer", "Ends the live inspection")
+Person_Ext(others, "Mechanic and seller", "Are disconnected when the call ends")
+System(sl, "SecondLook", "Used-car safety app with live video inspections")
+System_Ext(video, "Video provider", "Carries call media; vendor not yet chosen")
+System_Ext(rec, "Recording store", "Holds call recordings; vendor not yet chosen")
+Rel(buyer, sl, "Ends the call using")
+Rel(sl, video, "Closes the room through")
+Rel(sl, rec, "Stops and finalises the recording in")
+Rel(video, others, "Disconnects")
+@enduml

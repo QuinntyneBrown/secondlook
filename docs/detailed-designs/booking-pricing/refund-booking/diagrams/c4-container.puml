@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Refund a booking
+
+Person(buyer, "Buyer", "Cancels an inspection")
+System_Ext(processor, "Payment processor", "Vendor is TO SUPPLY")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Inspection detail page and cancel dialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Bookings endpoints, application logic and domain")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Bookings, payments, refunds")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, processor, "Requests refunds through IPaymentGateway", "HTTPS")
+@enduml

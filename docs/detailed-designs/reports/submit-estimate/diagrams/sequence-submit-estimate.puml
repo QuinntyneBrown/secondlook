@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Submit an estimate and deliver the report
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic" as actor
+actor "Buyer" as buyer
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Mechanic submission screen (TO SUPPLY)" as screen
+  participant "ReportsApi" as client
+  participant "ReportPage" as page
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SubmitEstimateCommandHandler" as handler
+  participant "Inspection" as insp
+  participant "Report" as report
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "EmailSender" as mail
+  database "SecondLook database" as db
+end box
+actor -> screen : Submit repair cost estimate (L2-050)
+screen -> client : submitEstimate(inspectionId, estimate)
+client -> controller : HTTPS POST
+controller -> controller : Authenticate, mechanic role, assigned inspection only
+controller -> handler : Send SubmitEstimateCommand
+handler -> db : Load inspection
+db --> handler : Inspection
+alt call has ended and inspection is assigned to the mechanic
+  handler -> report : Create Report with findings and cost range
+  handler -> insp : Set Status ReportReady
+  handler -> db : Save report, status and buyer Notification
+  db --> handler : Committed
+  handler -> mail : Send report-ready email if the buyer preference allows
+  handler --> controller : Result
+  controller --> client : 200
+  client --> screen : Submitted
+  screen --> actor : Confirmation (copy TO SUPPLY)
+else not allowed or invalid
+  handler --> controller : Failure
+  controller --> client : Error
+  client --> screen : Error
+  screen --> actor : Error copy (TO SUPPLY)
+end
+buyer -> page : Open the report from the notification
+page --> buyer : Review the estimate and decide whether to buy (L2-050; see view-report)
+@enduml

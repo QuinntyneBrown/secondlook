@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Refund a booking
+
+enum RefundReason {
+  SellerNoShow
+  MechanicIncomplete
+  BuyerCancelledEarly
+  BuyerCancelledLate
+}
+enum PaymentStatus {
+  Pending
+  Succeeded
+  Declined
+  Refunded
+  PartiallyRefunded
+}
+class Refund {
+  +Guid Id
+  +Guid PaymentId
+  +decimal Amount
+  +RefundReason Reason
+}
+class Payment {
+  +Guid Id
+  +Guid BookingId
+  +decimal Amount
+  +PaymentStatus Status
+  +string ProcessorReference
+}
+class Booking {
+  +Guid Id
+  +BookingStatus Status
+  +bool ReportDelivered
+  +DateTimeOffset CallStartsAt
+}
+class RefundDecision {
+  +bool Refundable
+  +decimal RefundAmount
+  +decimal RetainedAmount
+  +RefundReason Reason
+}
+class RefundPolicy {
+  +Decide(booking: Booking, payment: Payment, trigger: RefundTrigger, now: DateTimeOffset): RefundDecision
+}
+class RefundBookingCommand {
+  +Guid BookingId
+  +RefundTrigger Trigger
+}
+class RefundBookingCommandHandler {
+  +Handle(command: RefundBookingCommand): Task<RefundDecision>
+}
+interface IPaymentGateway {
+  +Refund(processorReference: string, amount: decimal, idempotencyKey: string): Task<Result>
+}
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+class BookingsController {
+  +Cancel(id: Guid): Task<IActionResult>
+}
+
+BookingsController ..> RefundBookingCommand : sends
+RefundBookingCommandHandler ..> RefundBookingCommand : handles
+RefundBookingCommandHandler --> RefundPolicy : asks
+RefundBookingCommandHandler --> Booking : loads
+RefundBookingCommandHandler --> Payment : updates
+RefundBookingCommandHandler ..> IPaymentGateway : refunds through
+RefundBookingCommandHandler ..> IClock : reads
+RefundPolicy ..> RefundDecision : returns
+Payment "1" --> "*" Refund : has
+Refund --> RefundReason : has
+Payment --> PaymentStatus : has
+@enduml

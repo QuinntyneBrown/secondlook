@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Forbidden pages
+
+Person(user, "Signed-in user", "Opens an inspection or report that is not on the account")
+Person_Ext(owner, "Buyer who booked it", "Owns the inspection and may share the report")
+System(sl, "SecondLook", "Used-car safety inspection platform")
+Rel(user, sl, "Opens inspections and reports in")
+Rel(owner, sl, "Shares the report from the account of the owner in")
+@enduml

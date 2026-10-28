@@ -1,0 +1,46 @@
+@startuml
+title UML sequence behaviour — Validate sign-up values
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignUpPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignUpCommandValidator" as validator
+end box
+actor -> page : Submit empty name, "jordan.lee@", "short"
+page -> page : Check name, email format, password length
+alt Any field invalid
+  page -> page : Mark fields invalid; build summary "Fix 3 things to continue" (L2-007)
+  page --> actor : Move focus to the summary; show inline messages (L2-007)
+else All fields valid
+  page -> client : signUp(request)
+  client -> controller : POST sign-up
+  controller -> validator : Validate SignUpCommand (server-side repeat of the same rules)
+  alt Server rejects the values
+    validator --> controller : Validation errors
+    controller --> client : 400 ProblemDetails with field errors
+    client --> page : Field errors
+    page --> actor : Same summary and inline messages (L2-007)
+  else Server accepts
+    validator --> controller : Valid
+  end
+end
+@enduml

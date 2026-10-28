@@ -1,0 +1,66 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Verify email
+
+class User {
+  +Guid Id
+  +string Email
+  +DateTime? EmailVerifiedAt
+  +MarkEmailVerified(at: DateTime): void
+}
+class EmailVerificationToken {
+  +Guid UserId
+  +string TokenHash
+  +DateTime ExpiresAt
+  +IsExpired(now: DateTime): bool
+}
+class VerifyEmailCommand {
+  +string Token
+}
+class VerifyEmailCommandHandler {
+  +Handle(command: VerifyEmailCommand): Task<VerifyResult>
+}
+class ResendVerificationEmailCommand {
+  +string Email
+}
+class ResendVerificationEmailCommandHandler {
+  +Handle(command: ResendVerificationEmailCommand): Task<Result>
+}
+interface IEmailSender {
+  +SendAsync(message: EmailMessage): Task
+}
+interface IClock {
+  +UtcNow: DateTime
+}
+class AuthController
+class VerifyEmailPage {
+  +state: default|loading|success|error
+  +resend(): void
+}
+interface AuthApi {
+  +verifyEmail(token: string): Observable<VerifyResult>
+  +resendVerificationEmail(email: string): Observable<void>
+}
+
+AuthController ..> VerifyEmailCommand : sends
+AuthController ..> ResendVerificationEmailCommand : sends
+VerifyEmailCommandHandler ..> VerifyEmailCommand : handles
+ResendVerificationEmailCommandHandler ..> ResendVerificationEmailCommand : handles
+VerifyEmailCommandHandler --> EmailVerificationToken : checks / consumes
+VerifyEmailCommandHandler --> User : marks verified
+ResendVerificationEmailCommandHandler --> EmailVerificationToken : creates
+User "1" --> "*" EmailVerificationToken
+VerifyEmailCommandHandler ..> IClock
+ResendVerificationEmailCommandHandler ..> IClock
+ResendVerificationEmailCommandHandler ..> IEmailSender
+VerifyEmailPage ..> AuthApi : AUTH_API
+@enduml

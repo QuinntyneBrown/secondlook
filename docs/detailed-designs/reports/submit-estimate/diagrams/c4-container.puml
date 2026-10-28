@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Submit an estimate
+
+Person(mechanic, "Mechanic", "Submits the estimate")
+Person(buyer, "Buyer", "Reads the report")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Mechanic submission screen (TO SUPPLY) and ReportPage")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ReportsController")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, reports, notifications")
+}
+System_Ext(email, "Email provider", "Sends the report-ready email")
+Rel(mechanic, spa, "Uses", "HTTPS")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, email, "Sends via IEmailSender", "protocol TO SUPPLY")
+@enduml

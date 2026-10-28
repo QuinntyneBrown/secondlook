@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Enter vehicle details
+
+Person(buyer, "Buyer", "Person buying a used vehicle as is")
+System(secondlook, "SecondLook", "Used-car video inspection and booking platform")
+System_Ext(vin, "VIN lookup service", "Recognises a VIN as a year, make and model (vendor <TO SUPPLY>)")
+
+Rel(buyer, secondlook, "Enters vehicle and seller details using")
+Rel(secondlook, vin, "Looks up the VIN via", "HTTPS")
+@enduml

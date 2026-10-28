@@ -1,0 +1,31 @@
+@startuml
+title UML sequence behaviour — Use the how-it-works page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HowItWorksPage" as page
+  participant "Router" as router
+end box
+alt Visitor selects a question
+  actor -> page : Select a question
+  page -> page : Toggle the item and reveal or hide its answer (toggle of an open item is <TO SUPPLY>)
+  page --> actor : Show the item state
+else Visitor selects "Book an inspection"
+  actor -> page : Select "Book an inspection"
+  page -> router : Navigate to /book/vehicle (L2-003)
+  router --> actor : Show the book-vehicle page (authentication behaviour for a visitor is <TO SUPPLY>)
+end
+@enduml

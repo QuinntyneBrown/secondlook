@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Cookie consent
+
+Person(visitor, "Visitor", "Makes a consent choice")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "CookieConsent prompt, ConsentService, toast")
+  ContainerDb(store, "Consent store", "<TO SUPPLY>", "Remembers the choice and its expiry for 12 months")
+}
+Rel(visitor, spa, "Uses", "HTTPS")
+Rel(spa, store, "Reads and writes the choice", "<TO SUPPLY>")
+@enduml

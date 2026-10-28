@@ -1,0 +1,83 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — View an inspection
+
+class GetInspectionQuery {
+  +Guid InspectionId
+}
+class GetInspectionQueryHandler {
+  +Handle(query: GetInspectionQuery): Task<InspectionDetailView>
+}
+class InspectionDetailView {
+  +Guid Id
+  +string VehicleName
+  +DateTimeOffset BookedAt
+  +InspectionStatus Status
+  +DateTimeOffset ScheduledAt
+  +string Vin
+  +int OdometerKm
+  +decimal AskingPrice
+  +ReviewType ReviewType
+  +string SellerName
+  +string SellerPhone
+  +TeamMemberView Mechanic
+  +TeamMemberView? BodyShop
+  +PaymentView Payment
+  +DateTimeOffset? CancelledAt
+  +decimal? RefundedAmount
+}
+class TeamMemberView {
+  +Guid ProviderId
+  +string DisplayName
+  +string Description
+}
+class PaymentView {
+  +decimal Amount
+  +string Brand
+  +string Last4
+  +DateTimeOffset PaidAt
+}
+class Inspection {
+  +Guid Id
+  +Guid BookingId
+  +Guid BuyerId
+  +Guid MechanicId
+  +Guid? BodyShopId
+  +InspectionStatus Status
+  +DateTimeOffset ScheduledAt
+}
+class Booking {
+  +Guid Id
+  +Guid VehicleId
+  +ReviewType ReviewType
+  +DateTimeOffset CreatedAt
+}
+class Vehicle {
+  +string Vin
+  +int OdometerKm
+  +decimal AskingPrice
+  +string SellerName
+  +string SellerPhone
+}
+class Payment {
+  +decimal Amount
+  +PaymentStatus Status
+}
+GetInspectionQueryHandler ..> GetInspectionQuery : handles
+GetInspectionQueryHandler --> Inspection : loads (scoped to buyer)
+GetInspectionQueryHandler --> InspectionDetailView : returns
+Inspection "1" --> "1" Booking
+Booking "1" --> "1" Vehicle
+Booking "1" --> "1" Payment
+InspectionDetailView *-- TeamMemberView
+InspectionDetailView *-- PaymentView
+@enduml

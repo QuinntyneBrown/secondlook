@@ -1,0 +1,64 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Recover from connection loss
+
+enum CallViewState {
+  Connecting
+  Live
+  Reconnecting
+  Disconnected
+  Ended
+}
+class LiveInspectionPage {
+  +CallViewState State
+  +OnConnectionLost(): void
+  +OnConnectionRestored(): void
+  +OnReconnectFailed(): void
+  +Rejoin(): void
+  +Leave(): void
+}
+class CallRoomClient {
+  +Connect(credential: string): Task
+  +Disconnect(): void
+}
+interface CallsApi {
+  +Rejoin(inspectionId: Guid): Observable<JoinCallResult>
+}
+class RejoinCallCommand {
+  +Guid InspectionId
+}
+class RejoinCallCommandHandler {
+  +Handle(command: RejoinCallCommand): Task<JoinCallResult>
+}
+class JoinCallResult {
+  +string JoinCredential
+  +CallStateView State
+}
+class CallSession {
+  +Guid Id
+  +Guid InspectionId
+  +DateTimeOffset StartedAt
+  +DateTimeOffset? EndedAt
+}
+interface IVideoRoom {
+  +IssueJoinCredential(inspectionId: Guid, userId: Guid): Task<string>
+}
+LiveInspectionPage --> CallViewState : has
+LiveInspectionPage --> CallRoomClient : uses
+LiveInspectionPage ..> CallsApi : calls
+RejoinCallCommandHandler ..> RejoinCallCommand : handles
+RejoinCallCommandHandler --> CallSession : loads
+RejoinCallCommandHandler ..> IVideoRoom : uses
+RejoinCallCommandHandler --> JoinCallResult : returns
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Pricing page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular Router", "Serves /pricing as a public route")
+  Component(page, "PricingPage", "Angular page", "Renders cards, calculator and questions")
+  Component(calc, "PricingCalculator", "TypeScript function", "Computes total and savings for a vehicle count")
+  Component(content, "Pricing content", "TypeScript constants", "Holds cards and question text")
+}
+Rel(visitor, router, "Opens /pricing")
+Rel(router, page, "Activates")
+Rel(page, calc, "Computes with")
+Rel(page, content, "Reads")
+@enduml

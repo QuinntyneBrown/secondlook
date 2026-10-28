@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Resend the verification email
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "New account holder" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "VerifyEmailPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ResendVerificationEmailCommandHandler" as handler
+  participant "EmailVerificationToken" as token
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "EmailSender" as mail
+  database "SecondLook database" as db
+end box
+page --> actor : "Check your email" with the address, "Resend email" and "use a different email" (L2-012)
+actor -> page : Select "Resend email" (or "Send a new link" after expiry)
+page -> client : resendVerificationEmail(email)
+client -> controller : POST resend-verification
+controller -> handler : Send ResendVerificationEmailCommand
+handler -> db : Find unverified user by email
+db --> handler : User or none
+opt Unverified user exists
+  handler -> token : Create token valid 24 hours
+  handler -> db : Save token hash
+  handler -> mail : Send verification link
+end
+handler --> controller : Accepted
+controller --> client : 202 Accepted
+client --> page : Sent
+page --> actor : Confirmation copy <TO SUPPLY>
+@enduml

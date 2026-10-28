@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Reset password
+
+Person(user, "Account holder", "Forgot the password for an existing account")
+System(sl, "SecondLook", "Used-car safety app with remote mechanic inspections")
+System_Ext(email, "Email provider", "Delivers the reset link (vendor <TO SUPPLY>)")
+
+Rel(user, sl, "Requests a reset and chooses a new password in")
+Rel(sl, email, "Sends reset link via", "IEmailSender")
+Rel(email, user, "Delivers reset link to", "Email")
+@enduml

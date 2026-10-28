@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Sign up
+
+Container_Boundary(app, "SecondLook app") {
+  Component(page, "SignUpPage", "Angular page", "Form, validation summary, duplicate-email alert")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed calls to /api/auth")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Anonymous sign-up endpoint")
+}
+Container_Boundary(appl, "SecondLook.Application and Domain") {
+  Component(handler, "SignUpCommandHandler", "MediatR handler", "Creates the user and the verification token")
+  Component(validator, "SignUpCommandValidator", "FluentValidation", "Validates name, email, password and terms")
+  Component(user, "User", "Domain entity", "Account with Role Buyer")
+  Component(token, "EmailVerificationToken", "Domain entity", "Hashed token valid 24 hours")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(hasher, "PasswordHasher", "IPasswordHasher adapter", "Hashes passwords")
+  Component(mail, "EmailSender", "IEmailSender adapter", "Sends the verification link")
+  ComponentDb(db, "AppDbContext", "EF Core, SQL Server", "Persists users and tokens")
+}
+Rel(page, client, "Calls")
+Rel(client, ctrl, "POST sign-up", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends SignUpCommand")
+Rel(handler, validator, "Is validated by")
+Rel(handler, user, "Creates")
+Rel(handler, token, "Creates")
+Rel(handler, hasher, "Hashes password with")
+Rel(handler, mail, "Sends link with")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

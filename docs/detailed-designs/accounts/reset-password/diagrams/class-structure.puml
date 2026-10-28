@@ -1,0 +1,90 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Reset password
+
+class User {
+  +Guid Id
+  +string Email
+  +string PasswordHash
+  +SetPassword(hash: string): void
+}
+class PasswordResetToken {
+  +Guid UserId
+  +string TokenHash
+  +DateTime ExpiresAt
+  +IsExpired(now: DateTime): bool
+}
+class RequestPasswordResetCommand {
+  +string Email
+}
+class RequestPasswordResetCommandHandler {
+  +Handle(command: RequestPasswordResetCommand): Task<Result>
+}
+class CheckPasswordResetTokenQuery {
+  +string Token
+}
+class CheckPasswordResetTokenQueryHandler {
+  +Handle(query: CheckPasswordResetTokenQuery): Task<TokenStatus>
+}
+class ResetPasswordCommand {
+  +string Token
+  +string NewPassword
+}
+class ResetPasswordCommandValidator {
+  +Validate(command: ResetPasswordCommand): ValidationResult
+}
+class ResetPasswordCommandHandler {
+  +Handle(command: ResetPasswordCommand): Task<SignInResult>
+}
+interface IEmailSender {
+  +SendAsync(message: EmailMessage): Task
+}
+interface IPasswordHasher {
+  +Hash(password: string): string
+}
+interface ITokenService {
+  +Issue(user: User): AccessToken
+}
+interface IClock {
+  +UtcNow: DateTime
+}
+class AuthController
+class ForgotPasswordPage {
+  +state: default|invalid|submitting|error|success
+}
+class ResetPasswordPage {
+  +state: default|invalid|submitting|expired|success
+}
+interface AuthApi {
+  +requestPasswordReset(email: string): Observable<void>
+  +checkPasswordResetToken(token: string): Observable<TokenStatus>
+  +resetPassword(request: ResetPasswordRequest): Observable<SignInResult>
+}
+
+AuthController ..> RequestPasswordResetCommand : sends
+AuthController ..> CheckPasswordResetTokenQuery : sends
+AuthController ..> ResetPasswordCommand : sends
+RequestPasswordResetCommandHandler ..> RequestPasswordResetCommand : handles
+CheckPasswordResetTokenQueryHandler ..> CheckPasswordResetTokenQuery : handles
+ResetPasswordCommandHandler ..> ResetPasswordCommand : handles
+ResetPasswordCommandValidator ..> ResetPasswordCommand : validates
+RequestPasswordResetCommandHandler --> PasswordResetToken : creates
+ResetPasswordCommandHandler --> PasswordResetToken : consumes
+ResetPasswordCommandHandler --> User : updates
+User "1" --> "*" PasswordResetToken
+RequestPasswordResetCommandHandler ..> IEmailSender
+ResetPasswordCommandHandler ..> IPasswordHasher
+ResetPasswordCommandHandler ..> ITokenService
+RequestPasswordResetCommandHandler ..> IClock
+ForgotPasswordPage ..> AuthApi : AUTH_API
+ResetPasswordPage ..> AuthApi : AUTH_API
+@enduml

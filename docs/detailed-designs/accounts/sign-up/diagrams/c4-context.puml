@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Sign up
+
+Person(visitor, "Visitor", "Person without an account who creates a buyer account")
+System(sl, "SecondLook", "Used-car safety app with remote mechanic inspections")
+System_Ext(email, "Email provider", "Delivers the verification email (vendor <TO SUPPLY>)")
+
+Rel(visitor, sl, "Creates an account in")
+Rel(sl, email, "Sends verification email via", "IEmailSender")
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — Show a call banner
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CallEvents" as events
+  participant "CallBannerService" as svc
+  participant "sl-banner" as banner
+end box
+events -> svc : Deliver CallEvent
+alt MechanicJoined
+  svc -> banner : Show info "Dev Patel joined" (L2-044)
+else RecordingStarted
+  svc -> banner : Show success "Recording started" (L2-044)
+  svc -> banner : Show persistent "This call is being recorded" (L2-044)
+else SellerConnectionWeak
+  svc -> banner : Show warning "Sam’s connection is weak" (L2-044)
+else SellerLeft
+  svc -> banner : Show danger "Sam Whitaker left the call" with "Text him again" (L2-044)
+end
+banner --> actor : Announce through role status or role alert
+alt Timed banner
+  svc -> svc : Start the 12 s clear timer (duration awaiting confirmation)
+  svc -> banner : Clear the banner
+else Persistent banner
+  actor -> banner : Dismiss
+  banner -> svc : Dismissed (L2-044)
+end
+@enduml

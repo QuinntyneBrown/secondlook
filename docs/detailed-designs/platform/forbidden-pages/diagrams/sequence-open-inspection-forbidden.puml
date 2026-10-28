@@ -1,0 +1,44 @@
+@startuml
+title UML sequence behaviour — Open an inspection that belongs to another account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Signed-in user" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "InspectionDetailPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetInspectionQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections/civic-lx
+page -> client : Request inspection (view state loading)
+client -> controller : HTTPS request with bearer token
+controller -> handler : Send GetInspectionQuery
+handler -> db : Read inspection within access scope
+db --> handler : No visible row
+handler --> controller : Result marked not visible (L2-057, L2-058)
+controller --> client : Refusal status <TO SUPPLY> (403 assumed by L2-059)
+client --> page : ForbiddenError
+page -> page : Set view state forbidden
+page --> actor : Show "This inspection belongs to another account" with "Ask the buyer who booked it to share the report with you." and "Back to your inspections" (L2-059 criterion 1)
+actor -> page : Select "Back to your inspections"
+page --> actor : Navigate to /inspections
+@enduml

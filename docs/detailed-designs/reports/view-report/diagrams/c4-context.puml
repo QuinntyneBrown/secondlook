@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — View the report
+
+Person(buyer, "Buyer", "Reads the safety certification estimate and decides whether the deal is worth it")
+Person(mechanic, "Mechanic", "Writes the report after the live call")
+System(secondlook, "SecondLook", "Used-car safety app: inspections, estimates, reports")
+System_Ext(email, "Email provider", "Delivers the report-ready notice TO SUPPLY")
+
+Rel(mechanic, secondlook, "Submits the estimate to")
+Rel(buyer, secondlook, "Opens the report in")
+Rel(secondlook, email, "Sends report-ready notice via")
+@enduml

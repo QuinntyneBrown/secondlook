@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Sign in as a mechanic or body shop
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic or body shop" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SignInPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SignInCommandHandler" as handler
+  participant "User" as user
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "JwtTokenService" as tokens
+  database "SecondLook database" as db
+end box
+actor -> page : Submit email and password
+page -> client : signIn(request)
+client -> controller : POST sign-in (anonymous)
+controller -> handler : Send SignInCommand
+handler -> db : Load user
+db --> handler : User with Role Mechanic or BodyShop
+handler -> user : Verify credentials (L2-014)
+alt Credentials match
+  handler -> tokens : Issue JWT with Role claim Mechanic or BodyShop
+  tokens --> handler : Signed token
+  handler --> controller : SignInResult with role
+  controller --> client : 200 with token
+  client --> page : Authenticated as that kind of user (L2-014)
+  page --> actor : Destination for the role <TO SUPPLY>
+else Credentials do not match
+  handler --> controller : Invalid-credentials result
+  controller --> client : 401 ProblemDetails
+  client --> page : Mismatch error
+  page --> actor : Alert as in the sign-in design
+end
+@enduml

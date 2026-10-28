@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Conduct a body shop review
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(screen, "Body shop review screens (TO SUPPLY)", "Angular pages or dialogs", "Join the call, enter and submit findings")
+  Component(client, "ReportsApi (REPORTS_API)", "Angular API client", "Typed review requests")
+  Component(report, "ReportPage", "Angular page", "Shows the BodyShopReview findings to the buyer")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticates, scopes to assigned body shop or buyer")
+  Component(save, "SaveBodyShopFindingsCommandHandler", "MediatR handler", "Adds or edits findings while InProgress")
+  Component(submit, "SubmitBodyShopReviewCommandHandler", "MediatR handler", "Marks the review Delivered")
+  Component(get, "GetReportQueryHandler", "MediatR handler", "Returns the report with its BodyShopReview")
+  Component(entity, "BodyShopReview", "Domain entity", "Findings and Status")
+  Component(calls, "CallsController", "ASP.NET Core controller", "Issues body shop room access through IVideoRoom (TO SUPPLY handler)")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Inspection, BodyShopReview, Report")
+
+Rel(screen, client, "Calls")
+Rel(report, client, "Calls")
+Rel(client, ctrl, "Sends review and report requests", "JSON/HTTPS")
+Rel(ctrl, save, "Sends SaveBodyShopFindingsCommand")
+Rel(ctrl, submit, "Sends SubmitBodyShopReviewCommand")
+Rel(ctrl, get, "Sends GetReportQuery")
+Rel(submit, entity, "Sets Delivered")
+Rel(save, entity, "Changes findings of")
+Rel(client, calls, "Requests room access", "JSON/HTTPS")
+Rel(save, db, "Persists", "EF Core")
+Rel(submit, db, "Persists", "EF Core")
+Rel(get, db, "Reads", "EF Core")
+@enduml

@@ -1,0 +1,82 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Reschedule an inspection
+
+class GetRescheduleSlotsQuery {
+  +Guid InspectionId
+  +DateOnly Day
+}
+class GetRescheduleSlotsQueryHandler {
+  +Handle(query: GetRescheduleSlotsQuery): Task<RescheduleSlotsView>
+}
+class RescheduleSlotsView {
+  +string MechanicName
+  +IReadOnlyList<DateOnly> Days
+  +IReadOnlyList<SlotView> Slots
+}
+class SlotView {
+  +Guid SlotId
+  +DateTimeOffset Start
+  +bool Available
+}
+class RescheduleInspectionCommand {
+  +Guid InspectionId
+  +Guid? NewSlotId
+  +string IdempotencyKey
+}
+class RescheduleInspectionCommandValidator {
+  +Validate(command): ValidationResult
+}
+class RescheduleInspectionCommandHandler {
+  +Handle(command: RescheduleInspectionCommand): Task<RescheduleResult>
+}
+class RescheduleResult {
+  +DateTimeOffset NewTime
+  +DateTimeOffset PreviousTime
+  +string SellerName
+}
+class UndoRescheduleCommand {
+  +Guid InspectionId
+}
+class UndoRescheduleCommandHandler {
+  +Handle(command: UndoRescheduleCommand): Task<Result>
+}
+class Inspection {
+  +Guid Id
+  +DateTimeOffset ScheduledAt
+  +InspectionStatus Status
+  +Reschedule(newTime: DateTimeOffset): void
+}
+class AvailabilityWindow {
+  +Guid ProviderId
+  +DateTimeOffset Start
+  +DateTimeOffset End
+}
+interface ISmsSender {
+  +SendAsync(phone: string, message: string): Task
+}
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+GetRescheduleSlotsQueryHandler ..> GetRescheduleSlotsQuery : handles
+GetRescheduleSlotsQueryHandler --> AvailabilityWindow : reads
+GetRescheduleSlotsQueryHandler --> RescheduleSlotsView : returns
+RescheduleSlotsView "1" *-- "*" SlotView
+RescheduleInspectionCommandHandler ..> RescheduleInspectionCommand : handles
+RescheduleInspectionCommandValidator ..> RescheduleInspectionCommand : validates
+RescheduleInspectionCommandHandler --> Inspection : loads / mutates
+RescheduleInspectionCommandHandler --> ISmsSender : texts seller
+RescheduleInspectionCommandHandler --> IClock : reads
+RescheduleInspectionCommandHandler --> RescheduleResult : returns
+UndoRescheduleCommandHandler ..> UndoRescheduleCommand : handles
+UndoRescheduleCommandHandler --> Inspection : restores
+@enduml

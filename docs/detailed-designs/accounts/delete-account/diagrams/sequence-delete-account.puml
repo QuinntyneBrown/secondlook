@@ -1,0 +1,73 @@
+@startuml
+title UML sequence behaviour — Delete account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "DeleteAccountDialog" as dialog
+  participant "AccountApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AccountController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "DeleteAccountCommandHandler" as handler
+  participant "RefundPolicy" as policy
+  participant "User" as user
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gw
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Delete my account"
+page -> dialog : Open via CDK Dialog (L2-018)
+dialog --> actor : "Delete your account?", "This can’t be undone.", three consequences; "Keep my account" has focus; "Delete my account" disabled (L2-018)
+actor -> dialog : Type in the field
+alt Field is not exactly DELETE
+  dialog --> actor : Message "Type the word in capitals: DELETE."; button stays disabled (L2-018)
+else Field reads DELETE
+  actor -> dialog : Select "Delete my account"
+  dialog -> dialog : Button busy, field read-only (L2-018)
+  dialog -> client : Build delete request
+  client -> controller : HTTPS request
+  controller -> controller : Authenticate, scope to current buyer
+  controller -> handler : Send DeleteAccountCommand
+  handler -> db : Load User and booked inspections
+  db --> handler : User, bookings, payments
+  loop Each booked inspection
+    handler -> policy : Evaluate refund
+    policy --> handler : Refund amount
+    handler -> gw : Refund payment
+    gw --> handler : Refund result
+  end
+  handler -> user : MarkDeleted
+  user --> handler : Updated
+  handler -> db : Cancel bookings, record refunds, save in one unit of work
+  alt Deletion succeeds
+    db --> handler : Commit result
+    handler --> controller : Success
+    controller --> client : 204 response
+    client --> dialog : Deleted
+    dialog --> actor : Close dialog; sign-out and landing route <TO SUPPLY> (L2-018)
+  else Deletion fails
+    db --> handler : Failure
+    handler --> controller : Error
+    controller --> client : ProblemDetails
+    client --> dialog : Failed
+    dialog --> actor : Alert "We couldn’t delete your account", "Nothing was deleted. Try again, or email support.", "Try again" (L2-018)
+  end
+end
+@enduml

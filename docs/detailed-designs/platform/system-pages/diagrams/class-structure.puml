@@ -1,0 +1,58 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — System pages
+
+class SystemPageContent {
+  +string Code
+  +string Title
+  +string Message
+  +PageAction Primary
+  +PageAction Secondary
+}
+class PageAction {
+  +string Label
+  +string Target
+}
+class NotFoundPage
+class ServerErrorPage {
+  +Retry(): void
+}
+class OfflinePage {
+  +Retry(): void
+}
+class MaintenancePage {
+  +CheckStatus(): void
+}
+class SystemErrorInterceptor {
+  +intercept(request: HttpRequest, next: HttpHandler): Observable<HttpEvent>
+}
+class ExceptionHandlingMiddleware {
+  +InvokeAsync(context: HttpContext): Task
+}
+class MaintenanceMiddleware {
+  +InvokeAsync(context: HttpContext): Task
+}
+interface IMaintenanceState {
+  +bool IsOn
+}
+NotFoundPage ..> SystemPageContent : renders
+ServerErrorPage ..> SystemPageContent : renders
+OfflinePage ..> SystemPageContent : renders
+MaintenancePage ..> SystemPageContent : renders
+SystemPageContent "1" *-- "1..2" PageAction : has
+SystemErrorInterceptor ..> ServerErrorPage : navigates on 500
+SystemErrorInterceptor ..> OfflinePage : navigates when offline
+SystemErrorInterceptor ..> MaintenancePage : navigates on 503
+MaintenanceMiddleware ..> IMaintenanceState : reads
+@enduml

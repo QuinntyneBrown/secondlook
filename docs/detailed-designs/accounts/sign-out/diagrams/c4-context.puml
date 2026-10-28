@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Sign out
+
+Person(buyer, "Signed-in buyer", "Ends the current session")
+System(sl, "SecondLook", "Used-car safety app with remote mechanic inspections")
+
+Rel(buyer, sl, "Signs out of")
+@enduml

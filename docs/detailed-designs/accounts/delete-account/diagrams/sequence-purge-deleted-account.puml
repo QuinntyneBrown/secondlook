@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — Purge a deleted account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+box "Backend — SecondLook.Worker" #D1FADF
+  participant "AccountPurgeService" as purge
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "IClock" as clock
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "IRecordingStore" as store
+  database "SecondLook database" as db
+end box
+purge -> clock : Read current time
+clock --> purge : Now
+purge -> db : Find accounts marked deleted
+db --> purge : Accounts due for purge
+loop Each account
+  purge -> store : Delete call recordings (within 30 days, L2-018)
+  store --> purge : Deleted
+  purge -> db : Delete reports and payment methods (within 30 days, L2-018)
+  db --> purge : Deleted
+  note right of purge : Receipts remain for 7 years (L2-018)
+end
+@enduml

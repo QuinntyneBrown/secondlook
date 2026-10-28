@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Add another vehicle
+
+Person(buyer, "Buyer", "Adds a car")
+System_Ext(vin, "VIN lookup service", "Vendor is TO SUPPLY")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Dashboard, compare, report and booking-confirmed pages; AddAnotherCarDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Vehicles and pricing window endpoints, application logic and domain")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Vehicles, bookings, pricing windows")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, vin, "Resolves VIN through IVinLookup", "HTTPS")
+@enduml

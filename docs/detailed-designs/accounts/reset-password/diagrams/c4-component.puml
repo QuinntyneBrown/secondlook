@@ -1,0 +1,42 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Reset password
+
+Container_Boundary(app, "SecondLook app") {
+  Component(forgot, "ForgotPasswordPage", "Angular page", "Email form and 'Check your email' status")
+  Component(reset, "ResetPasswordPage", "Angular page", "New-password form, success and expired states")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed calls to /api/auth")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Anonymous reset endpoints")
+}
+Container_Boundary(appl, "SecondLook.Application and Domain") {
+  Component(reqh, "RequestPasswordResetCommandHandler", "MediatR handler", "Creates and mails a reset token")
+  Component(checkh, "CheckPasswordResetTokenQueryHandler", "MediatR handler", "Reports whether a token is valid or expired")
+  Component(resh, "ResetPasswordCommandHandler", "MediatR handler", "Sets the new password and signs in")
+  Component(prt, "PasswordResetToken", "Domain entity", "Hashed token valid 30 minutes")
+  Component(user, "User", "Domain entity", "Owns PasswordHash")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(hasher, "PasswordHasher", "IPasswordHasher adapter", "Hashes the new password")
+  Component(tokens, "JwtTokenService", "ITokenService adapter", "Issues the JWT after reset")
+  Component(mail, "EmailSender", "IEmailSender adapter", "Sends the reset link")
+  ComponentDb(db, "AppDbContext", "EF Core, SQL Server", "Persists users and tokens")
+}
+Rel(forgot, client, "Calls")
+Rel(reset, client, "Calls")
+Rel(client, ctrl, "POST / GET reset endpoints", "JSON/HTTPS")
+Rel(ctrl, reqh, "Sends RequestPasswordResetCommand")
+Rel(ctrl, checkh, "Sends CheckPasswordResetTokenQuery")
+Rel(ctrl, resh, "Sends ResetPasswordCommand")
+Rel(reqh, prt, "Creates")
+Rel(resh, prt, "Consumes")
+Rel(resh, user, "Updates password of")
+Rel(reqh, mail, "Sends link with")
+Rel(resh, hasher, "Hashes with")
+Rel(resh, tokens, "Requests JWT from")
+Rel(reqh, db, "Persists", "EF Core")
+Rel(resh, db, "Persists", "EF Core")
+Rel(checkh, db, "Reads", "EF Core")
+@enduml

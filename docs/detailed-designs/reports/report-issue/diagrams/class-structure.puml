@@ -1,0 +1,53 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Report an issue
+
+enum ReportIssueKind {
+  FindingWrong
+  Missed
+  CostOff
+  Other
+}
+class ReportIssue {
+  +Guid ReportId
+  +ReportIssueKind Kind
+  +string? Details
+}
+class ReportIssueCommand {
+  +Guid ReportId
+  +ReportIssueKind? Kind
+  +string? Details
+}
+class ReportIssueCommandValidator {
+  +Validate(command): ValidationResult
+}
+class ReportIssueCommandHandler {
+  +Handle(command: ReportIssueCommand): Task
+}
+class Notification {
+  +Guid UserId
+  +string Kind
+  +string Title
+  +string Body
+  +string TargetUrl
+}
+class ReportIssueDialog {
+  +state: default|invalid|busy|success|failed
+  +send(): void
+}
+ReportIssueCommandHandler ..> ReportIssueCommand : handles
+ReportIssueCommandValidator ..> ReportIssueCommand : validates
+ReportIssueCommandHandler --> ReportIssue : creates
+ReportIssueCommandHandler --> Notification : creates for mechanic
+ReportIssue --> ReportIssueKind
+ReportIssueDialog ..> ReportIssueCommand : sends via REPORTS_API
+@enduml

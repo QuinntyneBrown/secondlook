@@ -1,0 +1,29 @@
+@startuml
+title UML sequence behaviour — View the help page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HelpPage" as page
+  participant "Router" as router
+end box
+actor -> router : Open "/help"
+router -> router : Match the public route, no authentication guard
+router -> page : Activate HelpPage
+page -> page : Render "How can we help?" and the "Search help" field (L2-005)
+page -> page : Render the 5 questions, the first open (L2-005)
+page -> page : Render "Still stuck?" with the "Email support" link (L2-005)
+page --> actor : Show the help page
+@enduml

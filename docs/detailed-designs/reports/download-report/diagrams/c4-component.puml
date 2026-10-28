@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Download a report
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(dlg, "DownloadReportDialog", "Angular CDK Dialog", "Format choice, busy and failed states")
+  Component(client, "ReportsApi / REPORTS_API", "Contract and token", "PDF request")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticates, scopes, returns file")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(handler, "GetReportPdfQueryHandler", "MediatR handler", "Builds the document model and calls the renderer")
+  Component(pdf, "IPdfRenderer", "Application port", "Renders a document model to PDF")
+  Component(rec, "IRecordingStore", "Application port", "Supplies call screenshots")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(adapter, "PdfRenderer", "Adapter", "Implements IPdfRenderer (library TO SUPPLY)")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Reports")
+Rel(dlg, client, "Depends on token")
+Rel(client, ctrl, "Calls", "HTTPS")
+Rel(ctrl, handler, "Sends GetReportPdfQuery")
+Rel(handler, pdf, "Renders with")
+Rel(handler, rec, "Reads screenshots from")
+Rel(adapter, pdf, "Implements")
+Rel(handler, db, "Loads report", "EF Core")
+@enduml

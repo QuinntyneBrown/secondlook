@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Leave the home page through a call to action
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HomePage" as page
+  participant "Router" as router
+end box
+alt Visitor selects "Book an inspection"
+  actor -> page : Select "Book an inspection"
+  page -> router : Navigate to /book/vehicle (L2-001)
+  router --> actor : Show the book-vehicle page (authentication behaviour for a visitor is <TO SUPPLY>)
+else Visitor selects "View sample report"
+  actor -> page : Select "View sample report"
+  page -> router : Navigate to the report route (L2-001)
+  router --> actor : Show the report page (content for a visitor is <TO SUPPLY>)
+else Visitor selects a header or footer link
+  actor -> page : Select "How it works", "Pricing", "Help", "Sign in", "Terms" or "Privacy"
+  page -> router : Navigate to the linked route (L2-001)
+  router --> actor : Show the linked page
+end
+@enduml

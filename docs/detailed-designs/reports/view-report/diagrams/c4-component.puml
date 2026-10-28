@@ -1,0 +1,23 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View the report
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(page, "ReportPage", "Angular page", "Renders loading, default, partial, edge and error states")
+  Component(client, "ReportsApi / REPORTS_API", "Contract and token in projects/api", "Typed report requests")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticates and scopes to the current buyer")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(handler, "GetReportQueryHandler", "MediatR handler", "Builds ReportView with the all-in totals")
+  Component(report, "Report", "Domain entity", "Findings, cost range, body shop review")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists reports")
+Rel(page, client, "Depends on token")
+Rel(client, ctrl, "GET report", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetReportQuery")
+Rel(handler, report, "Reads")
+Rel(handler, db, "Loads via IAppDbContext", "EF Core")
+@enduml

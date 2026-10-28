@@ -1,0 +1,35 @@
+@startuml
+title UML sequence behaviour — Update the checklist
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "CallEvents" as events
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "CallSession" as session
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> session : Move to the next checklist item (control is not yet specified)
+session -> session : Mark the current item Done and the next item Now
+session -> db : Save checklist states
+db --> session : Saved
+session -> events : Publish checklist changed (transport not yet specified)
+events -> page : Deliver new checklist states
+page -> page : Mark finished items done, current item aria-current="step", rest next (L2-041)
+@enduml

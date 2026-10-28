@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Delete account
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Settings page and DeleteAccountDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Application and domain logic")
+  Container(worker, "SecondLook.Worker", "Hosted services", "Purges reports and recordings")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users, bookings, receipts, reports")
+}
+System_Ext(pay, "Payment processor", "Refunds (vendor <TO SUPPLY>)")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, pay, "Refunds through", "IPaymentGateway")
+Rel(worker, db, "Deletes expired data in", "EF Core")
+@enduml

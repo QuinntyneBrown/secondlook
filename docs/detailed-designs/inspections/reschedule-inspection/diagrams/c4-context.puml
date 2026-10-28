@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Reschedule an inspection
+
+Person(buyer, "Buyer", "Moves a booked inspection to a new time")
+System(secondlook, "SecondLook", "Used-car video inspection and estimate platform")
+System_Ext(sms, "SMS provider", "Texts the seller the new time; vendor <TO SUPPLY>")
+
+Rel(buyer, secondlook, "Reschedules using")
+Rel(secondlook, sms, "Sends the new time via", "SMS")
+@enduml

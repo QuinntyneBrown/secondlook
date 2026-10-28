@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Recover from connection loss
+
+Person(buyer, "Buyer", "Recovers the call")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "LiveInspectionPage and CallRoomClient")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "CallsController and RejoinCallCommand")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Call sessions")
+}
+System_Ext(video, "Video provider", "Media and room; vendor not yet chosen")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, video, "Reconnects media with", "Provider SDK")
+Rel(spa, api, "Requests rejoin", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, video, "Issues fresh credential through", "IVideoRoom")
+@enduml

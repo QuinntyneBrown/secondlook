@@ -1,0 +1,42 @@
+@startuml
+title UML sequence behaviour — List payment methods
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "PaymentMethodsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "PaymentMethodsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetPaymentMethodsQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /settings
+page -> client : Request payment methods
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send GetPaymentMethodsQuery
+handler -> db : Load PaymentMethod rows for the user
+db --> handler : Cards
+handler --> controller : PaymentMethodDto list
+controller --> client : 200 response
+client --> page : Cards
+page --> actor : "Payment methods" lists "Visa ending 4242", "Expires 09/2028 · default", and "Add a card" (L2-017)
+@enduml

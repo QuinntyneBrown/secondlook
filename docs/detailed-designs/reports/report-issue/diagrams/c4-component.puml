@@ -1,0 +1,27 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Report an issue
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(dlg, "ReportIssueDialog", "Angular CDK Dialog", "Choice, details, states")
+  Component(client, "ReportsApi / REPORTS_API", "Contract and token", "Issue request")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticates and scopes to the buyer")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(val, "ReportIssueCommandValidator", "FluentValidation", "Requires a Kind")
+  Component(handler, "ReportIssueCommandHandler", "MediatR handler", "Stores the issue, notifies the mechanic")
+  Component(issue, "ReportIssue", "Domain entity", "ReportId, Kind, Details")
+  Component(note, "Notification", "Domain entity", "Tells the mechanic")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists issues")
+Rel(dlg, client, "Depends on token")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, val, "Validates with")
+Rel(ctrl, handler, "Sends ReportIssueCommand")
+Rel(handler, issue, "Creates")
+Rel(handler, note, "Creates")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

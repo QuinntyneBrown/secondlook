@@ -1,0 +1,75 @@
+@startuml
+title UML sequence behaviour — Pay for a booking
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CheckoutPage" as page
+  participant "PaymentsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "PaymentsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "PayForBookingCommandHandler" as handler
+  participant "Payment" as payment
+  participant "Booking" as booking
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gateway
+  database "SecondLook database" as db
+end box
+actor -> page : Open /book/pay
+page --> actor : Show "Pay with card" fields and "Pay $45" (L2-028)
+actor -> page : Press pay
+alt Fields invalid
+  page --> actor : Show "Fix 3 things to pay" with the three messages (L2-028)
+else Fields valid
+  page -> page : Set fields read-only, button "Paying" busy (L2-028)
+  page -> client : Pay(bookingId, token, Idempotency-Key)
+  client -> controller : POST /api/payments (authenticated)
+  controller -> controller : Validate command and scope to current buyer
+  controller -> handler : Send PayForBookingCommand
+  handler -> db : Find payment by Idempotency-Key
+  db --> handler : None
+  handler -> db : Load buyer's booking
+  db --> handler : Booking with price
+  handler -> payment : Create Pending for Booking.Price.Total
+  handler -> gateway : Charge(total, token, key)
+  gateway --> handler : Result
+  alt Approved
+    handler -> payment : Mark Succeeded
+    handler -> booking : Mark Paid
+    handler -> db : Save in one unit of work
+    handler --> controller : Succeeded
+    controller --> client : 200 payment
+    client --> page : Succeeded
+    page --> actor : Navigate to /book/confirmed
+  else Declined by bank
+    handler -> payment : Mark Declined
+    handler -> db : Save
+    handler --> controller : Declined
+    controller --> client : 200 payment Declined
+    client --> page : Declined
+    page --> actor : Show "Your card was declined" and "Add a different card" (L2-028)
+  else Bank needs approval
+    handler -> db : Save payment as Pending
+    handler --> controller : Pending
+    controller --> client : 202 payment Pending
+    client --> page : Pending
+    page --> actor : Toast "Confirm with your bank" (L2-028)
+  end
+end
+@enduml

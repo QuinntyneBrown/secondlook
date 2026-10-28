@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Open the lobby
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CallLobbyPage" as page
+  participant "MediaDevicesService" as media
+  participant "CallsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "CallsController" as ctl
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetCallLobbyQueryHandler" as handler
+  participant "Inspection" as insp
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "Video provider adapter (IVideoRoom)" as room
+  database "SecondLook database" as db
+end box
+actor -> page : Open the call lobby
+page -> page : Mark both cards aria-busy (L2-039)
+par load lobby view
+  page -> client : Request lobby view
+  client -> ctl : HTTPS request
+  ctl -> ctl : Authenticate and scope to current buyer (L2-057)
+  ctl -> handler : Send GetCallLobbyQuery
+  handler -> db : Load buyer's inspection
+  db --> handler : Inspection and participants
+  handler -> insp : Read ScheduledAt and expected participants
+  insp --> handler : Schedule and participants
+  handler -> room : Read participant presence
+  room --> handler : Presence per participant
+  handler --> ctl : CallLobbyView with status labels
+  ctl --> client : HTTP response
+  client --> page : CallLobbyView
+else open devices
+  page -> media : Open preview for chosen camera and microphone
+  media --> page : Granted or Denied
+end
+alt Camera granted
+  page --> actor : Show default state with preview "You" and "Join the call" (L2-039)
+else Camera denied
+  page --> actor : Show alert "Your browser is blocking the camera", preview "You · camera blocked", disabled camera selector "No camera available" and "Join with audio only" (L2-040)
+end
+@enduml

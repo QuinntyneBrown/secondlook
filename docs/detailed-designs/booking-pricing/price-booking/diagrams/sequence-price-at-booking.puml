@@ -1,0 +1,56 @@
+@startuml
+title UML sequence behaviour — Price at booking creation and window lifecycle
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookSchedulePage" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "CreateBookingCommandHandler" as handler
+  participant "PricingPolicy" as policy
+  participant "PricingWindow" as window
+  participant "Booking" as booking
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Continue to payment
+page -> client : Create booking
+client -> controller : POST /api/bookings
+controller -> handler : Send CreateBookingCommand
+handler -> db : Load buyer's latest pricing window
+db --> handler : Window or none
+handler -> policy : Price(reviewType, window, now)
+policy --> handler : PriceBreakdown (same rules as the quote, L2-027)
+alt No open window (none, or closed)
+  handler -> window : Start(buyerId, now) with ClosesAt = now + 14 days
+  window --> handler : New window (L2-027)
+else Open window
+  handler -> handler : Reuse existing window
+end
+handler -> booking : Create with price breakdown and PricingWindowId
+booking --> handler : Booking
+handler -> db : Save booking and window in one unit of work
+db --> handler : Commit result
+handler --> controller : Booking with price
+controller --> client : 201 with booking
+client --> page : Booking
+page --> actor : Continue to /book/pay with matching total
+@enduml

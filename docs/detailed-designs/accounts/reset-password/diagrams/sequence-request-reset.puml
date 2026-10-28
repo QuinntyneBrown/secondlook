@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Request a password reset
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Account holder" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "ForgotPasswordPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "RequestPasswordResetCommandHandler" as handler
+  participant "PasswordResetToken" as token
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "EmailSender" as mail
+  database "SecondLook database" as db
+end box
+actor -> page : Submit email
+page -> page : Check email format
+alt Email not valid, such as "jordan.lee"
+  page --> actor : Summary "Enter your email address" and field message (L2-010)
+else Email valid
+  page -> page : Field read-only; button "Sending" with aria-busy (L2-010)
+  page -> client : requestPasswordReset(email)
+  client -> controller : POST request-reset (anonymous)
+  controller -> handler : Send RequestPasswordResetCommand
+  handler -> db : Find user by email
+  db --> handler : User or none
+  opt User exists
+    handler -> token : Create token valid 30 minutes
+    handler -> db : Save token hash
+    handler -> mail : Send reset link
+  end
+  alt Mail accepted, or no account (same outcome)
+    handler --> controller : Accepted
+    controller --> client : 202 Accepted
+    client --> page : Success
+    page --> actor : Status "Check your email"; link works for 30 minutes (L2-010)
+  else Mail service does not respond
+    mail --> handler : Failure
+    handler --> controller : Mail-unavailable result
+    controller --> client : 503 ProblemDetails
+    client --> page : Mail error
+    page --> actor : Alert "We couldn’t send the email"; email kept (L2-010)
+  end
+end
+@enduml

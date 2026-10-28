@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Manage payment methods
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System(sl, "SecondLook", "Used-car video inspection app")
+System_Ext(pay, "Payment processor", "Tokenises and verifies cards (vendor <TO SUPPLY>)")
+
+Rel(buyer, sl, "Lists and adds cards in")
+Rel(buyer, pay, "Sends card details directly to")
+Rel(sl, pay, "Attaches the card token through")
+@enduml

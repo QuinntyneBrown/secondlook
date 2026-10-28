@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Forbidden pages
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(detail, "InspectionDetailPage", "Angular page", "Shows the forbidden state in place at /inspections/civic-lx")
+  Component(report, "ReportPage", "Angular page", "Shows the not-shared state in place")
+  Component(page, "ForbiddenPage", "Angular page", "Full page at /403")
+  Component(empty, "Empty-state component", "projects/components", "Icon, heading, text and actions")
+  Component(client, "InspectionsApi and ReportsApi", "Angular API clients", "Surface a forbidden outcome from a 403 response")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "InspectionsController and ReportsController", "ASP.NET Core controllers", "Map a not-visible result to the refusal status")
+  Component(handlers, "Inspection and report query handlers", "MediatR handlers", "Apply the access scope (L2-057, L2-058)")
+}
+Rel(detail, empty, "Renders")
+Rel(report, empty, "Renders")
+Rel(page, empty, "Renders")
+Rel(detail, client, "Reads inspection through")
+Rel(report, client, "Reads report through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handlers, "Sends queries")
+@enduml

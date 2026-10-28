@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Price a booking
+
+Person(buyer, "Buyer", "Books a video inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "Booking pages with the Your order summary")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Quote and pricing-window endpoints; domain pricing rules")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Pricing windows and bookings")
+}
+
+Rel(buyer, app, "Uses", "HTTPS")
+Rel(app, api, "Requests quote and current window", "JSON/HTTPS")
+Rel(api, db, "Reads windows, writes bookings", "EF Core")
+@enduml

@@ -1,0 +1,9 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — How it works page
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+System(secondlook, "SecondLook", "Used-car safety app; the page explains the inspection steps")
+Rel(visitor, secondlook, "Reads the how-it-works page of", "HTTPS")
+@enduml

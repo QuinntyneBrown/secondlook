@@ -1,0 +1,77 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Dashboard list
+
+enum InspectionTab {
+  Active
+  Past
+}
+enum InspectionStatus {
+  Scheduled
+  Live
+  CallEnded
+  ReportInProgress
+  ReportReady
+  Cancelled
+}
+enum Severity {
+  Required
+  Recommended
+  Passes
+}
+class ListInspectionsQuery {
+  +InspectionTab Tab
+  +int Page
+  +int PageSize = 20
+}
+class ListInspectionsQueryHandler {
+  +Handle(query: ListInspectionsQuery): Task<InspectionPage>
+}
+class InspectionPage {
+  +int ActiveCount
+  +int TotalCount
+  +int Page
+  +int PageSize
+  +IReadOnlyList<InspectionListItem> Items
+}
+class InspectionListItem {
+  +Guid InspectionId
+  +string VehicleName
+  +ReviewType ReviewType
+  +string MechanicName
+  +decimal AskingPrice
+  +DateTimeOffset ScheduledAt
+  +InspectionStatus Status
+  +Severity? ReportSeverity
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class GetPricingWindowQuery
+class PricingWindowView {
+  +DateTimeOffset ClosesAt
+  +bool IsOpen
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +InspectionStatus Status
+  +DateTimeOffset ScheduledAt
+}
+ListInspectionsQueryHandler ..> ListInspectionsQuery : handles
+ListInspectionsQuery --> InspectionTab
+ListInspectionsQueryHandler --> Inspection : reads (scoped to buyer)
+ListInspectionsQueryHandler --> InspectionPage : returns
+InspectionPage "1" *-- "0..20" InspectionListItem
+InspectionListItem --> InspectionStatus
+InspectionListItem --> Severity
+GetPricingWindowQuery ..> PricingWindowView : returns
+@enduml

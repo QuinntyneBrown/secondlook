@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Reset password
+
+Person(user, "Account holder", "Resets a forgotten password")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "ForgotPasswordPage and ResetPasswordPage")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController; anonymous reset endpoints")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users and password reset tokens")
+}
+System_Ext(email, "Email provider", "Delivers the reset link")
+
+Rel(user, app, "Uses", "HTTPS")
+Rel(app, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, email, "Sends reset link via", "IEmailSender")
+@enduml

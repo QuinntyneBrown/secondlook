@@ -1,0 +1,52 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Download a report
+
+enum ReportPdfFormat {
+  Pdf
+  PdfWithCallScreenshots
+}
+class GetReportPdfQuery {
+  +Guid ReportId
+  +ReportPdfFormat Format
+}
+class GetReportPdfQueryHandler {
+  +Handle(query: GetReportPdfQuery): Task<PdfFile>
+}
+class PdfFile {
+  +byte[] Content
+  +string FileName
+}
+interface IPdfRenderer {
+  +RenderAsync(model: ReportDocument): Task<byte[]>
+}
+interface IRecordingStore {
+  +GetScreenshotsAsync(inspectionId: Guid): Task<IReadOnlyList<Screenshot>>
+}
+class PdfRenderer
+class ReportsController {
+  +GetPdf(reportId: Guid, format: ReportPdfFormat): Task<FileResult>
+}
+class DownloadReportDialog {
+  +format: ReportPdfFormat
+  +state: default|busy|failed
+  +download(): void
+}
+GetReportPdfQueryHandler ..> GetReportPdfQuery : handles
+GetReportPdfQueryHandler --> IPdfRenderer
+GetReportPdfQueryHandler --> IRecordingStore
+GetReportPdfQueryHandler --> PdfFile : returns
+GetReportPdfQuery --> ReportPdfFormat
+PdfRenderer ..|> IPdfRenderer
+ReportsController ..> GetReportPdfQuery : sends
+DownloadReportDialog ..> ReportsController : via REPORTS_API
+@enduml

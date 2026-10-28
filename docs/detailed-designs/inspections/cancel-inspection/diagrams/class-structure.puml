@@ -1,0 +1,94 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Cancel an inspection
+
+enum CancellationReason {
+  BoughtDifferentCar
+  SellerBackedOut
+  PriceChanged
+  SomethingElse
+}
+class GetCancellationQuoteQuery {
+  +Guid InspectionId
+}
+class GetCancellationQuoteQueryHandler {
+  +Handle(query: GetCancellationQuoteQuery): Task<CancellationQuote>
+}
+class CancellationQuote {
+  +decimal RefundAmount
+  +decimal RetainedAmount
+  +string CardLast4
+  +bool Refundable
+}
+class CancelInspectionCommand {
+  +Guid InspectionId
+  +CancellationReason? Reason
+}
+class CancelInspectionCommandValidator {
+  +Validate(command): ValidationResult
+}
+class CancelInspectionCommandHandler {
+  +Handle(command: CancelInspectionCommand): Task<CancelResult>
+}
+class CancelResult {
+  +DateTimeOffset CancelledAt
+  +decimal RefundedAmount
+  +string CardLast4
+}
+class RefundBookingCommand {
+  +Guid BookingId
+  +RefundReason Trigger
+}
+class RefundPolicy {
+  +Decide(booking, payment, trigger, now): RefundDecision
+}
+class RefundDecision {
+  +bool Refundable
+  +decimal RefundAmount
+  +decimal RetainedAmount
+  +RefundReason Reason
+}
+class Inspection {
+  +Guid Id
+  +InspectionStatus Status
+  +DateTimeOffset? CancelledAt
+  +CancellationReason? CancellationReason
+  +Cancel(reason: CancellationReason, at: DateTimeOffset): void
+}
+class Booking {
+  +BookingStatus Status
+}
+class Payment {
+  +PaymentStatus Status
+}
+class Refund {
+  +decimal Amount
+  +RefundReason Reason
+}
+interface IClock
+interface ISmsSender
+GetCancellationQuoteQueryHandler ..> GetCancellationQuoteQuery : handles
+GetCancellationQuoteQueryHandler --> RefundPolicy : asks
+GetCancellationQuoteQueryHandler --> CancellationQuote : returns
+CancelInspectionCommandHandler ..> CancelInspectionCommand : handles
+CancelInspectionCommandValidator ..> CancelInspectionCommand : validates
+CancelInspectionCommand --> CancellationReason
+CancelInspectionCommandHandler --> Inspection : loads / cancels
+CancelInspectionCommandHandler ..> RefundBookingCommand : sends
+CancelInspectionCommandHandler --> ISmsSender : tells seller
+CancelInspectionCommandHandler --> IClock : reads
+CancelInspectionCommandHandler --> CancelResult : returns
+RefundPolicy --> RefundDecision : returns
+Inspection "1" --> "1" Booking
+Booking "1" --> "1" Payment
+Payment "1" --> "0..*" Refund
+@enduml

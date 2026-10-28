@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Onboard a mechanic or body shop
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Administrator" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Provider administration screen (TO SUPPLY)" as page
+  participant "AdminProvidersApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AdminProvidersController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "OnboardProviderCommandHandler" as handler
+  participant "Provider" as provider
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Enter provider details, confirm
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, require role Admin
+controller -> handler : Send OnboardProviderCommand
+alt Validation fails (rules TO SUPPLY)
+  handler --> controller : Validation result
+  controller --> client : 400 ProblemDetails
+  client --> page : Errors
+  page --> actor : Show errors (copy TO SUPPLY)
+else Valid
+  handler -> provider : Create with ApprovalStatus Pending (L2-064)
+  provider --> handler : Provider
+  handler -> db : Save
+  db --> handler : Commit result
+  handler --> controller : ProviderView
+  controller --> client : 201 response
+  client --> page : Onboarded
+  page --> actor : Provider listed as Pending (L2-064)
+end
+@enduml

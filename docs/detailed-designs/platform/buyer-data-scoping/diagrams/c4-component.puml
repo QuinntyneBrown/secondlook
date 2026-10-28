@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Buyer data scoping
+
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "Controllers", "ASP.NET Core controllers", "Authenticate and dispatch; hold no scoping rules")
+  Component(user, "ICurrentUser", "Application port", "Exposes the authenticated user id and role")
+  Component(handlers, "Vehicle, inspection and estimate query handlers", "MediatR handlers", "Apply the buyer scope to every read")
+  Component(scope, "BuyerScope", "Application query extension", "Restricts a query to rows whose owner is the current buyer")
+  Component(ctx, "IAppDbContext", "Application port", "Query access to Vehicle, Inspection and Report")
+}
+ContainerDb(db, "SecondLook database", "SQL Server", "Rows with BuyerId")
+Rel(ctrl, handlers, "Sends queries")
+Rel(handlers, user, "Reads current user from")
+Rel(handlers, scope, "Applies")
+Rel(scope, ctx, "Filters")
+Rel(ctx, db, "Reads", "EF Core")
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Cancel an inspection
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(dialog, "CancelInspectionDialog", "CDK Dialog", "Reason, refund notice and confirm")
+  Component(page, "InspectionDetailPage", "Angular page", "Default and read-only cancelled views")
+  Component(client, "InspectionsApi", "Angular service in projects/api", "Typed HTTP client behind INSPECTIONS_API")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "InspectionsController", "ASP.NET Core controller", "Exposes quote and cancel endpoints")
+  Component(quote, "GetCancellationQuoteQueryHandler", "MediatR handler", "Returns the refund the buyer would receive")
+  Component(cancel, "CancelInspectionCommandHandler", "MediatR handler", "Cancels the inspection with a reason")
+  Component(refund, "RefundBookingCommandHandler", "MediatR handler", "Applies RefundPolicy and refunds (refund-booking design)")
+  Component(policy, "RefundPolicy", "Domain service", "Single source of the refund rules (L2-032)")
+  Component(entity, "Inspection", "Domain entity", "Moves to Cancelled")
+  Component(clock, "IClock", "Application port", "Current time")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists inspection, booking, payment and refund")
+Rel(dialog, client, "Calls")
+Rel(page, client, "Calls")
+Rel(client, ctrl, "HTTPS", "JSON")
+Rel(ctrl, quote, "Sends GetCancellationQuoteQuery")
+Rel(ctrl, cancel, "Sends CancelInspectionCommand")
+Rel(quote, policy, "Asks for the decision")
+Rel(cancel, entity, "Cancels")
+Rel(cancel, refund, "Sends RefundBookingCommand")
+Rel(refund, policy, "Asks for the decision")
+Rel(quote, clock, "Reads time from")
+Rel(cancel, db, "Persists", "EF Core")
+Rel(quote, db, "Queries", "EF Core")
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Recover from connection loss
+
+Person(buyer, "Buyer", "Loses and regains the connection during a call")
+Person_Ext(others, "Mechanic and seller", "Remain on the call")
+System(sl, "SecondLook", "Used-car safety app with live video inspections")
+System_Ext(video, "Video provider", "Carries call media; vendor not yet chosen")
+Rel(buyer, sl, "Reconnects or rejoins using")
+Rel(sl, video, "Requests fresh join credentials from")
+Rel(others, video, "Stay connected through")
+@enduml

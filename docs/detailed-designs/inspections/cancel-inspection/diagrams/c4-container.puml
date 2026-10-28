@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Cancel an inspection
+
+Person(buyer, "Buyer", "Cancels an inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Inspection detail page and CancelInspectionDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticated endpoints scoped to the buyer")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, bookings, payments, refunds, cancellation reasons")
+}
+System_Ext(processor, "Payment processor", "Vendor <TO SUPPLY>")
+System_Ext(sms, "SMS provider", "Vendor <TO SUPPLY>")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, processor, "Refunds via", "IPaymentGateway")
+Rel(api, sms, "Texts the seller", "ISmsSender")
+@enduml

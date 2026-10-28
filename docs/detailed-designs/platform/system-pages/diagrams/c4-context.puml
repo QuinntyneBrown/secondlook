@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — System pages
+
+Person(user, "User", "Requests pages and meets a missing page, a fault, no connection or maintenance")
+System(sl, "SecondLook", "Used-car safety inspection platform")
+System_Ext(net, "Network", "Connection between the device of the user and SecondLook")
+Rel(user, sl, "Requests pages from")
+Rel(user, net, "Reaches SecondLook through")
+@enduml

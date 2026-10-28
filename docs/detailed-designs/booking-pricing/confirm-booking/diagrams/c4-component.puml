@@ -1,0 +1,24 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Confirm a booking
+
+System_Ext(sms, "SMS provider", "Texts the seller; name <TO SUPPLY>")
+
+Container_Boundary(api, "SecondLook backend") {
+  Component(ctrl, "BookingsController", "ASP.NET Core controller", "GET /api/bookings/{id}/confirmation, owner only")
+  Component(handler, "GetBookingConfirmationQueryHandler", "MediatR handler", "Projects the booking into BookingConfirmationDto")
+  Component(dto, "BookingConfirmationDto", "Contract", "Slot, mechanic, vehicle, seller, total, window close date")
+  Component(booking, "Booking", "Domain entity", "Paid booking with slot and price")
+  Component(port, "ISmsSender", "Application port", "Sends seller link and reminder")
+  Component(adapter, "SmsSender", "Infrastructure adapter", "Calls the SMS provider")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists booking data")
+}
+
+Rel(ctrl, handler, "Sends GetBookingConfirmationQuery")
+Rel(handler, booking, "Reads")
+Rel(handler, dto, "Returns")
+Rel(handler, db, "Loads buyer's booking", "EF Core")
+Rel(adapter, port, "Implements")
+Rel(adapter, sms, "Sends text", "HTTPS")
+@enduml

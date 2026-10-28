@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Rejoin the call
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "LiveInspectionPage" as page
+  participant "CallsApi" as client
+  participant "CallRoomClient" as room
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "CallsController" as ctl
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "RejoinCallCommandHandler" as handler
+  participant "CallSession" as session
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "Video provider adapter (IVideoRoom)" as vroom
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Rejoin the call" (L2-042)
+page -> client : Build rejoin request
+client -> ctl : HTTPS request
+ctl -> ctl : Authenticate and scope to current buyer (L2-057)
+ctl -> handler : Send RejoinCallCommand
+handler -> db : Load buyer's CallSession
+db --> handler : Session
+alt Session has not ended
+  handler -> session : Confirm the buyer's place is saved
+  session --> handler : Active session
+  handler -> vroom : Issue fresh join credential
+  vroom --> handler : Credential
+  handler --> ctl : JoinCallResult
+  ctl --> client : HTTP response
+  client --> page : Credential and call state
+  page -> room : Connect with credential
+  room --> page : Tracks
+  page --> actor : Show status "Live" and resume the call
+else Session has ended
+  handler --> ctl : Ended result
+  ctl --> client : HTTP response
+  client --> page : Ended result
+  page --> actor : Show the ended state (see end-call design)
+else Request fails
+  ctl --> client : ProblemDetails
+  client --> page : Error
+  page --> actor : Keep status "Disconnected" and the alert
+end
+@enduml

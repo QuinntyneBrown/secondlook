@@ -1,0 +1,55 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Home page
+
+enum FindingSeverity {
+  Required
+  Recommended
+  Passes
+}
+
+class HomePage {
+  +steps: StepView[]
+  +sampleReport: SampleReportView
+  +bookInspection(): void
+  +viewSampleReport(): void
+}
+
+class StepView {
+  +number: string
+  +title: string
+  +body: string
+}
+
+class SampleReportView {
+  +estimateLabel: string
+  +estimateRange: string
+  +findings: SampleFindingView[]
+}
+
+class SampleFindingView {
+  +title: string
+  +severity: FindingSeverity
+}
+
+class Router {
+  +navigate(route: string): Promise<boolean>
+}
+
+HomePage "1" *-- "3" StepView : shows
+HomePage "1" *-- "1" SampleReportView : shows
+SampleReportView "1" *-- "5" SampleFindingView : lists
+SampleFindingView --> FindingSeverity : has
+HomePage ..> Router : navigates with
+@enduml

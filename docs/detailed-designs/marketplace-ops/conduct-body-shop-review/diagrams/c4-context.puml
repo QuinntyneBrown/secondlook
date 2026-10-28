@@ -1,0 +1,14 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Conduct a body shop review
+
+Person(shop, "Body shop", "Reviews the vehicle over video and submits findings")
+Person(buyer, "Buyer", "Reads the findings in the report")
+System(secondlook, "SecondLook", "Used-car video inspection platform")
+System_Ext(video, "Video provider (TO SUPPLY)", "Carries the live call")
+
+Rel(shop, secondlook, "Reviews and submits findings in")
+Rel(buyer, secondlook, "Reads the report in")
+Rel(secondlook, video, "Creates and joins rooms through")
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Verify email
+
+Container_Boundary(app, "SecondLook app") {
+  Component(page, "VerifyEmailPage", "Angular page", "Check-your-email, verifying, verified and expired states")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed calls to /api/auth")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Anonymous verification endpoints")
+}
+Container_Boundary(appl, "SecondLook.Application and Domain") {
+  Component(verh, "VerifyEmailCommandHandler", "MediatR handler", "Checks the token and marks the email verified")
+  Component(resh, "ResendVerificationEmailCommandHandler", "MediatR handler", "Issues and mails a new token")
+  Component(evt, "EmailVerificationToken", "Domain entity", "Hashed token valid 24 hours")
+  Component(user, "User", "Domain entity", "Owns EmailVerifiedAt")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(mail, "EmailSender", "IEmailSender adapter", "Sends the verification link")
+  ComponentDb(db, "AppDbContext", "EF Core, SQL Server", "Persists users and tokens")
+}
+Rel(page, client, "Calls")
+Rel(client, ctrl, "POST verify / resend", "JSON/HTTPS")
+Rel(ctrl, verh, "Sends VerifyEmailCommand")
+Rel(ctrl, resh, "Sends ResendVerificationEmailCommand")
+Rel(verh, evt, "Checks and consumes")
+Rel(verh, user, "Sets EmailVerifiedAt on")
+Rel(resh, evt, "Creates")
+Rel(resh, mail, "Sends link with")
+Rel(verh, db, "Persists", "EF Core")
+Rel(resh, db, "Persists", "EF Core")
+@enduml

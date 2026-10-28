@@ -1,0 +1,45 @@
+@startuml
+title UML sequence behaviour — Slots offered to the buyer
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "BookSchedulePage" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetAvailableSlotsQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open step Schedule, choose a day
+page -> client : Request slots for the day
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send GetAvailableSlotsQuery
+handler -> db : Load AvailabilityWindow of Approved providers for the day (L2-061)
+db --> handler : Windows
+handler -> db : Load SlotHold and Inspection times for the same providers
+db --> handler : Held and booked times
+handler -> handler : Keep only times inside a window and not held or booked (L2-061)
+handler --> controller : SlotView list
+controller --> client : 200 response
+client --> page : Slots
+page --> actor : Render slots, as in schedule-inspection (L2-025)
+@enduml

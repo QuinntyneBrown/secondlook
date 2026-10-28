@@ -1,0 +1,13 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Sign out
+
+Person(buyer, "Signed-in buyer", "Ends the current session")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "SignOutDialog opened from the dashboard; SessionStore")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController; authenticated sign-out endpoint")
+}
+Rel(buyer, app, "Uses", "HTTPS")
+Rel(app, api, "Calls with the JWT", "JSON/HTTPS")
+@enduml

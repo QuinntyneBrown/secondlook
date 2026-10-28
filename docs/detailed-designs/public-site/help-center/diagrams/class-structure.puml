@@ -1,0 +1,49 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Help center
+
+enum HelpViewState {
+  Default
+  NoResults
+}
+
+class HelpPage {
+  +query: string
+  +topics: HelpTopic[]
+  +state: HelpViewState
+  +visibleTopics(): HelpTopic[]
+  +search(query: string): void
+  +clearSearch(): void
+  +toggleTopic(index: number): void
+}
+
+class HelpTopic {
+  +question: string
+  +answer: string
+  +open: boolean
+}
+
+class HelpSearch {
+  +filter(topics: HelpTopic[], query: string): HelpTopic[]
+}
+
+class SupportContact {
+  +email: string = "help@secondlook.example"
+}
+
+HelpPage "1" *-- "5" HelpTopic : lists
+HelpPage --> HelpViewState : has
+HelpPage ..> HelpSearch : filters with
+HelpPage --> SupportContact : links to
+@enduml

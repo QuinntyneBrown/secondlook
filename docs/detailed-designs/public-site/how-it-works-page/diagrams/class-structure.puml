@@ -1,0 +1,42 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — How it works page
+
+class HowItWorksPage {
+  +steps: StepView[]
+  +questions: QuestionItem[]
+  +toggleQuestion(index: number): void
+  +bookInspection(): void
+}
+
+class StepView {
+  +number: number
+  +title: string
+  +body: string
+}
+
+class QuestionItem {
+  +question: string
+  +answer: string
+  +open: boolean
+}
+
+class Router {
+  +navigate(route: string): Promise<boolean>
+}
+
+HowItWorksPage "1" *-- "4" StepView : shows in order
+HowItWorksPage "1" *-- "4" QuestionItem : lists
+HowItWorksPage ..> Router : navigates with
+@enduml

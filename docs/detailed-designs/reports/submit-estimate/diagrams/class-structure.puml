@@ -1,0 +1,69 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Submit an estimate
+
+enum InspectionStatus {
+  Scheduled
+  Live
+  CallEnded
+  ReportInProgress
+  ReportReady
+  Cancelled
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +Guid MechanicId
+  +InspectionStatus Status
+}
+class Report {
+  +Guid Id
+  +Guid InspectionId
+  +string WrittenBy
+  +DateTime DeliveredAt
+  +decimal CertificationCostMin
+  +decimal CertificationCostMax
+}
+class Finding {
+  +string Title
+  +string Note
+  +Severity Severity
+  +decimal? CostMin
+  +decimal? CostMax
+}
+class SubmitEstimateCommand {
+  +Guid InspectionId
+  +fields TO SUPPLY
+}
+class SubmitEstimateCommandValidator {
+  +Validate(command): ValidationResult
+}
+class SubmitEstimateCommandHandler {
+  +Handle(command: SubmitEstimateCommand): Task
+}
+class Notification {
+  +Guid UserId
+  +string Kind
+  +string TargetUrl
+}
+interface IEmailSender
+interface IClock
+SubmitEstimateCommandHandler ..> SubmitEstimateCommand : handles
+SubmitEstimateCommandValidator ..> SubmitEstimateCommand : validates
+SubmitEstimateCommandHandler --> Inspection : loads and updates
+SubmitEstimateCommandHandler --> Report : creates
+SubmitEstimateCommandHandler --> Notification : creates for buyer
+SubmitEstimateCommandHandler ..> IEmailSender
+SubmitEstimateCommandHandler ..> IClock
+Inspection --> InspectionStatus
+Report "1" *-- "*" Finding
+@enduml

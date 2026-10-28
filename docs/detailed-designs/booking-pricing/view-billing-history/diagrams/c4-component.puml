@@ -1,0 +1,21 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — View billing history
+
+Container_Boundary(spa, "SecondLook app") {
+  Component(page, "BillingHistoryPage", "Angular page", "Renders loading, empty, error and table states")
+  Component(client, "ReceiptsApi", "Angular HTTP client", "Contract bound to RECEIPTS_API")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReceiptsController", "ASP.NET Core controller", "Exposes /api/receipts")
+  Component(handler, "GetBillingHistoryQueryHandler", "MediatR handler", "Loads the current buyer's receipts")
+  Component(entity, "Receipt", "Domain entity", "Records what a payment bought")
+  ComponentDb(db, "SecondLook database", "SQL Server", "Persists receipts")
+}
+Rel(page, client, "Requests receipts through")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, handler, "Sends GetBillingHistoryQuery")
+Rel(handler, entity, "Projects to rows")
+Rel(handler, db, "Reads", "EF Core")
+@enduml

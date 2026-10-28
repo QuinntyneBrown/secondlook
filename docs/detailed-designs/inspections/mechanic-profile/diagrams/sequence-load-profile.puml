@@ -1,0 +1,54 @@
+@startuml
+title UML sequence behaviour — Load a mechanic profile
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "MechanicProfilePage" as page
+  participant "ProvidersApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ProvidersController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetMechanicProfileQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select the mechanic link (L2-035) to open /mechanics/{slug}
+page -> page : Mark page busy (L2-056)
+page -> client : Get mechanic profile
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send GetMechanicProfileQuery
+handler -> db : Load provider, buyer notes, statistics and the buyer inspection
+db --> handler : Rows or none
+alt Request fails
+  controller --> client : 5xx or network error
+  client --> page : Failure
+  page --> actor : "We couldn’t load this profile" with "Try again" and "Back to inspection" (L2-056)
+else Buyer has no inspection with this mechanic
+  handler --> controller : Not permitted
+  controller --> client : 403 or 404 response
+  client --> page : Not permitted
+  page --> actor : Forbidden state, copy <TO SUPPLY>
+else Loaded
+  handler --> controller : ProviderProfile
+  controller --> client : Response
+  client --> page : Profile
+  page --> actor : Name, "Licensed mechanic · Hamilton, Ontario", bio, licence line, "Recent buyer notes", "At a glance", booked time and "View inspection" (L2-056)
+end
+@enduml

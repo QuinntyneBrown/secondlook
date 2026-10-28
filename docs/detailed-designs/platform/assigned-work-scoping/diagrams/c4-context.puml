@@ -1,0 +1,11 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Assigned work scoping
+
+Person(pro, "Mechanic or body shop", "Reviews vehicles for inspections assigned to it")
+Person_Ext(otherpro, "Another mechanic or body shop", "Holds separate assignments in the same system")
+System(sl, "SecondLook", "Used-car safety inspection platform")
+Rel(pro, sl, "Lists and opens assigned inspections in")
+Rel(otherpro, sl, "Owns assignments that stay hidden from the first provider in")
+@enduml

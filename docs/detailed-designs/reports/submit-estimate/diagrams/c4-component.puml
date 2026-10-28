@@ -1,0 +1,31 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Submit an estimate
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(screen, "Mechanic submission screen", "Angular page (TO SUPPLY)", "Not specified by a mock")
+  Component(client, "ReportsApi / REPORTS_API", "Contract and token", "Submit request")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "ReportsController", "ASP.NET Core controller", "Authenticates; mechanic role; assigned inspections only")
+}
+Container_Boundary(app, "SecondLook.Application and Domain") {
+  Component(val, "SubmitEstimateCommandValidator", "FluentValidation", "Rules TO SUPPLY")
+  Component(handler, "SubmitEstimateCommandHandler", "MediatR handler", "Creates the report, moves the inspection, notifies the buyer")
+  Component(report, "Report", "Domain entity", "Findings and cost range")
+  Component(insp, "Inspection", "Domain entity", "Status ReportInProgress to ReportReady")
+  Component(note, "Notification", "Domain entity", "Report ready")
+  Component(mail, "IEmailSender", "Application port", "Sends the email")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Persists changes")
+Rel(screen, client, "Depends on token")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, val, "Validates with")
+Rel(ctrl, handler, "Sends SubmitEstimateCommand")
+Rel(handler, report, "Creates")
+Rel(handler, insp, "Updates")
+Rel(handler, note, "Creates")
+Rel(handler, mail, "Sends via")
+Rel(handler, db, "Persists", "EF Core")
+@enduml

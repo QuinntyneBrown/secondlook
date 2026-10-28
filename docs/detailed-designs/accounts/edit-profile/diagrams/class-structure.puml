@@ -1,0 +1,60 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Edit profile
+
+class User {
+  +Guid Id
+  +string FullName
+  +string Email
+  +UpdateProfile(fullName: string, email: string): void
+}
+class ProfileDto {
+  +string FullName
+  +string Email
+}
+class GetProfileQuery
+class GetProfileQueryHandler {
+  +Handle(query): Task<ProfileDto>
+}
+class UpdateProfileCommand {
+  +string FullName
+  +string Email
+}
+class UpdateProfileCommandValidator {
+  +Validate(command): ValidationResult
+}
+class UpdateProfileCommandHandler {
+  +Handle(command): Task<ProfileDto>
+}
+class AccountController {
+  +GetProfile(): Task<ActionResult>
+  +UpdateProfile(request): Task<ActionResult>
+}
+interface AccountApi {
+  +getProfile(): Observable<ProfileDto>
+  +updateProfile(request): Observable<ProfileDto>
+}
+class SettingsPage {
+  +state: loading|default|invalid|submitting|success|error
+}
+
+GetProfileQueryHandler ..> GetProfileQuery : handles
+GetProfileQueryHandler --> ProfileDto : returns
+UpdateProfileCommandHandler ..> UpdateProfileCommand : handles
+UpdateProfileCommandHandler ..> UpdateProfileCommandValidator : validates with
+UpdateProfileCommandHandler --> User : loads / mutates
+AccountController ..> GetProfileQuery : sends
+AccountController ..> UpdateProfileCommand : sends
+SettingsPage ..> AccountApi : injected via ACCOUNT_API
+@enduml

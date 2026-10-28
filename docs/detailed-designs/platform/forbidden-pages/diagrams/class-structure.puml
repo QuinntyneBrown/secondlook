@@ -1,0 +1,61 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Forbidden pages
+
+class ForbiddenPage {
+  +string Code = "403"
+  +string Title
+  +string Message
+  +GoToInspections(): void
+  +ContactSupport(): void
+}
+class InspectionDetailPage {
+  +ViewState State
+  +Load(inspectionId: string): void
+}
+class ReportPage {
+  +ViewState State
+  +Load(inspectionId: string): void
+}
+enum ViewState {
+  loading
+  default
+  error
+  forbidden
+}
+class ForbiddenOutcome {
+  +string Title
+  +string Message
+  +string ActionLabel
+}
+interface InspectionsApi {
+  +get(id: string): Observable<InspectionView>
+}
+interface ReportsApi {
+  +get(id: string): Observable<ReportView>
+}
+class ForbiddenError {
+  +int Status = 403
+  +string Detail
+}
+InspectionDetailPage ..> InspectionsApi : INSPECTIONS_API
+ReportPage ..> ReportsApi : REPORTS_API
+InspectionsApi ..> ForbiddenError : raises
+ReportsApi ..> ForbiddenError : raises
+InspectionDetailPage --> ViewState : has
+ReportPage --> ViewState : has
+InspectionDetailPage ..> ForbiddenOutcome : renders
+ReportPage ..> ForbiddenOutcome : renders
+ForbiddenPage ..> ForbiddenOutcome : renders
+@enduml

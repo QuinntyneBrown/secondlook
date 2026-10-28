@@ -1,0 +1,78 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — In-call banners
+
+enum BannerVariant {
+  Info
+  Success
+  Warning
+  Danger
+  Persistent
+}
+enum CallEventKind {
+  MechanicJoined
+  RecordingStarted
+  SellerConnectionWeak
+  SellerLeft
+}
+class CallEvent {
+  +CallEventKind Kind
+  +string ParticipantName
+}
+class BannerContent {
+  +BannerVariant Variant
+  +string Title
+  +string Body
+  +string ActionLabel
+  +bool AutoClear
+}
+class CallBannerService {
+  +Show(event: CallEvent): void
+  +ShowRecordingNotice(): void
+  +Dismiss(): void
+}
+interface CallsApi {
+  +ResendSellerLink(inspectionId: Guid): Observable<void>
+}
+class ResendSellerLinkCommand {
+  +Guid InspectionId
+}
+class ResendSellerLinkCommandHandler {
+  +Handle(command: ResendSellerLinkCommand): Task
+}
+class CallSession {
+  +Guid Id
+  +DateTimeOffset? RecordingStartedAt
+  +StartRecording(clock: IClock): void
+}
+class RecordingRetentionService {
+  +int RetentionDays = 30
+  +DeleteExpired(): Task
+}
+interface ISmsSender {
+  +Send(phone: string, message: string): Task
+}
+interface IRecordingStore {
+  +Delete(inspectionId: Guid): Task
+}
+CallBannerService ..> CallEvent : consumes
+CallBannerService --> BannerContent : produces
+BannerContent --> BannerVariant : has
+CallEvent --> CallEventKind : has
+CallBannerService ..> CallsApi : resends through
+ResendSellerLinkCommandHandler ..> ResendSellerLinkCommand : handles
+ResendSellerLinkCommandHandler ..> ISmsSender : uses
+RecordingRetentionService --> CallSession : finds expired
+RecordingRetentionService ..> IRecordingStore : uses
+@enduml

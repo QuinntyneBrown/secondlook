@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Pricing page
+
+class PricingPage {
+  +cards: PriceCardView[]
+  +vehicleCount: number
+  +total: number
+  +savings: number
+  +increaseVehicles(): void
+  +decreaseVehicles(): void
+  +toggleQuestion(index: number): void
+}
+
+class PriceCardView {
+  +title: string
+  +amount: string
+  +description: string
+}
+
+class PricingCalculator {
+  +FirstVehicleDollars: number = 50
+  +AdditionalVehicleDollars: number = 25
+  +total(vehicleCount: number): number
+  +savings(vehicleCount: number): number
+}
+
+class PricingQuestion {
+  +question: string
+  +answer: string
+  +open: boolean
+}
+
+class PricingPolicy <<SecondLook.Domain>> {
+  +Quote(window, reviewType): PriceBreakdown
+}
+
+PricingPage "1" *-- "3" PriceCardView : shows
+PricingPage "1" *-- "3" PricingQuestion : lists
+PricingPage ..> PricingCalculator : computes with
+PricingCalculator ..> PricingPolicy : mirrors rule of (not called)
+@enduml

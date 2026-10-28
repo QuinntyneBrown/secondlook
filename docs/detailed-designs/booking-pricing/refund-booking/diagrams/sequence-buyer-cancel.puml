@@ -1,0 +1,68 @@
+@startuml
+title UML sequence behaviour — Buyer cancels and is refunded
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "CancelInspectionDialog" as page
+  participant "BookingsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "BookingsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "RefundBookingCommandHandler" as handler
+  participant "RefundPolicy" as policy
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gateway
+  database "AppDbContext" as db
+end box
+actor -> page : Confirm "Cancel inspection"
+page -> client : cancel(bookingId)
+client -> controller : POST /api/bookings/{id}/cancel
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send RefundBookingCommand (trigger BuyerCancelled)
+handler -> db : Load booking and payment
+db --> handler : Booking and payment
+handler -> policy : Decide(booking, payment, now)
+alt Report already delivered
+  policy --> handler : Not refundable (L2-032)
+  handler --> controller : Refund rejected
+  controller --> client : Rejection response
+  client --> page : Rejection
+  page --> actor : Show the refusal (copy is TO SUPPLY)
+else Call starts more than 2 hours away
+  policy --> handler : Refund in full, BuyerCancelledEarly (L2-032)
+  handler -> gateway : Refund full amount to the card used
+  gateway --> handler : Refund reference
+  handler -> db : Save Refund, set Payment Refunded, cancel Booking
+  handler --> controller : Refunded in full
+  controller --> client : 200 OK
+  client --> page : Result
+  page --> actor : Show refund confirmation
+else Call starts less than 2 hours away
+  policy --> handler : Refund $25, retain $25, BuyerCancelledLate (L2-032)
+  handler -> gateway : Refund $25 to the card used
+  gateway --> handler : Refund reference
+  handler -> db : Save Refund, set Payment PartiallyRefunded, cancel Booking
+  handler --> controller : Partially refunded
+  controller --> client : 200 OK
+  client --> page : Result
+  page --> actor : Show partial refund
+else Call starts exactly 2 hours away
+  policy --> handler : Outcome is TO SUPPLY
+end
+@enduml

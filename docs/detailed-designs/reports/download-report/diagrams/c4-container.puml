@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Download a report
+
+Person(buyer, "Buyer", "Downloads the report")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "DownloadReportDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "ReportsController returns the PDF file")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Reports and findings")
+}
+System_Ext(recordings, "Recording store", "Call screenshots")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Requests PDF", "HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, recordings, "Reads screenshots via IRecordingStore", "protocol TO SUPPLY")
+@enduml

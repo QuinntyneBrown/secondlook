@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Join live inspection
+
+Person(buyer, "Buyer", "Joins the call")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "LiveInspectionPage and CallRoomClient")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "CallsController and JoinCallCommand")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Call sessions and checklist items")
+}
+System_Ext(video, "Video provider", "Media and room; vendor not yet chosen")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Joins the call", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, video, "Issues join credential through", "IVideoRoom")
+Rel(spa, video, "Sends and receives media with", "Provider SDK")
+@enduml

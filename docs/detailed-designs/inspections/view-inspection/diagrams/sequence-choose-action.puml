@@ -1,0 +1,40 @@
+@startuml
+title UML sequence behaviour — Choose an action
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "InspectionDetailPage" as page
+  participant "Router" as router
+  participant "CDK Dialog" as dialog
+end box
+alt Select the mechanic name
+  actor -> page : Select "Dev Patel"
+  page -> router : Navigate to the mechanic profile (L2-035)
+  router --> actor : Mechanic profile page
+else Select "Join the call"
+  actor -> page : Select "Join the call"
+  page -> router : Navigate to /inspections/{id}/lobby
+  router --> actor : Call lobby; hint "The call opens 15 minutes before the start time."
+else Select "Reschedule"
+  actor -> page : Select "Reschedule"
+  page -> dialog : Open RescheduleDialog
+  dialog --> actor : "Pick a new time"
+else Select "Cancel inspection"
+  actor -> page : Select "Cancel inspection"
+  page -> dialog : Open CancelInspectionDialog
+  dialog --> actor : "Cancel the Civic inspection?"
+end
+@enduml

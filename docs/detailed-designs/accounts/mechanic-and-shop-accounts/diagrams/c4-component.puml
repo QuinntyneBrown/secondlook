@@ -1,0 +1,32 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Mechanic and body shop accounts
+
+Container_Boundary(app, "SecondLook app") {
+  Component(screens, "Provider account screens", "Angular pages <TO SUPPLY>", "Create-account and sign-in screens for providers")
+  Component(client, "AuthApi / AUTH_API", "API contract and token", "Typed calls to /api/auth")
+}
+Container_Boundary(api, "SecondLook.Api") {
+  Component(ctrl, "AuthController", "ASP.NET Core controller", "Account creation and sign-in endpoints")
+}
+Container_Boundary(appl, "SecondLook.Application and Domain") {
+  Component(create, "Provider account creation handler", "MediatR handler (name <TO SUPPLY>)", "Creates a User with Role Mechanic or BodyShop and its Provider")
+  Component(signin, "SignInCommandHandler", "MediatR handler", "Authenticates every kind of user")
+  Component(user, "User", "Domain entity", "Role Mechanic or BodyShop")
+  Component(provider, "Provider", "Domain entity", "Kind, DisplayName, ApprovalStatus")
+}
+Container_Boundary(infra, "SecondLook.Infrastructure") {
+  Component(tokens, "JwtTokenService", "ITokenService adapter", "Puts the Role claim in the JWT")
+  ComponentDb(db, "AppDbContext", "EF Core, SQL Server", "Persists users and providers")
+}
+Rel(screens, client, "Calls")
+Rel(client, ctrl, "Calls", "JSON/HTTPS")
+Rel(ctrl, create, "Sends create command")
+Rel(ctrl, signin, "Sends SignInCommand")
+Rel(create, user, "Creates")
+Rel(create, provider, "Creates")
+Rel(signin, tokens, "Requests JWT from")
+Rel(create, db, "Persists", "EF Core")
+Rel(signin, db, "Reads", "EF Core")
+@enduml

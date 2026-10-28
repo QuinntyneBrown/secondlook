@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Edit profile
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System(sl, "SecondLook", "Used-car video inspection app")
+
+Rel(buyer, sl, "Views and saves name and email in")
+@enduml

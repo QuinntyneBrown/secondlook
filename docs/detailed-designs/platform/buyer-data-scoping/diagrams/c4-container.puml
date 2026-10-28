@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Buyer data scoping
+
+Person(buyer, "Buyer", "Requests own data")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Pages that list and open vehicles, inspections and estimates")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticates the caller and dispatches queries")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Vehicles, inspections, reports")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls with a bearer token", "JSON/HTTPS")
+Rel(api, db, "Reads rows filtered by BuyerId", "EF Core")
+@enduml

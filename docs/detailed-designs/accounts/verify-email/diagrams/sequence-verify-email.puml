@@ -1,0 +1,55 @@
+@startuml
+title UML sequence behaviour — Verify an email address
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "New account holder" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "VerifyEmailPage" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "VerifyEmailCommandHandler" as handler
+  participant "EmailVerificationToken" as token
+  participant "User" as user
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open the verification link
+page --> actor : "Verifying" with spinner labelled "Verifying" and "Verifying your email…" (L2-012)
+page -> client : verifyEmail(token)
+client -> controller : POST verify-email (anonymous)
+controller -> handler : Send VerifyEmailCommand
+handler -> db : Load token by hash and its user
+db --> handler : Token and user, or none
+handler -> token : Compare ExpiresAt with IClock (24 hours, L2-012)
+alt Token valid
+  handler -> user : Set EmailVerifiedAt
+  handler -> token : Consume token
+  handler -> db : Save changes in one unit of work
+  handler --> controller : Verified
+  controller --> client : 200 OK
+  client --> page : Success
+  page --> actor : "You’re verified"; status "Email verified"; "Book an inspection" (L2-012)
+else Token expired or unknown
+  handler --> controller : Expired result
+  controller --> client : 410 ProblemDetails
+  client --> page : Expired
+  page --> actor : "We couldn’t verify that link"; alert "That link has expired"; "Send a new link" (L2-012)
+end
+@enduml

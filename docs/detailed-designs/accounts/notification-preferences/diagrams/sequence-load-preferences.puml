@@ -1,0 +1,49 @@
+@startuml
+title UML sequence behaviour — Load notification preferences
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage" as page
+  participant "AccountApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AccountController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetNotificationPreferencesQueryHandler" as handler
+  participant "NotificationPreference" as pref
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /settings
+page -> client : Request preferences
+client -> controller : HTTPS request
+controller -> controller : Authenticate, scope to current buyer
+controller -> handler : Send GetNotificationPreferencesQuery
+handler -> db : Find NotificationPreference for the user
+alt No row stored
+  db --> handler : None
+  handler -> pref : Defaults (report on, call text on, window alert off) (L2-016)
+  pref --> handler : Default values
+else Row stored
+  db --> handler : Stored values
+end
+handler --> controller : NotificationPreferencesDto
+controller --> client : 200 response
+client --> page : Preferences
+page --> actor : "How we reach you" with three switches (L2-016)
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — List past inspections
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DashboardPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ListInspectionsQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Select the "Past" tab (L2-022)
+page -> client : List inspections (tab Past, page 1)
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send ListInspectionsQuery (Tab Past)
+handler -> db : Load past inspections with their estimates
+db --> handler : Rows
+alt Request fails
+  controller --> client : Error
+  client --> page : Failure
+  page --> actor : Error state, copy <TO SUPPLY>
+else No past inspections
+  handler --> controller : Empty page
+  controller --> client : Empty page
+  client --> page : Zero items
+  page --> actor : Empty state, copy <TO SUPPLY>
+else Past inspections found
+  handler --> controller : InspectionPage
+  controller --> client : Response
+  client --> page : Page model
+  page --> actor : Past inspections and their estimates (L2-022)
+end
+@enduml

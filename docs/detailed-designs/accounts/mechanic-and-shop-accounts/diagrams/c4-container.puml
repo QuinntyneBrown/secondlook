@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Mechanic and body shop accounts
+
+Person(provider, "Mechanic or body shop", "Authenticates as a provider")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "Provider account screens <TO SUPPLY>")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController; JWT carries the provider role")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users and providers")
+}
+Rel(provider, app, "Uses", "HTTPS")
+Rel(app, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

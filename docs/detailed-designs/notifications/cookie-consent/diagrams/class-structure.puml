@@ -1,0 +1,54 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Cookie consent
+
+enum ConsentChoice {
+  AcceptAll
+  RejectOptional
+  Custom
+}
+
+class ConsentRecord {
+  +ConsentChoice Choice
+  +DateTimeOffset DecidedAt
+  +DateTimeOffset ExpiresAt
+}
+
+interface CONSENT_STORE {
+  +read(): ConsentRecord?
+  +write(record: ConsentRecord): void
+}
+
+class ConsentService {
+  +int RetentionMonths = 12
+  +shouldShow(now: Date): bool
+  +choose(choice: ConsentChoice): void
+}
+
+class CookieConsent {
+  +role = region
+  +aria-label = "Cookie preferences"
+  +acceptAll(): void
+  +rejectOptional(): void
+  +manage(): void
+}
+
+class ToastService {
+  +show(request: ToastRequest): string
+}
+
+CookieConsent ..> ConsentService : uses
+ConsentService ..> CONSENT_STORE : depends on
+ConsentService ..> ToastService : raises toast
+ConsentService --> ConsentRecord : creates
+ConsentRecord --> ConsentChoice
+@enduml

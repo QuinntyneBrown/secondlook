@@ -1,0 +1,17 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Check camera and mic
+
+Person(buyer, "Buyer", "Checks the camera and mic")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "CallLobbyPage and MediaDevicesService")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "CallsController and lobby query")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections and participants")
+}
+System_Ext(video, "Video provider", "Presence source; vendor not yet chosen")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Requests the lobby view", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+Rel(api, video, "Reads presence from", "IVideoRoom")
+@enduml

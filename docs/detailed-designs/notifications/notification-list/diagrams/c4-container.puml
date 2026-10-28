@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Notification list
+
+Person(buyer, "Buyer", "Reads notifications")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "NotificationsPage and the header unread indicator")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "NotificationsController, application handlers, domain")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Notification rows")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Inspection history
+
+Person(buyer, "Buyer", "Revisits past inspections and their estimates")
+System(secondlook, "SecondLook", "Used-car video inspection and estimate platform")
+
+Rel(buyer, secondlook, "Reviews past inspections using")
+@enduml

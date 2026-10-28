@@ -1,0 +1,64 @@
+@startuml
+title UML sequence behaviour — Reschedule the call
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "RescheduleDialog" as dialog
+  participant "InspectionsApi" as client
+  participant "ToastService" as toast
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "RescheduleInspectionCommandHandler" as handler
+  participant "Inspection" as entity
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "SmsSender" as sms
+  database "SecondLook database" as db
+end box
+actor -> dialog : Select "Reschedule"
+alt No slot chosen
+  dialog --> actor : "Choose a new time." (L2-036), dialog stays open
+else Slot chosen
+  dialog -> dialog : Mark submit busy
+  dialog -> client : Reschedule (slot, idempotency key)
+  client -> controller : POST (HTTPS)
+  controller -> controller : Authenticate and scope to current buyer (L2-057)
+  controller -> handler : Send RescheduleInspectionCommand
+  handler -> db : Load inspection and slot
+  db --> handler : Current state
+  alt Slot taken or move rejected, or request fails
+    handler --> controller : Failure
+    controller --> client : ProblemDetails
+    client --> dialog : Failure
+    dialog --> actor : "We couldn’t move the call" with "Your original time is still booked. Try again." and "Try again" (L2-036)
+  else Move accepted
+    handler -> entity : Apply L2-036 new time
+    entity --> handler : Updated schedule
+    handler -> db : Save changes in one unit of work
+    db --> handler : Commit result
+    handler -> sms : Text the seller the new time (L2-036)
+    sms --> handler : Sent
+    handler --> controller : RescheduleResult
+    controller --> client : Response
+    client --> dialog : New time
+    dialog -> toast : Raise success toast
+    toast --> actor : "Rescheduled to Fri 30 Oct, 10:00 AM" with "Sam Whitaker has a new text with the time." and "Undo" (L2-036)
+  end
+end
+@enduml

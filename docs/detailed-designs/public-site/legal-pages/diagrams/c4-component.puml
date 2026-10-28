@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Legal pages
+
+Person(visitor, "Visitor", "Reads public information without signing in")
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(router, "Router", "Angular Router", "Serves /privacy and /terms as public routes")
+  Component(privacy, "PrivacyPage", "Angular page", "Renders the privacy document")
+  Component(terms, "TermsPage", "Angular page", "Renders the terms document")
+  Component(content, "Legal documents", "TypeScript constants", "Hold titles, revision lines and sections")
+}
+Rel(visitor, router, "Opens /privacy or /terms")
+Rel(router, privacy, "Activates")
+Rel(router, terms, "Activates")
+Rel(privacy, content, "Reads")
+Rel(terms, content, "Reads")
+@enduml

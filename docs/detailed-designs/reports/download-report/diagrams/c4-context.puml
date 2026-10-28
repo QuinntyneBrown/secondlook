@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Download a report
+
+Person(buyer, "Buyer", "Keeps a copy of the report or passes it to the seller")
+System(secondlook, "SecondLook", "Used-car safety app")
+System_Ext(recordings, "Recording store", "Holds call recordings and screenshots (vendor TO SUPPLY)")
+
+Rel(buyer, secondlook, "Downloads the report PDF from")
+Rel(secondlook, recordings, "Reads call screenshots from")
+@enduml

@@ -1,0 +1,61 @@
+@startuml
+title UML sequence behaviour — Download the report PDF
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DownloadReportDialog" as dlg
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetReportPdfQueryHandler" as handler
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PdfRenderer (IPdfRenderer)" as pdf
+  participant "RecordingStore (IRecordingStore)" as rec
+  database "SecondLook database" as db
+end box
+actor -> dlg : Select Download report
+dlg --> actor : Download the report, PDF chosen, Download PDF (L2-048)
+actor -> dlg : Select Download PDF
+dlg -> dlg : Disable formats, show Preparing your PDF… (L2-048)
+dlg -> client : downloadReport(reportId, format)
+client -> controller : HTTPS GET
+controller -> controller : Authenticate and scope to current buyer
+controller -> handler : Send GetReportPdfQuery
+handler -> db : Load report, findings, body shop review
+db --> handler : Report data
+opt format is PdfWithCallScreenshots
+  handler -> rec : Get call screenshots
+  rec --> handler : Images
+end
+handler -> pdf : Render document
+alt PDF rendered
+  pdf --> handler : Bytes
+  handler --> controller : PdfFile
+  controller --> client : 200 application/pdf
+  client --> dlg : File
+  dlg --> actor : Save the file and close the dialog
+else rendering or read fails
+  pdf --> handler : Failure
+  handler --> controller : Failure
+  controller --> client : Error
+  client --> dlg : Error
+  dlg --> actor : We couldn’t make the PDF, Try again (L2-048)
+end
+@enduml

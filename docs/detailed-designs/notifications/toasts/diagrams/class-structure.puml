@@ -1,0 +1,71 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Toasts
+
+enum ToastVariant {
+  Info
+  Success
+  Warning
+  Danger
+}
+
+class ToastRequest {
+  +ToastVariant Variant
+  +string Title
+  +string Text
+  +ToastAction? Action
+}
+
+class ToastAction {
+  +string Label
+  +string? Href
+  +Callback? Handler
+}
+
+class Toast {
+  +string Id
+  +ToastRequest Request
+  +bool Paused
+  +int RemainingMs
+  +bool AutoDismisses
+}
+
+class ToastService {
+  +int AutoDismissMs = 8000
+  +int MaxVisible = 3
+  +Signal<List<Toast>> Visible
+  +Signal<int> CollapsedCount
+  +show(request: ToastRequest): string
+  +dismiss(id: string): void
+  +pause(id: string): void
+  +resume(id: string): void
+}
+
+class "sl-toast-region" as Region {
+  +role = status
+  +aria-live = polite
+}
+
+class "sl-toast" as SlToast {
+  +variant: ToastVariant
+  +role: alert | none
+  +dismissed: Output
+}
+
+ToastService "1" o-- "*" Toast : queue
+Toast --> ToastRequest
+ToastRequest --> ToastVariant
+ToastRequest --> ToastAction
+Region ..> ToastService : reads
+Region --> SlToast : renders up to 3
+SlToast ..> ToastService : pause / resume / dismiss
+@enduml

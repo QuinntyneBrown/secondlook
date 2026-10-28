@@ -1,0 +1,16 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Choose review type
+
+Person(buyer, "Buyer", "Books an inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Booking wizard, step Review")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticated booking endpoints; Application and Domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Draft bookings and price breakdowns")
+}
+
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+@enduml

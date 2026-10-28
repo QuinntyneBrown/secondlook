@@ -1,0 +1,35 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Administer mechanics and body shops
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(screen, "Provider administration screens (TO SUPPLY)", "Angular pages and CDK dialogs", "List, onboard, approve, deactivate")
+  Component(client, "AdminProvidersApi (ADMIN_PROVIDERS_API)", "Angular API client", "Typed administration requests")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "AdminProvidersController", "ASP.NET Core controller", "Requires role Admin, dispatches")
+  Component(onboard, "OnboardProviderCommandHandler", "MediatR handler", "Creates a Pending Provider")
+  Component(approve, "ApproveProviderCommandHandler", "MediatR handler", "Pending to Approved")
+  Component(deact, "DeactivateProviderCommandHandler", "MediatR handler", "Approved to Deactivated")
+  Component(list, "ListProvidersQueryHandler", "MediatR handler", "Lists providers with status")
+  Component(entity, "Provider", "Domain entity", "Owns the ApprovalStatus transitions")
+  Component(slots, "GetAvailableSlotsQueryHandler", "MediatR handler", "Offers slots of Approved providers only")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "Provider, User, AvailabilityWindow")
+
+Rel(screen, client, "Calls")
+Rel(client, ctrl, "Sends administration requests", "JSON/HTTPS")
+Rel(ctrl, onboard, "Sends OnboardProviderCommand")
+Rel(ctrl, approve, "Sends ApproveProviderCommand")
+Rel(ctrl, deact, "Sends DeactivateProviderCommand")
+Rel(ctrl, list, "Sends ListProvidersQuery")
+Rel(onboard, entity, "Creates")
+Rel(approve, entity, "Approves")
+Rel(deact, entity, "Deactivates")
+Rel(onboard, db, "Persists", "EF Core")
+Rel(approve, db, "Persists", "EF Core")
+Rel(deact, db, "Persists", "EF Core")
+Rel(list, db, "Reads", "EF Core")
+Rel(slots, db, "Reads Approved providers", "EF Core")
+@enduml

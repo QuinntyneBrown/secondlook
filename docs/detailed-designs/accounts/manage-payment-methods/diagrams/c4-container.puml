@@ -1,0 +1,18 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Manage payment methods
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System_Boundary(sl, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Settings page, checkout page, AddPaymentMethodDialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Application and domain logic")
+  ContainerDb(db, "SecondLook database", "SQL Server", "PaymentMethod rows (token, brand, last four, expiry)")
+}
+System_Ext(pay, "Payment processor", "Tokenises and verifies cards (vendor <TO SUPPLY>)")
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, pay, "Sends card details to", "processor client <TO SUPPLY>")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, pay, "Verifies and attaches the token through", "IPaymentGateway")
+@enduml

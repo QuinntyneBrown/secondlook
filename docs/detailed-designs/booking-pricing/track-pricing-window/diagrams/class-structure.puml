@@ -1,0 +1,70 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+title Class structure — Track the pricing window
+
+enum PricingWindowState {
+  Open
+  Closing
+  Closed
+}
+class PricingWindow {
+  +Guid Id
+  +Guid BuyerId
+  +DateTimeOffset OpensAt
+  +DateTimeOffset ClosesAt
+  +StateAt(now: DateTimeOffset): PricingWindowState
+}
+class NotificationPreference {
+  +Guid BuyerId
+  +bool TellMeWhenWindowIsClosing
+}
+class GetPricingWindowQuery {
+}
+class GetPricingWindowQueryHandler {
+  +Handle(query: GetPricingWindowQuery): Task<PricingWindowDto>
+}
+class PricingWindowDto {
+  +PricingWindowState State
+  +DateTimeOffset ClosesAt
+  +bool Dismissible
+}
+class PricingWindowsController {
+  +GetCurrent(): Task<IActionResult>
+}
+class WindowClosingJob {
+  +Run(): Task
+}
+interface IClock {
+  +UtcNow: DateTimeOffset
+}
+class WindowBanner {
+  +state: PricingWindowState
+  +closesAt: Date
+  +dismissed: bool
+  +dismiss(): void
+}
+interface PricingWindowsApi {
+  +getCurrent(): Observable<PricingWindowDto>
+}
+
+PricingWindowsController ..> GetPricingWindowQuery : sends
+GetPricingWindowQueryHandler ..> GetPricingWindowQuery : handles
+GetPricingWindowQueryHandler --> PricingWindow : reads
+GetPricingWindowQueryHandler ..> IClock : reads
+GetPricingWindowQueryHandler --> PricingWindowDto : returns
+PricingWindow --> PricingWindowState : yields
+PricingWindowDto --> PricingWindowState : has
+WindowClosingJob --> PricingWindow : scans
+WindowClosingJob --> NotificationPreference : checks
+WindowClosingJob ..> IClock : reads
+WindowBanner ..> PricingWindowsApi : fed via DashboardPage and PRICING_WINDOWS_API
+@enduml

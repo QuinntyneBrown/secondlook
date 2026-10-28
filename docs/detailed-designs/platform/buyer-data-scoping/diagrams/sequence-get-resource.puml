@@ -1,0 +1,52 @@
+@startuml
+title UML sequence behaviour — Request one vehicle, inspection or estimate
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Page" as page
+  participant "Typed API client" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "Controller" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "GetInspectionQueryHandler" as handler
+  participant "BuyerScope" as scope
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open one resource by id
+page -> client : Request resource
+client -> controller : HTTPS request with bearer token
+controller -> controller : Authenticate caller
+controller -> handler : Send GetInspectionQuery
+handler -> scope : Apply L2-057 buyer scope
+scope --> handler : Query restricted to BuyerId = current user
+handler -> db : Read row by id within scope
+db --> handler : Row or none
+alt row belongs to the current buyer
+  handler --> controller : Result with value
+  controller --> client : HTTP 200 with the resource
+  client --> page : Resource
+  page --> actor : Present resource
+else row belongs to another buyer or does not exist
+  handler --> controller : Result marked not visible (L2-057 criterion 1)
+  controller --> client : Refusal status <TO SUPPLY> with no resource data
+  client --> page : Not-visible outcome
+  page --> actor : Present forbidden or not-found state (see forbidden-pages and system-pages)
+end
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Add another vehicle
+
+Person(buyer, "Buyer", "Compares several cars inside an open pricing window")
+System(sl, "SecondLook", "Remote used-car inspection and estimate platform")
+System_Ext(vin, "VIN lookup service", "Resolves a VIN to a vehicle name; vendor is TO SUPPLY")
+
+Rel(buyer, sl, "Adds another car using")
+Rel(sl, vin, "Looks up the VIN with", "HTTPS")
+@enduml

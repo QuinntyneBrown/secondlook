@@ -1,0 +1,20 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Toasts
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(pages, "Pages and dialogs", "Angular components", "CheckoutPage, ReportPage, BookSchedulePage and others raise toasts")
+  Component(shell, "App shell", "Angular component", "Hosts one sl-toast-region")
+}
+Container_Boundary(lib, "components library") {
+  Component(service, "ToastService", "Angular service", "Owns the toast queue, timers and the three-visible limit")
+  Component(region, "sl-toast-region", "Angular component", "Live region that renders visible toasts and the collapsed count")
+  Component(toast, "sl-toast", "Angular component", "One toast: variant, title, text, optional action, Dismiss")
+}
+Rel(pages, service, "Calls show() with variant, title, text and action")
+Rel(shell, region, "Renders")
+Rel(region, service, "Reads visible toasts and count from")
+Rel(region, toast, "Renders each visible toast with")
+Rel(toast, service, "Reports hover, focus and dismiss to")
+@enduml

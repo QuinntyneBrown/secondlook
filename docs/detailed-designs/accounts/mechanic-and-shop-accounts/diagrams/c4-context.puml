@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Mechanic and body shop accounts
+
+Person(provider, "Mechanic or body shop", "Creates an account and signs in as a provider")
+Person(admin, "Admin", "Onboards providers; relation to account creation <TO SUPPLY>")
+System(sl, "SecondLook", "Used-car safety app with remote mechanic inspections")
+
+Rel(provider, sl, "Creates an account in and signs in to")
+Rel(admin, sl, "Onboards providers in")
+@enduml

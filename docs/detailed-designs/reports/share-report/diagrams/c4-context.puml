@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Share a report
+
+Person(buyer, "Buyer", "Shares the report with the seller or a friend")
+Person_Ext(recipient, "Recipient", "Seller or friend; reads without an account")
+System(secondlook, "SecondLook", "Used-car safety app")
+System_Ext(email, "Email provider", "Delivers the report email (vendor TO SUPPLY)")
+
+Rel(buyer, secondlook, "Sends and turns off the link in")
+Rel(secondlook, email, "Sends report email via")
+Rel(email, recipient, "Delivers the link to")
+Rel(recipient, secondlook, "Opens the shared report in")
+@enduml

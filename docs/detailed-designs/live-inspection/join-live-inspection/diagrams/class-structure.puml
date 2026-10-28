@@ -1,0 +1,95 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Join live inspection
+
+enum ChecklistItemState {
+  Done
+  Now
+  Next
+}
+enum CallViewState {
+  Connecting
+  Live
+  Reconnecting
+  Disconnected
+  Ended
+}
+class LiveInspectionPage {
+  +CallViewState State
+  +bool Muted
+  +bool CameraOff
+  +Join(): void
+  +ToggleMute(): void
+  +ToggleCamera(): void
+  +Leave(): void
+}
+class CallRoomClient {
+  +Connect(credential: string): Task
+  +SetMicrophoneEnabled(enabled: bool): void
+  +SetCameraEnabled(enabled: bool): void
+  +Disconnect(): void
+}
+interface CallsApi {
+  +Join(inspectionId: Guid): Observable<JoinCallResult>
+}
+class JoinCallCommand {
+  +Guid InspectionId
+}
+class JoinCallCommandHandler {
+  +Handle(command: JoinCallCommand): Task<JoinCallResult>
+}
+class JoinCallResult {
+  +string JoinCredential
+  +CallStateView State
+}
+class CallStateView {
+  +DateTimeOffset StartedAt
+  +ChecklistItemView[] Checklist
+  +CallNote[] Notes
+}
+class CallSession {
+  +Guid Id
+  +Guid InspectionId
+  +DateTimeOffset StartedAt
+  +DateTimeOffset? EndedAt
+  +DateTimeOffset? RecordingStartedAt
+}
+class ChecklistItem {
+  +string Name
+  +ChecklistItemState State
+}
+class Inspection {
+  +Guid Id
+  +Guid BuyerId
+  +InspectionStatus Status
+}
+interface IVideoRoom {
+  +IssueJoinCredential(inspectionId: Guid, userId: Guid): Task<string>
+}
+interface IClock {
+  +UtcNow(): DateTimeOffset
+}
+LiveInspectionPage --> CallViewState : has
+LiveInspectionPage --> CallRoomClient : uses
+LiveInspectionPage ..> CallsApi : calls
+JoinCallCommandHandler ..> JoinCallCommand : handles
+JoinCallCommandHandler --> Inspection : loads
+JoinCallCommandHandler --> CallSession : creates or loads
+JoinCallCommandHandler ..> IVideoRoom : uses
+JoinCallCommandHandler ..> IClock : uses
+JoinCallCommandHandler --> JoinCallResult : returns
+JoinCallResult --> CallStateView : has
+CallSession "1" *-- "6" ChecklistItem : owns
+ChecklistItem --> ChecklistItemState : has
+@enduml

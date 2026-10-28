@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Sign in
+
+Person(user, "Account holder", "Buyer, mechanic or body shop")
+System_Boundary(sl, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "SignInPage at /sign-in; holds the JWT for later calls")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "AuthController; JWT bearer authentication")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Users")
+}
+Rel(user, app, "Uses", "HTTPS")
+Rel(app, api, "Calls; sends the JWT as a bearer token", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+@enduml

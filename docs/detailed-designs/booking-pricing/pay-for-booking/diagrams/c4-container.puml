@@ -1,0 +1,19 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — Pay for a booking
+
+Person(buyer, "Buyer", "Pays for a video inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(app, "SecondLook app", "Angular", "Checkout page at /book/pay and Add payment method dialog")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Booking and payment endpoints with idempotency")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Bookings and payments")
+}
+System_Ext(processor, "Payment processor", "Charges cards; name <TO SUPPLY>")
+
+Rel(buyer, app, "Uses", "HTTPS")
+Rel(app, api, "Posts booking and payment", "JSON/HTTPS")
+Rel(app, processor, "Sends card details for tokenising", "HTTPS")
+Rel(api, db, "Reads and writes", "EF Core")
+Rel(api, processor, "Charges token", "HTTPS")
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+title UML sequence behaviour — Contact support by email
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "HelpPage" as page
+end box
+alt Default state
+  actor -> page : Select "Email support" in "Still stuck?"
+else No-results state
+  actor -> page : Select "Email support" beside "Clear search"
+end
+page --> actor : Open a message to help@secondlook.example in the mail app (L2-005)
+@enduml

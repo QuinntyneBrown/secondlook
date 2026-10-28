@@ -1,0 +1,10 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Price a booking
+
+Person(buyer, "Buyer", "Person buying a used car as is; books a video inspection")
+System(secondlook, "SecondLook", "Used-car video inspection and safety-certification estimate app")
+
+Rel(buyer, secondlook, "Reviews quoted price and order summary in")
+@enduml

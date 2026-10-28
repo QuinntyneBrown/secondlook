@@ -1,0 +1,99 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Pay for a booking
+
+enum PaymentStatus {
+  Pending
+  Succeeded
+  Declined
+  Refunded
+  PartiallyRefunded
+}
+
+enum BookingStatus {
+  Draft
+  SlotHeld
+  Paid
+  Cancelled
+  Completed
+}
+
+class Payment {
+  +Guid Id
+  +Guid BookingId
+  +decimal Amount
+  +PaymentStatus Status
+  +string IdempotencyKey
+  +string ProcessorReference
+}
+
+class Booking {
+  +Guid Id
+  +Guid BuyerId
+  +BookingStatus Status
+  +string IdempotencyKey
+  +MarkPaid(): void
+}
+
+class PayForBookingCommand {
+  +Guid BookingId
+  +string PaymentMethodToken
+  +bool SellerInformed
+  +string IdempotencyKey
+}
+
+class PayForBookingCommandValidator {
+  +Validate(command: PayForBookingCommand): ValidationResult
+}
+
+class PayForBookingCommandHandler {
+  +Handle(command: PayForBookingCommand): Task<PaymentResult>
+}
+
+class CreateBookingCommandHandler {
+  +Handle(command: CreateBookingCommand): Task<Booking>
+}
+
+interface IPaymentGateway {
+  +Charge(amount: decimal, token: string, key: string): Task<GatewayResult>
+}
+
+class PaymentGateway
+class CheckoutPage {
+  +submit(): void
+  +errors: string[]
+  +state: default|invalid|submitting|error
+}
+class AddPaymentMethodDialog
+interface PaymentsApi {
+  +pay(request, idempotencyKey): Observable<PaymentResult>
+}
+interface BookingsApi {
+  +create(request, idempotencyKey): Observable<Booking>
+}
+
+PayForBookingCommandHandler ..> PayForBookingCommand : handles
+PayForBookingCommandValidator ..> PayForBookingCommand : validates
+PayForBookingCommandHandler --> Payment : finds by key / creates
+PayForBookingCommandHandler --> Booking : loads / marks paid
+PayForBookingCommandHandler ..> IPaymentGateway : charges
+PaymentGateway ..|> IPaymentGateway
+CreateBookingCommandHandler --> Booking : finds by key / creates
+Payment --> PaymentStatus : has
+Booking --> BookingStatus : has
+Payment "*" --> "1" Booking : pays for
+CheckoutPage ..> PaymentsApi : depends on token
+CheckoutPage ..> BookingsApi : depends on token
+CheckoutPage ..> AddPaymentMethodDialog : opens
+@enduml

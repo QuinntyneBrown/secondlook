@@ -1,0 +1,12 @@
+@startuml
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title System Context — Delete account
+
+Person(buyer, "Buyer", "Signed-in used-car buyer")
+System(sl, "SecondLook", "Used-car video inspection app")
+System_Ext(pay, "Payment processor", "Refunds cancelled bookings (vendor <TO SUPPLY>)")
+
+Rel(buyer, sl, "Deletes the account in")
+Rel(sl, pay, "Refunds booked inspections through")
+@enduml

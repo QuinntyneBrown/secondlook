@@ -1,0 +1,59 @@
+@startuml
+title UML sequence behaviour — Submit findings
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Body shop" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Body shop review screen (TO SUPPLY)" as page
+  participant "ReportsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "ReportsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "SubmitBodyShopReviewCommandHandler" as handler
+  participant "BodyShopReview" as review
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Enter findings, submit
+page -> client : Build request
+client -> controller : HTTPS request
+controller -> controller : Authenticate, require role BodyShop
+controller -> handler : Send SubmitBodyShopReviewCommand
+handler -> db : Load review for Inspection where BodyShopId is the caller
+alt Not assigned or not found
+  db --> handler : Nothing
+  handler --> controller : NotFound result
+  controller --> client : 404 ProblemDetails
+  client --> page : Not available
+  page --> actor : Show not available (copy TO SUPPLY)
+else Review already Delivered
+  handler --> controller : Conflict result
+  controller --> client : 409 ProblemDetails
+  client --> page : Already submitted
+  page --> actor : Show already submitted (copy TO SUPPLY)
+else InProgress
+  handler -> review : Set Status Delivered (L2-062)
+  review --> handler : Delivered
+  handler -> db : Save in one unit of work
+  db --> handler : Commit result
+  handler --> controller : Delivered
+  controller --> client : 200 response
+  client --> page : Submitted
+  page --> actor : Show submitted (copy TO SUPPLY)
+end
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title Containers — View an inspection
+
+Person(buyer, "Buyer", "Reviews a booked inspection")
+System_Boundary(secondlook, "SecondLook") {
+  Container(spa, "SecondLook app", "Angular", "Inspection detail page at /inspections/{id}")
+  Container(api, "SecondLook.Api", "ASP.NET Core", "Authenticated read endpoint scoped to the buyer")
+  ContainerDb(db, "SecondLook database", "SQL Server", "Inspections, bookings, vehicles, providers, payments")
+}
+Rel(buyer, spa, "Uses", "HTTPS")
+Rel(spa, api, "Calls", "JSON/HTTPS")
+Rel(api, db, "Reads", "EF Core")
+@enduml

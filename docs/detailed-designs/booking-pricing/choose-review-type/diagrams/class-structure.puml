@@ -1,0 +1,53 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Choose review type
+
+enum ReviewType {
+  Mechanic
+  BodyShop
+  Both
+}
+
+class Booking {
+  +Guid Id
+  +Guid BuyerId
+  +ReviewType ReviewType
+  +PriceBreakdown Price
+  +ChooseReview(type: ReviewType, price: PriceBreakdown): void
+}
+
+class PricingPolicy {
+  +Quote(buyerId, reviewType, now): PriceBreakdown
+}
+
+class ChooseReviewTypeCommand {
+  +Guid BookingId
+  +ReviewType ReviewType
+  +string IdempotencyKey
+}
+
+class ChooseReviewTypeCommandHandler {
+  +Handle(command): Task<PriceBreakdown>
+}
+
+class BookingsController {
+  +ChooseReview(id, request): Task<ActionResult>
+}
+
+ChooseReviewTypeCommandHandler ..> ChooseReviewTypeCommand : handles
+ChooseReviewTypeCommandHandler --> Booking : loads / mutates
+ChooseReviewTypeCommandHandler --> PricingPolicy : prices
+BookingsController ..> ChooseReviewTypeCommand : sends
+Booking --> ReviewType : has
+@enduml

@@ -1,0 +1,33 @@
+@startuml
+title UML sequence behaviour — Request a page that does not exist
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "User" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Router" as router
+  participant "NotFoundPage" as page
+end box
+actor -> router : Navigate to an unknown URL
+router -> router : No route matches, wildcard route applies
+router -> page : Activate /404
+page --> actor : Show "404", "We can’t find that page" with "The link may be old, or the inspection was removed. Head back to your inspections." (L2-060 criterion 1)
+alt user selects "Go to inspections"
+  actor -> page : Select "Go to inspections"
+  page --> actor : Navigate to /inspections
+else user selects "Home"
+  actor -> page : Select "Home"
+  page --> actor : Navigate to /
+end
+@enduml

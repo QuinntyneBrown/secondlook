@@ -1,0 +1,38 @@
+@startuml
+title UML sequence behaviour — View a legal page
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Visitor" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "PrivacyPage or TermsPage" as page
+  participant "LegalDocument" as doc
+  participant "Router" as router
+end box
+alt Visitor opens "/privacy"
+  actor -> router : Open "/privacy"
+  router -> router : Match the public route, no authentication guard
+  router -> page : Activate PrivacyPage
+  page -> doc : Read privacy document
+  doc --> page : "Privacy policy", "Last updated 1 October 2026." and 4 sections
+  page --> actor : Show "What we collect", "Call recordings", "Who sees your report", "Your choices" (L2-004)
+else Visitor opens "/terms"
+  actor -> router : Open "/terms"
+  router -> router : Match the public route, no authentication guard
+  router -> page : Activate TermsPage
+  page -> doc : Read terms document
+  doc --> page : "Terms of service", "Last updated 1 October 2026." and 4 sections
+  page --> actor : Show "What we provide", "What you agree to", "Payments and refunds", "Limits" (L2-004)
+end
+@enduml

@@ -1,0 +1,29 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Manage availability
+
+Container_Boundary(spa, "SecondLook app (Angular)") {
+  Component(screen, "Availability screen (TO SUPPLY)", "Angular page or dialog", "Edits the AvailabilityWindow list")
+  Component(client, "AvailabilityApi (AVAILABILITY_API)", "Angular API client", "Typed availability requests")
+  Component(schedule, "BookSchedulePage", "Angular page", "Shows the slots returned to the buyer")
+}
+Container_Boundary(api, "SecondLook.Api, Application and Domain") {
+  Component(ctrl, "AvailabilityController", "ASP.NET Core controller", "Authenticates, authorizes Mechanic or BodyShop, dispatches")
+  Component(setH, "SetAvailabilityCommandHandler", "MediatR handler", "Validates and replaces the provider's windows")
+  Component(getH, "GetAvailabilityQueryHandler", "MediatR handler", "Returns the provider's windows")
+  Component(slotsH, "GetAvailableSlotsQueryHandler", "MediatR handler", "Offers only open, unbooked times")
+  Component(entity, "AvailabilityWindow", "Domain entity", "Provider, Start, End")
+}
+ComponentDb(db, "SecondLook database", "SQL Server", "AvailabilityWindow, Provider, SlotHold, Inspection")
+
+Rel(screen, client, "Calls")
+Rel(client, ctrl, "GETs and PUTs windows", "JSON/HTTPS")
+Rel(schedule, ctrl, "GETs slots through BookingsController", "JSON/HTTPS")
+Rel(ctrl, setH, "Sends SetAvailabilityCommand")
+Rel(ctrl, getH, "Sends GetAvailabilityQuery")
+Rel(setH, entity, "Creates")
+Rel(setH, db, "Persists", "EF Core")
+Rel(getH, db, "Reads", "EF Core")
+Rel(slotsH, db, "Reads windows, holds and inspections", "EF Core")
+@enduml

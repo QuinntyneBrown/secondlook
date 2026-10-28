@@ -1,0 +1,69 @@
+@startuml
+title UML sequence behaviour — Add a card
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Buyer" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "SettingsPage or CheckoutPage" as page
+  participant "AddPaymentMethodDialog" as dialog
+  participant "PaymentMethodsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "PaymentMethodsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "AddPaymentMethodCommandHandler" as handler
+  participant "PaymentMethod" as pm
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  participant "PaymentGateway" as gw
+  database "SecondLook database" as db
+end box
+actor -> page : Select "Add a card" or "Add a different card"
+page -> dialog : Open via CDK Dialog
+dialog --> actor : "Add a card", processor notice, three fields, "Use for future bookings" checked (L2-017)
+actor -> dialog : Fill fields, select "Add card"
+dialog -> dialog : Check the three fields
+alt A field is invalid
+  dialog --> actor : "Enter the 16 digits on the front of your card.", "That expiry date isn’t valid.", "Enter the 3-digit security code." (L2-017)
+else Fields valid
+  dialog -> dialog : Fields read-only, Cancel disabled, "Add card" busy
+  dialog -> gw : Send card details to the processor, receive token (mechanism <TO SUPPLY>)
+  gw --> dialog : ProcessorToken
+  dialog -> client : Build request with Idempotency-Key and token
+  client -> controller : HTTPS request
+  controller -> controller : Authenticate, scope to current buyer
+  controller -> handler : Send AddPaymentMethodCommand
+  handler -> gw : Verify card
+  alt Bank declines
+    gw --> handler : Declined
+    handler --> controller : Declined result
+    controller --> client : ProblemDetails
+    client --> dialog : Declined
+    dialog --> actor : Alert "Your bank declined this card", "Try a different card or call the number on the back.", "Try again" (L2-017)
+  else Verified
+    gw --> handler : Brand, Last4, expiry
+    handler -> pm : Create (default when requested)
+    pm --> handler : PaymentMethod
+    handler -> db : Save in one unit of work
+    db --> handler : Commit result
+    handler --> controller : PaymentMethodDto
+    controller --> client : 201 response
+    client --> dialog : Added
+    dialog --> page : Close with the new card
+    page --> actor : Toast "Card added", "Visa ending 4444 is now your default." (L2-017)
+  end
+end
+@enduml

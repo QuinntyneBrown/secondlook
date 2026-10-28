@@ -1,0 +1,62 @@
+@startuml
+title UML sequence behaviour — Load the dashboard
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor Buyer as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "DashboardPage" as page
+  participant "InspectionsApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "InspectionsController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "ListInspectionsQueryHandler" as handler
+  participant "GetPricingWindowQueryHandler" as winh
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Open /inspections
+page -> page : Show L2-020 loading state (subtitle "Loading your inspections", busy list, placeholder rows)
+page -> client : List inspections (tab Active, page 1)
+client -> controller : GET (HTTPS)
+controller -> controller : Authenticate and scope to current buyer (L2-057)
+controller -> handler : Send ListInspectionsQuery (PageSize 20)
+handler -> db : Load inspections, vehicles, mechanics, reports for the buyer
+db --> handler : Rows and counts
+controller -> winh : Send GetPricingWindowQuery
+winh -> db : Load open window
+db --> winh : Window or none
+alt Request fails
+  controller --> client : 5xx or network error
+  client --> page : Failure
+  page --> actor : L2-020 error "Your inspections didn’t load" with "Try again" and "Contact support"
+else No inspections
+  controller --> client : Empty page
+  client --> page : Zero items
+  page --> actor : L2-020 empty "No inspections yet" with "Book an inspection" and "View sample report"
+else Inspections found
+  controller --> client : InspectionPage and window
+  client --> page : Page model
+  page --> actor : L2-019 title, subtitle, tabs (Active selected), rows with status chips
+  opt Window open
+    page --> actor : L2-019 banner with "Add another car" and "Compare cars"
+  end
+  opt Total above 20
+    page --> actor : L2-021 subtitle "143 inspections · 20 per page" and "Showing 1–20 of 143"
+  end
+end
+@enduml

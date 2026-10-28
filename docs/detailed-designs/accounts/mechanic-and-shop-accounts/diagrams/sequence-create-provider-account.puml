@@ -1,0 +1,53 @@
+@startuml
+title UML sequence behaviour — Create a mechanic or body shop account
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Mechanic or body shop" as actor
+box "Frontend — SecondLook app (Angular)" #E0F2FE
+  participant "Provider account screen <TO SUPPLY>" as page
+  participant "AuthApi" as client
+end box
+box "Backend — SecondLook.Api" #D1FADF
+  participant "AuthController" as controller
+end box
+box "Backend — SecondLook.Application and Domain" #ECFDF3
+  participant "Provider account creation handler" as handler
+  participant "User" as user
+  participant "Provider" as provider
+end box
+box "Backend — SecondLook.Infrastructure" #FFF4E5
+  database "SecondLook database" as db
+end box
+actor -> page : Provide account details <TO SUPPLY>
+page -> client : Create account request
+client -> controller : HTTPS request
+controller -> handler : Send create command
+handler -> db : Check the email is unused
+db --> handler : Result
+alt Email unused
+  handler -> user : Create with Role Mechanic or BodyShop (L2-014)
+  handler -> provider : Create with Kind and ApprovalStatus <TO SUPPLY>
+  handler -> db : Save in one unit of work
+  handler --> controller : Created
+  controller --> client : 201 Created
+  client --> page : Success
+  page --> actor : Next step <TO SUPPLY>
+else Email already in use
+  handler --> controller : Email-taken result
+  controller --> client : 409 ProblemDetails
+  client --> page : Error
+  page --> actor : Message <TO SUPPLY>
+end
+@enduml
