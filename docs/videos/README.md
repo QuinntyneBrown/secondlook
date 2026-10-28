@@ -20,6 +20,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J01 | [Sign up and sign in](journeys/01-sign-up-and-sign-in/README.md) | 1:45 | Sign up and sign in |
 | J02 | [Administer mechanics and shops](journeys/02-administer-mechanics-and-shops/README.md) | 1:54 | Administer mechanics and shops |
 | J03 | [Manage availability](journeys/03-manage-availability/README.md) | 1:50 | Manage availability |
+| J04 | [Manage vehicles](journeys/04-manage-vehicles/README.md) | 1:51 | Manage vehicles |
 
 ## Making or updating a video
 

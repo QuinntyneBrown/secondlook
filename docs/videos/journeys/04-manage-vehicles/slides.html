@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 04 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="04" data-video-title="Manage vehicles" data-parts="Introduction|The list|Whose cars|History|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 04</div>
+  <h1>Manage vehicles</h1>
+  <p class="lead">Add, edit and remove saved cars, scoped to each buyer, on the real stack</p>
+</section>
+
+<section id="list" data-part="1" data-cue="A new buyer opens Vehicles and sees an empty list." data-clip="clips/app.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Empty, invalid, add, duplicate, edit, remove</h3>
+    <p class="muted">Chromium against the real API.</p>
+  </aside>
+</section>
+
+<section id="owners" data-part="2" data-cue="Every vehicle belongs to one buyer." data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Another buyer gets 404</h3>
+    <p class="muted">The buyer comes from the token; a vehicle that is not yours is never revealed.</p>
+  </aside>
+</section>
+
+<section id="history" data-part="3" data-cue="Removing a car hides it from the list, but nothing is deleted.">
+  <h2>Removal keeps history</h2>
+  <ul class="recap">
+    <li>Removing hides a car; the record is kept</li>
+    <li>Booked inspections keep the details they were booked with</li>
+    <li>A removed VIN can be saved again</li>
+    <li>Covered by automated tests</li>
+  </ul>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Each buyer sees only their own cars</li>
+    <li>A VIN can be saved once at a time</li>
+    <li>Past inspections keep their own details</li>
+  </ul>
+  <p class="small muted">Next: Journey 05, pay for an inspection</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
