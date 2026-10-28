@@ -65,3 +65,9 @@ The handler creates a `Vehicle` and a `Booking` inside a `PricingWindow` and pri
 The sequence covers the empty VIN, the busy request, the idempotent repeat, the failure alert and the success banner.
 
 ![Sequence diagram for adding another car](diagrams/sequence-add-another-car.png)
+
+## Implementation (J08)
+
+Decisions are in ADR 0010. Mocks reused: `dashboard` (window banner) and `dialogs/add-another-car`.
+
+The dashboard banner's "Add another car · $25" opens a CDK dialog that collects the next car's VIN and review, asks the server whether the window is still open, and then opens the booking flow with the VIN and review already chosen; the price comes from the server (J05, J06). A car added in the window is announced on the dashboard ("... added for $45", "Two cars are in your window ..."). "Compare cars" waits for the compare journey (J13).

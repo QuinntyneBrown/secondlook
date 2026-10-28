@@ -9,6 +9,7 @@ import {
   Checkout,
   PayOutcome,
   PaymentsApi,
+  PricingWindow,
   Receipt,
   ReviewChoice,
 } from './payments-api';
@@ -65,5 +66,9 @@ export class HttpPaymentsApi implements PaymentsApi {
         .get<{ receipts: Receipt[] }>(`${this.base}/billing/receipts`)
         .pipe(map((r) => r.receipts)),
     );
+  }
+
+  pricingWindow() {
+    return this.guard(this.http.get<PricingWindow>(`${this.base}/pricing-window`));
   }
 }

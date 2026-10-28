@@ -38,6 +38,7 @@ export {
   type Checkout,
   type PayOutcome,
   type PaymentsApi,
+  type PricingWindow,
   type QuoteLine,
   type Receipt,
   type ReviewChoice,

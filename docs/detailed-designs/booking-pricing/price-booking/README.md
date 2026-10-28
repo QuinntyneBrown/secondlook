@@ -85,3 +85,9 @@ Creating a booking reuses `PricingPolicy`. With no open window, the booking star
 Decisions are in ADR 0007. Mocks reused: `docs/mocks/pages/checkout` and `billing-history`.
 
 `PriceCalculator` (Domain) is the only place prices are decided: first review $50, additional vehicle $25 inside a 14-day window that opens when the first payment succeeds, +$20 for both reviews. `PricingService` reads the buyer's windows; a checkout's quote is recomputed on read and at payment (ADR 0007).
+
+## Implementation (J08)
+
+Decisions are in ADR 0010. Mocks reused: `dashboard` (window banner) and `dialogs/add-another-car`.
+
+Eligibility for the $25 price uses the same window rule as `GET /api/pricing-window` (ADR 0010): open until, but not including, the end instant.
