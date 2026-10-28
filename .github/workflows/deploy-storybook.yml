@@ -1,0 +1,76 @@
+name: Deploy Storybook
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/projects/components/**'
+      - 'frontend/angular.json'
+      - 'frontend/package.json'
+      - 'frontend/package-lock.json'
+      - '.github/workflows/deploy-storybook.yml'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AZURE_RESOURCE_GROUP: secondlook-rg
+  INFRA_DEPLOYMENT_NAME: secondlook-infra
+
+# Two rapid pushes touching the components library must not race the upload.
+concurrency:
+  group: deploy-storybook-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run build-storybook
+        working-directory: frontend
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # The design-system Static Web App is provisioned by eng/infra/main.bicep
+      # (ADR-017); its name and deployment token come from Azure, not GitHub.
+      - name: Read the deployment token
+        id: token
+        run: |
+          swa="$(az deployment group show \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$INFRA_DEPLOYMENT_NAME" \
+            --query properties.outputs.designSwaName.value --output tsv)"
+          if [ -z "$swa" ]; then
+            echo "::error::No '$INFRA_DEPLOYMENT_NAME' deployment in $AZURE_RESOURCE_GROUP yet. Run eng/Bootstrap-Azure.ps1 or let deploy.yml provision first."
+            exit 1
+          fi
+          token="$(az staticwebapp secrets list \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$swa" \
+            --query properties.apiKey --output tsv)"
+          echo "::add-mask::$token"
+          echo "value=$token" >> "$GITHUB_OUTPUT"
+          echo "Deploying to $swa" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
+          action: upload
+          app_location: frontend/dist/storybook
+          skip_app_build: true
+          skip_api_build: true

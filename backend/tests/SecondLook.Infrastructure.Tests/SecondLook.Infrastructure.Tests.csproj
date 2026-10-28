@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SecondLook.Infrastructure\SecondLook.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\SecondLook.Application\SecondLook.Application.csproj" />
+    <ProjectReference Include="..\..\src\SecondLook.Domain\SecondLook.Domain.csproj" />
+  </ItemGroup>
+</Project>

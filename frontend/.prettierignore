@@ -1,0 +1,7 @@
+dist
+coverage
+out-tsc
+.angular
+node_modules
+package-lock.json
+projects/components/documentation.json

@@ -1,0 +1,146 @@
+name: CI
+
+# Runs the same gates as the deploy workflow, on every pull request and on
+# pushes to non-main branches, so a merge to main never meets a red suite.
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '10.0.101'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  NODE_VERSION: '22'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-backend:
+    name: Backend tests
+    # The API and Infrastructure tests run on in-memory SQLite (ADR-020), so
+    # the job needs no database server and runs on Linux like the others.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.Packages.props', 'backend/global.json') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      # Builds once, then runs the test assemblies side by side instead of
+      # one after another (see the script for why that is safe).
+      - name: Build and test
+        shell: pwsh
+        run: ./eng/Test-Backend.ps1 -Configuration Release
+
+  test-frontend:
+    name: Frontend build and unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Angular workspace deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Format check (Prettier)
+        working-directory: frontend
+        run: npm run format:check
+
+      # The static marketing site (ADR-018) sits outside frontend/, so neither
+      # format:check nor the pre-commit hook sees it.
+      - name: Format check, marketing site (Prettier)
+        working-directory: frontend
+        run: npx prettier --check ../marketing
+
+      - name: Lint (angular-eslint)
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Design tokens up to date
+        working-directory: frontend
+        run: npm run tokens:check
+
+      - name: Build libraries
+        working-directory: frontend
+        run: |
+          npx ng build api
+          npx ng build components
+
+      - name: Unit tests (Vitest)
+        working-directory: frontend
+        run: npm test -- --watch=false
+
+      - name: ng build (production)
+        working-directory: frontend
+        run: npx ng build secondlook --configuration production
+
+      # SecondLook Admin is its own application on its own host (ADR-014);
+      # lint, format and the unit tests above already cover the workspace.
+      - name: ng build admin (production)
+        working-directory: frontend
+        run: npx ng build admin --configuration production
+
+  storybook:
+    # Keep the required branch-protection context while testing its replacement.
+    name: Design-system contract + browser tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Angular workspace deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install browser test dependencies
+        working-directory: e2e
+        run: npm ci
+
+      # Compiles every story and MDX page against the real components
+      # library; a broken story or a removed input fails here. Chromium
+      # downloads in the background meanwhile instead of after the build.
+      - name: Build Storybook (installing Chromium alongside)
+        run: |
+          (cd e2e && npx playwright install --with-deps chromium) > "$RUNNER_TEMP/chromium.log" 2>&1 &
+          chromium=$!
+          (cd frontend && npm run build-storybook)
+          if ! wait "$chromium"; then
+            cat "$RUNNER_TEMP/chromium.log"
+            exit 1
+          fi
+
+      - name: Verify Storybook contract and examples
+        working-directory: e2e
+        run: npm run test:storybook
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: storybook-test-results
+          path: e2e/test-results/

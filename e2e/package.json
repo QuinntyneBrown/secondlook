@@ -1,0 +1,27 @@
+{
+  "name": "secondlook-e2e",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Playwright e2e suite. POMs under pages/, specs under tests/, fixtures under fixtures/. Visual specs under tests/visual/ compare the Angular implementation to docs/mocks region-by-region.",
+  "scripts": {
+    "test": "playwright test --config=playwright.config.ts",
+    "test:storybook": "playwright test --config=playwright.storybook.config.ts",
+    "test:visual": "playwright test --config=playwright.config.ts tests/visual",
+    "test:behavior": "playwright test --config=playwright.config.ts --ignore-snapshots tests --grep-invert visual",
+    "baseline": "cross-env SL_BASELINE=1 playwright test --config=playwright.config.ts --update-snapshots all tests/visual",
+    "audit": "playwright test --config=playwright.audit.config.ts",
+    "audit:mocks": "cross-env SL_BASELINE=1 playwright test --config=playwright.audit.config.ts",
+    "perf-test": "node perf-test/perf-test.mjs",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "mocks:check": "node ../docs/mocks/.check.mjs",
+    "test:marketing": "cross-env SL_MARKETING_ONLY=1 playwright test --config=playwright.config.ts --project=marketing"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "cross-env": "^7.0.3",
+    "http-server": "^14.1.1",
+    "typescript": "^5.5.0",
+    "@types/node": "^22.0.0"
+  }
+}

@@ -1,0 +1,686 @@
+{
+  "project": "SecondLook",
+  "required_states": {
+    "page": [
+      "default",
+      "loading",
+      "empty",
+      "error"
+    ],
+    "dialog": [
+      "default",
+      "busy",
+      "invalid"
+    ],
+    "notification": [
+      "info",
+      "success",
+      "warning",
+      "danger"
+    ]
+  },
+  "screens": [
+    {
+      "id": "home",
+      "kind": "page",
+      "title": "Home",
+      "states": [
+        "default"
+      ],
+      "route": "/",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "how-it-works",
+      "kind": "page",
+      "title": "How it works",
+      "states": [
+        "default"
+      ],
+      "route": "/how-it-works",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "pricing",
+      "kind": "page",
+      "title": "Pricing",
+      "states": [
+        "default"
+      ],
+      "route": "/pricing",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "mechanic-profile",
+      "kind": "page",
+      "title": "Mechanic profile",
+      "states": [
+        "default",
+        "loading",
+        "error"
+      ],
+      "route": "/mechanics/dev-patel",
+      "not_applicable": {
+        "empty": "A mechanic profile always has content once a mechanic is assigned."
+      }
+    },
+    {
+      "id": "not-found",
+      "kind": "page",
+      "title": "Page not found",
+      "states": [
+        "default"
+      ],
+      "route": "/404",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "forbidden",
+      "kind": "page",
+      "title": "No access",
+      "states": [
+        "default"
+      ],
+      "route": "/403",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "server-error",
+      "kind": "page",
+      "title": "Something went wrong",
+      "states": [
+        "default"
+      ],
+      "route": "/500",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "offline",
+      "kind": "page",
+      "title": "You’re offline",
+      "states": [
+        "default"
+      ],
+      "route": "/offline",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "maintenance",
+      "kind": "page",
+      "title": "Down for maintenance",
+      "states": [
+        "default"
+      ],
+      "route": "/maintenance",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "terms",
+      "kind": "page",
+      "title": "Terms of service",
+      "states": [
+        "default"
+      ],
+      "route": "/terms",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "privacy",
+      "kind": "page",
+      "title": "Privacy policy",
+      "states": [
+        "default"
+      ],
+      "route": "/privacy",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "sign-in",
+      "kind": "page",
+      "title": "Sign in",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error"
+      ],
+      "route": "/sign-in",
+      "not_applicable": {
+        "loading": "The form renders immediately; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "sign-up",
+      "kind": "page",
+      "title": "Create account",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error"
+      ],
+      "route": "/sign-up",
+      "not_applicable": {
+        "loading": "The form renders immediately; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "forgot-password",
+      "kind": "page",
+      "title": "Forgot password",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error",
+        "success"
+      ],
+      "route": "/forgot-password",
+      "not_applicable": {
+        "loading": "The form renders immediately; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "reset-password",
+      "kind": "page",
+      "title": "Choose a new password",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error",
+        "success"
+      ],
+      "route": "/reset-password",
+      "not_applicable": {
+        "loading": "The form renders immediately; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "verify-email",
+      "kind": "page",
+      "title": "Verify your email",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "success"
+      ],
+      "route": "/verify-email",
+      "not_applicable": {
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "dashboard",
+      "kind": "page",
+      "title": "Your inspections",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "long",
+        "edge"
+      ],
+      "route": "/inspections"
+    },
+    {
+      "id": "book-vehicle",
+      "kind": "page",
+      "title": "Book: vehicle",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error"
+      ],
+      "route": "/book/vehicle",
+      "not_applicable": {
+        "loading": "The form renders from local state; nothing is fetched first.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "book-review-type",
+      "kind": "page",
+      "title": "Book: review type",
+      "states": [
+        "default",
+        "submitting",
+        "error"
+      ],
+      "route": "/book/review",
+      "not_applicable": {
+        "loading": "Options are fixed copy, not fetched.",
+        "empty": "Always three options."
+      }
+    },
+    {
+      "id": "book-schedule",
+      "kind": "page",
+      "title": "Book: schedule",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "submitting"
+      ],
+      "route": "/book/schedule"
+    },
+    {
+      "id": "checkout",
+      "kind": "page",
+      "title": "Book: pay",
+      "states": [
+        "default",
+        "invalid",
+        "submitting",
+        "error"
+      ],
+      "route": "/book/pay",
+      "not_applicable": {
+        "loading": "The order is already in the page; card fields render immediately.",
+        "empty": "No collection on this screen."
+      }
+    },
+    {
+      "id": "booking-confirmed",
+      "kind": "page",
+      "title": "Booking confirmed",
+      "states": [
+        "default"
+      ],
+      "route": "/book/confirmed",
+      "not_applicable": {
+        "loading": "Reached only after payment succeeds; data is already in hand.",
+        "empty": "Always shows the booking just made.",
+        "error": "A failed payment never reaches this page; the checkout error state handles it."
+      }
+    },
+    {
+      "id": "inspection-detail",
+      "kind": "page",
+      "title": "Inspection",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "read-only",
+        "forbidden"
+      ],
+      "route": "/inspections/civic-lx",
+      "not_applicable": {
+        "empty": "An inspection always has a booking behind it."
+      }
+    },
+    {
+      "id": "call-lobby",
+      "kind": "page",
+      "title": "Call lobby",
+      "states": [
+        "default",
+        "loading",
+        "error"
+      ],
+      "route": "/inspections/civic-lx/lobby",
+      "not_applicable": {
+        "empty": "The lobby always has the buyer’s own preview and two participants."
+      }
+    },
+    {
+      "id": "live-inspection",
+      "kind": "page",
+      "title": "Live inspection",
+      "states": [
+        "default",
+        "loading",
+        "offline",
+        "ended",
+        "error"
+      ],
+      "route": "/inspections/civic-lx/call",
+      "not_applicable": {
+        "empty": "A live call always has participants."
+      }
+    },
+    {
+      "id": "report",
+      "kind": "page",
+      "title": "Inspection report",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "partial",
+        "edge",
+        "forbidden"
+      ],
+      "route": "/inspections/civic-lx/report",
+      "not_applicable": {
+        "empty": "A report only exists once the call has happened, so it is never empty."
+      }
+    },
+    {
+      "id": "compare",
+      "kind": "page",
+      "title": "Compare cars",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "route": "/compare"
+    },
+    {
+      "id": "notifications",
+      "kind": "page",
+      "title": "Notifications",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "read"
+      ],
+      "route": "/notifications"
+    },
+    {
+      "id": "settings",
+      "kind": "page",
+      "title": "Settings",
+      "states": [
+        "default",
+        "loading",
+        "error",
+        "invalid",
+        "submitting",
+        "success"
+      ],
+      "route": "/settings",
+      "not_applicable": {
+        "empty": "Settings always has values; there is no empty collection."
+      }
+    },
+    {
+      "id": "billing-history",
+      "kind": "page",
+      "title": "Billing history",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "route": "/settings/billing"
+    },
+    {
+      "id": "help",
+      "kind": "page",
+      "title": "Help",
+      "states": [
+        "default",
+        "no-results"
+      ],
+      "route": "/help",
+      "not_applicable": {
+        "loading": "Static content that ships with the page; there is no request to wait on.",
+        "empty": "The page has no collection that could be empty.",
+        "error": "The page has no data request that could fail."
+      }
+    },
+    {
+      "id": "add-another-car",
+      "kind": "dialog",
+      "title": "Add another car",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "dashboard"
+    },
+    {
+      "id": "cancel-inspection",
+      "kind": "dialog",
+      "title": "Cancel inspection",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "inspection-detail"
+    },
+    {
+      "id": "reschedule",
+      "kind": "dialog",
+      "title": "Reschedule",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "inspection-detail"
+    },
+    {
+      "id": "share-report",
+      "kind": "dialog",
+      "title": "Share report",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "success",
+        "failed"
+      ],
+      "opens_from": "report"
+    },
+    {
+      "id": "download-report",
+      "kind": "dialog",
+      "title": "Download report",
+      "states": [
+        "default",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "report",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate. Both choices have a default."
+      }
+    },
+    {
+      "id": "report-issue",
+      "kind": "dialog",
+      "title": "Report an issue",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "success",
+        "failed"
+      ],
+      "opens_from": "report"
+    },
+    {
+      "id": "add-payment-method",
+      "kind": "dialog",
+      "title": "Add payment method",
+      "states": [
+        "default",
+        "invalid",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "checkout"
+    },
+    {
+      "id": "sign-out",
+      "kind": "dialog",
+      "title": "Sign out",
+      "states": [
+        "default",
+        "busy"
+      ],
+      "opens_from": "dashboard",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
+    },
+    {
+      "id": "delete-account",
+      "kind": "dialog",
+      "title": "Delete account",
+      "states": [
+        "default",
+        "invalid",
+        "confirm",
+        "busy",
+        "failed"
+      ],
+      "opens_from": "settings"
+    },
+    {
+      "id": "end-call",
+      "kind": "dialog",
+      "title": "End call",
+      "states": [
+        "default",
+        "busy"
+      ],
+      "opens_from": "live-inspection",
+      "not_applicable": {
+        "invalid": "The dialog has no inputs to validate."
+      }
+    },
+    {
+      "id": "booking-toast",
+      "kind": "notification",
+      "title": "Booking toast",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "with-action",
+        "stacked"
+      ],
+      "opens_from": "dashboard"
+    },
+    {
+      "id": "call-banner",
+      "kind": "notification",
+      "title": "Call banner",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "persistent"
+      ],
+      "opens_from": "live-inspection"
+    },
+    {
+      "id": "report-ready",
+      "kind": "notification",
+      "title": "Report ready",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "with-action"
+      ],
+      "opens_from": "dashboard"
+    },
+    {
+      "id": "window-expiring",
+      "kind": "notification",
+      "title": "Window banner",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "persistent"
+      ],
+      "opens_from": "dashboard"
+    },
+    {
+      "id": "payment-failed",
+      "kind": "notification",
+      "title": "Payment toast",
+      "states": [
+        "info",
+        "success",
+        "warning",
+        "danger",
+        "with-action"
+      ],
+      "opens_from": "checkout"
+    },
+    {
+      "id": "cookie-consent",
+      "kind": "notification",
+      "title": "Cookie consent",
+      "states": [
+        "info",
+        "success"
+      ],
+      "opens_from": "home",
+      "not_applicable": {
+        "warning": "Consent has no warning variant; the choice is accept, reject or manage.",
+        "danger": "Saving a consent choice can’t fail in a way the visitor needs to act on."
+      }
+    }
+  ]
+}

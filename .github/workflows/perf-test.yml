@@ -1,0 +1,96 @@
+name: Perf test
+
+# The Angular port of Fluent UI's perf-test: renders every scenario in
+# frontend/projects/perf-test many times under the V8 profiler, for this PR
+# and for its base branch, and reports render-time changes in the job summary.
+# Report-only: a flagged row is a prompt to read the profile, not a gate.
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - 'e2e/perf-test/**'
+      - '.github/workflows/perf-test.yml'
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  # Keep function names in the bundles so the hot-function tables and the
+  # .cpuprofile files are readable.
+  NG_BUILD_MANGLE: '0'
+
+concurrency:
+  group: perf-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  perf-test:
+    name: Perf test (Chromium)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          (cd frontend && npm ci)
+          (cd e2e && npm ci)
+
+      - name: Build perf-test app (this PR, installing Chromium alongside)
+        run: |
+          (cd e2e && npx playwright install --with-deps chromium) > "$RUNNER_TEMP/chromium.log" 2>&1 &
+          chromium=$!
+          (cd frontend && npx ng build perf-test)
+          if ! wait "$chromium"; then
+            cat "$RUNNER_TEMP/chromium.log"
+            exit 1
+          fi
+
+      # The base branch is built from its own sources with the same toolchain.
+      # Until the base branch has the perf-test app there is nothing to
+      # compare against, and the report shows absolute numbers only.
+      - name: Build perf-test app (base branch)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          git fetch --depth=1 origin "$BASE_REF"
+          base="$RUNNER_TEMP/base"
+          git worktree add --detach "$base" FETCH_HEAD
+          if [ ! -f "$base/frontend/projects/perf-test/src/main.ts" ]; then
+            echo "Base branch has no perf-test app; skipping the baseline."
+            exit 0
+          fi
+          cd "$base/frontend"
+          if cmp -s package-lock.json "$GITHUB_WORKSPACE/frontend/package-lock.json"; then
+            ln -s "$GITHUB_WORKSPACE/frontend/node_modules" node_modules
+          else
+            npm ci
+          fi
+          npx ng build perf-test
+          echo "PERF_BASELINE=$base/frontend/dist/perf-test/browser" >> "$GITHUB_ENV"
+
+      - name: Run perf test
+        working-directory: e2e
+        run: npm run perf-test -- ${PERF_BASELINE:+--baseline "$PERF_BASELINE"}
+
+      - name: Publish report
+        if: always()
+        run: |
+          if [ -f e2e/perf-test/logfiles/perf-test.md ]; then
+            cat e2e/perf-test/logfiles/perf-test.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: perf-test-logfiles
+          path: e2e/perf-test/logfiles/
+          if-no-files-found: ignore

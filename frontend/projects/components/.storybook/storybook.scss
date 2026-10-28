@@ -1,0 +1,72 @@
+// Storybook preview entry — the same globals the app loads in
+// `projects/secondlook/src/styles.scss`, so a component renders here exactly
+// as it does on a screen.
+
+@use 'styles';
+@import '@angular/cdk/overlay-prebuilt.css';
+
+// Overlay panel classes — the same rules as projects/secondlook/src/styles.scss,
+// so stories that open a CDK Dialog or anchored menu look like the app: a
+// bottom sheet below 720px, a centred modal above.
+.sl-dialog-backdrop {
+  background: var(--colorBackgroundOverlay);
+}
+
+.sl-dialog-panel {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.cdk-global-overlay-wrapper:has(> .sl-dialog-panel) {
+  align-items: flex-end !important;
+  justify-content: center !important;
+}
+
+@media (min-width: 45rem) {
+  .sl-dialog-panel {
+    max-width: 568px;
+    padding: 24px;
+  }
+
+  .cdk-global-overlay-wrapper:has(> .sl-dialog-panel) {
+    align-items: center !important;
+  }
+}
+
+.sl-menu-backdrop {
+  background: transparent;
+}
+
+.sl-menu-pane {
+  margin-top: 8px;
+}
+
+// Docs pages render inside the preview iframe; keep the Storybook docs
+// typography on the brand stack.
+.sbdocs-wrapper {
+  font-family: var(--fontFamilyBase);
+}
+
+// Theme → Motion: hover a row to watch the dot travel at that duration.
+.sl-motion-demo {
+  width: 160px;
+  height: 24px;
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralBackground3);
+  position: relative;
+}
+
+.sl-motion-demo__dot {
+  position: absolute;
+  inset-block: 4px;
+  left: 4px;
+  width: 16px;
+  border-radius: 50%;
+  background: var(--colorBrandBackground);
+  transition: transform var(--_dur, var(--durationNormal)) var(--curveEasyEase);
+}
+
+.sl-motion-demo:hover .sl-motion-demo__dot {
+  transform: translateX(132px);
+}

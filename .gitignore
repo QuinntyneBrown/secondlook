@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Build output
+bin/
+obj/
+dist/
+out/
+coverage/
+artifacts/
+.run/
+
+# Claude Code session state
+.claude/*
+!.claude/skills/
+!.claude/skills/**
+
+# Azure deployment state (contains secrets)
+.deploy/
+
+# Angular
+.angular/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+
+# Local mock verification output
+.screenshots/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.lscache
+
+# Video build cache (tools/video-audio, tools/video-build)
+.cache/
+
+# Family photo uploads stored by the API in development (L2-109)
+**/App_Data/
