@@ -78,7 +78,7 @@ export interface SummaryItem {
   `,
 })
 export class Alert {
-  readonly variant = input<'danger' | 'success'>('danger');
+  readonly variant = input<'danger' | 'success' | 'info'>('danger');
   readonly title = input.required<string>();
   readonly text = input<string | null>(null);
   /** Error-summary entries: each links to its field. */

@@ -22,6 +22,56 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SecondLook.Domain.Availability.AvailabilityWindow", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("EndUtc")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("StartUtc")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId", "StartUtc");
+
+                    b.ToTable("AvailabilityWindows");
+                });
+
+            modelBuilder.Entity("SecondLook.Domain.Availability.SlotReservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("ExpiresAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("StartUtc")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId", "StartUtc")
+                        .IsUnique();
+
+                    b.ToTable("SlotReservations");
+                });
+
             modelBuilder.Entity("SecondLook.Domain.Users.AccountToken", b =>
                 {
                     b.Property<Guid>("Id")

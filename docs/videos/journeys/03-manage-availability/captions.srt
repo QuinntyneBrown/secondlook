@@ -1,0 +1,111 @@
+1
+00:00:00,000 --> 00:00:03,310
+This is the implementation demo for journey three.
+
+2
+00:00:03,310 --> 00:00:08,730
+It is the real application and API running on this machine, with synthetic people.
+
+3
+00:00:08,730 --> 00:00:13,760
+It shows how an approved mechanic saves the times they can take inspections,
+
+4
+00:00:13,760 --> 00:00:17,400
+and how buyers see only the times that are really free.
+
+5
+00:00:18,550 --> 00:00:21,970
+The mechanic signs in and opens their availability.
+
+6
+00:00:21,970 --> 00:00:27,280
+To add a window they open a dialog and choose a day and hours, in Eastern Time.
+
+7
+00:00:27,280 --> 00:00:31,710
+A start that is not on the half hour, and an end before the start,
+
+8
+00:00:31,710 --> 00:00:34,330
+are refused with a list of what to fix.
+
+9
+00:00:34,330 --> 00:00:38,830
+Fixing them saves the window, which shows as eight half hour slots.
+
+10
+00:00:38,830 --> 00:00:42,250
+A second window that overlaps the first is refused,
+
+11
+00:00:42,250 --> 00:00:44,670
+and the dialog keeps what was typed.
+
+12
+00:00:44,670 --> 00:00:49,370
+Editing a window works the same way, and here the start moves earlier.
+
+13
+00:00:50,520 --> 00:00:51,850
+Now the buyer's side.
+
+14
+00:00:51,850 --> 00:00:56,790
+A buyer asks for slots and gets only the half hour times inside the mechanic's
+
+15
+00:00:56,790 --> 00:01:00,220
+window, in universal time with the Eastern zone named.
+
+16
+00:01:00,220 --> 00:01:05,360
+When an administrator deactivates the mechanic, the same request returns nothing.
+
+17
+00:01:05,360 --> 00:01:08,080
+Approving them again brings the slots back.
+
+18
+00:01:09,230 --> 00:01:11,220
+Booked times are protected too.
+
+19
+00:01:11,220 --> 00:01:15,630
+A slot can be reserved only once, even when requests arrive together,
+
+20
+00:01:15,630 --> 00:01:19,470
+and a window cannot be removed or shrunk over a booked slot.
+
+21
+00:01:19,470 --> 00:01:22,480
+Those rules are covered by the automated tests,
+
+22
+00:01:22,480 --> 00:01:24,980
+and the booking journeys will use them.
+
+23
+00:01:26,130 --> 00:01:27,910
+Here is what to remember.
+
+24
+00:01:27,910 --> 00:01:32,320
+Only approved providers save availability, and only their own.
+
+25
+00:01:32,320 --> 00:01:37,660
+Windows cannot overlap, and times are entered in Eastern Time and stored in
+
+26
+00:01:37,660 --> 00:01:38,730
+universal time.
+
+27
+00:01:38,730 --> 00:01:44,710
+Buyers see only free slots from approved providers, and booked times are never lost.
+
+28
+00:01:44,710 --> 00:01:47,270
+Next, journey four: manage vehicles.

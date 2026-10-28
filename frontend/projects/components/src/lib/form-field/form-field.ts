@@ -65,7 +65,7 @@ import { ChangeDetectionStrategy, Component, computed, input, model } from '@ang
 export class FormField {
   readonly fieldId = input.required<string>();
   readonly label = input.required<string>();
-  readonly type = input<'text' | 'email' | 'password'>('text');
+  readonly type = input<'text' | 'email' | 'password' | 'date' | 'time'>('text');
   readonly autocomplete = input<string | null>(null);
   readonly help = input<string | null>(null);
   readonly error = input<string | null>(null);

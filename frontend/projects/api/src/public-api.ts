@@ -20,3 +20,8 @@ export {
   type ProviderFilter,
   type ProviderKind,
 } from './lib/admin-providers-api';
+export {
+  AVAILABILITY_API,
+  type AvailabilityApi,
+  type AvailabilityWindow,
+} from './lib/availability-api';

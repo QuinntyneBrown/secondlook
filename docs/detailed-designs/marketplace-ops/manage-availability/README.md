@@ -72,3 +72,9 @@ The provider submits windows. The handler validates them and saves them for the 
 The slot query intersects approved providers' windows with held and booked times, so the buyer sees only open times.
 
 ![Sequence diagram for listing bookable slots](diagrams/sequence-list-bookable-slots.png)
+
+## Implementation (J03)
+
+Decisions are in ADR 0005. Mocks: `docs/mocks/pages/provider-availability` (default, loading, empty, error, not-approved) and the dialogs `add-availability`, `edit-availability` and `remove-availability`.
+
+Endpoints: `GET /api/availability` (own windows), `POST /api/availability` `{start,end}` (201; 400 field errors; 409 overlap; 403 not approved), `PUT /api/availability/{id}` (200; 404 for another provider's window; 409 overlap or booked), `DELETE /api/availability/{id}` (204; 409 booked), all for roles Mechanic and BodyShop only, with the provider taken from the token. `GET /api/slots?from=&to=&kind=` (role Buyer) returns `{timeZone, slots:[{providerId,providerName,kind,start,end}]}` in UTC for free 30-minute slots of providers who can take inspections. `ReserveSlotCommand` (used by the booking journeys) takes a slot as Held or Booked and returns Reserved, Taken or NotAvailable; the unique index on `(ProviderId, StartUtc)` settles concurrent requests.

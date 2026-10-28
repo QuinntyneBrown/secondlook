@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
+using SecondLook.Domain.Availability;
 using SecondLook.Domain.Users;
 
 namespace SecondLook.Infrastructure.Persistence;
@@ -8,6 +9,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 {
     public DbSet<User> Users => Set<User>();
     public DbSet<AccountToken> AccountTokens => Set<AccountToken>();
+    public DbSet<AvailabilityWindow> AvailabilityWindows => Set<AvailabilityWindow>();
+    public DbSet<SlotReservation> SlotReservations => Set<SlotReservation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +35,21 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(t => t.ExpiresAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(t => t.UsedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
             e.HasIndex(t => t.TokenHash).IsUnique();
+        });
+        modelBuilder.Entity<AvailabilityWindow>(e =>
+        {
+            e.HasKey(w => w.Id);
+            e.Property(w => w.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(w => w.EndUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(w => new { w.ProviderId, w.StartUtc });
+        });
+        modelBuilder.Entity<SlotReservation>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(r => r.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(r => r.ExpiresAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.HasIndex(r => new { r.ProviderId, r.StartUtc }).IsUnique();
         });
     }
 }

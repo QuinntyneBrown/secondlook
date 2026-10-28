@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, Routes } from '@angular/router';
+import { AvailabilityPage } from './pages/availability-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
 import { InspectionsPage } from './pages/inspections-page';
 import { ReadinessPage } from './pages/readiness-page';
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordPage },
   { path: 'reset-password', component: ResetPasswordPage },
   { path: 'inspections', component: InspectionsPage, canActivate: [signedIn] },
+  { path: 'availability', component: AvailabilityPage, canActivate: [signedIn] },
   { path: 'forbidden', component: SystemPage, data: { state: 'forbidden' } },
   { path: 'offline', component: SystemPage, data: { state: 'offline' } },
   { path: 'maintenance', component: SystemPage, data: { state: 'maintenance' } },

@@ -114,7 +114,7 @@ export class ResetPasswordPage {
       next: ({ token }) => {
         this.session.start(token, '');
         this.api.me().subscribe({
-          next: (p) => this.session.start(token, p.displayName),
+          next: (p) => this.session.start(token, p.displayName, p.role),
           error: () => undefined,
         });
         this.done.set(true);

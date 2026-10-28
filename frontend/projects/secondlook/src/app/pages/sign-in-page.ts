@@ -116,8 +116,9 @@ export class SignInPage {
     this.busy.set(true);
     this.api.signIn(this.email().trim(), this.password()).subscribe({
       next: (r) => {
-        this.session.start(r.token, r.displayName);
-        void this.router.navigateByUrl('/inspections');
+        this.session.start(r.token, r.displayName, r.role);
+        const provider = r.role === 'Mechanic' || r.role === 'BodyShop';
+        void this.router.navigateByUrl(provider ? '/availability' : '/inspections');
       },
       error: (p: ApiProblem) => {
         this.busy.set(false);
