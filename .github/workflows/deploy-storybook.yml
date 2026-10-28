@@ -1,14 +1,6 @@
 name: Deploy Storybook
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'frontend/projects/components/**'
-      - 'frontend/angular.json'
-      - 'frontend/package.json'
-      - 'frontend/package-lock.json'
-      - '.github/workflows/deploy-storybook.yml'
 
 permissions:
   contents: read

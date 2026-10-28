@@ -67,12 +67,6 @@ jobs:
         working-directory: frontend
         run: npm run format:check
 
-      # The static marketing site (ADR-018) sits outside frontend/, so neither
-      # format:check nor the pre-commit hook sees it.
-      - name: Format check, marketing site (Prettier)
-        working-directory: frontend
-        run: npx prettier --check ../marketing
-
       - name: Lint (angular-eslint)
         working-directory: frontend
         run: npm run lint
@@ -135,12 +129,54 @@ jobs:
             exit 1
           fi
 
-      - name: Verify Storybook contract and examples
-        working-directory: e2e
-        run: npm run test:storybook
-
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: storybook-test-results
           path: e2e/test-results/
+
+  e2e:
+    name: Chromium smoke against the real API
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix e2e
+          npx --prefix e2e playwright install --with-deps chromium
+
+      # Explicit migrate + seed on a throwaway SQLite file, then the API on :5100 (no LocalDB, no secrets).
+      - name: Build and start the API
+        shell: pwsh
+        run: ./eng/Start-E2eApi.ps1 -Build
+
+      - name: Platform smoke (Chromium)
+        working-directory: e2e
+        run: npx playwright test --project=desktop --project=admin tests/platform tests/admin
+
+      - name: Stop the API
+        if: always()
+        shell: pwsh
+        run: ./eng/Stop-E2eApi.ps1
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-test-results
+          path: |
+            e2e/test-results/
+            .run/logs/

@@ -58,7 +58,8 @@ foreach ($command in 'migrate', 'seed') {
 
 $out = Join-Path $logDir 'e2e-api.out.log'
 $err = Join-Path $logDir 'e2e-api.err.log'
-$api = Start-Process -FilePath 'dotnet' -PassThru -WindowStyle Hidden -WorkingDirectory $backend `
+$hidden = $IsWindows ? @{ WindowStyle = 'Hidden' } : @{}
+$api = Start-Process -FilePath 'dotnet' -PassThru @hidden -WorkingDirectory $backend `
     -RedirectStandardOutput $out -RedirectStandardError $err `
     -ArgumentList 'run', '--project', (Join-Path $backend 'src/SecondLook.Api'), '--no-build', '--urls', "http://localhost:$Port"
 $api.Id | Set-Content $pidFile
