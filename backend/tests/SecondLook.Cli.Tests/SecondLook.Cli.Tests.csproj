@@ -14,4 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SecondLook.Cli\SecondLook.Cli.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
 </Project>
