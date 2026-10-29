@@ -16,7 +16,7 @@ public abstract class ReportFlow(ApiFactory factory) : BookingFlow(factory)
     protected HttpClient BodyShop => Factory.ClientFor("BodyShop");
 
     /// <summary>Books an inspection, holds the call and ends it, as the buyer would.</summary>
-    protected async Task<(HttpClient buyer, Guid id)> FinishedCall(string review = "Mechanic")
+    protected async Task<(HttpClient buyer, Guid id)> FinishedCall(string review = "Mechanic", bool endCall = true)
     {
         var buyer = NewBuyer();
         DateTimeOffset start;
@@ -40,6 +40,32 @@ public abstract class ReportFlow(ApiFactory factory) : BookingFlow(factory)
             start = await OpenWindow();
             id = await Book(buyer, start, review);
         }
+        if (!endCall) return (buyer, id);
+        Factory.Clock.Advance(start - Factory.Clock.GetUtcNow() - TimeSpan.FromMinutes(5));
+        (await buyer.PostAsync($"/api/calls/{id}/join", null)).EnsureSuccessStatusCode();
+        (await buyer.PostAsync($"/api/calls/{id}/end", null)).EnsureSuccessStatusCode();
+        return (buyer, id);
+    }
+
+    protected static readonly Guid ShopId = ApiFactory.SeededId("BodyShop");
+
+    protected Task<HttpResponseMessage> SubmitShop(Guid id, params object[] findings) =>
+        BodyShop.PutAsJsonAsync($"/api/inspections/{id}/report/body-shop", new { findings });
+
+    /// <summary>A body shop review booked with the shop alone (no mechanic), whose call has been held and ended.</summary>
+    protected async Task<(HttpClient buyer, Guid id)> FinishedBodyShopOnlyCall()
+    {
+        var start = NextDay();
+        (await BodyShop.PostAsJsonAsync("/api/availability", new { start, end = start.AddHours(2) })).StatusCode.Should().Be(HttpStatusCode.Created);
+        var buyer = NewBuyer();
+        var hold = (await Json(await buyer.PostAsJsonAsync("/api/bookings/holds", new { providerId = ShopId, start }))).GetProperty("holdId").GetGuid();
+        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
+        var checkout = (await Json(await buyer.PostAsJsonAsync("/api/checkouts", new { review = "BodyShop", idempotencyKey = Guid.NewGuid().ToString(), vehicleId = vehicle }))).GetProperty("id").GetGuid();
+        var token = (await Json(await buyer.PostAsJsonAsync("/api/payments/tokens", new { cardNumber = Visa, expiry = "12 / 34", securityCode = "123", nameOnCard = "Bo", postalCode = "L8P 1A1" }))).GetProperty("token").GetString();
+        (await buyer.PostAsJsonAsync($"/api/checkouts/{checkout}/pay", new { paymentToken = token })).StatusCode.Should().Be(HttpStatusCode.OK);
+        var confirmed = await buyer.PostAsJsonAsync("/api/bookings", new { checkoutId = checkout, holdId = hold, vehicleId = vehicle });
+        confirmed.StatusCode.Should().Be(HttpStatusCode.Created);
+        var id = (await Json(confirmed)).GetProperty("id").GetGuid();
         Factory.Clock.Advance(start - Factory.Clock.GetUtcNow() - TimeSpan.FromMinutes(5));
         (await buyer.PostAsync($"/api/calls/{id}/join", null)).EnsureSuccessStatusCode();
         (await buyer.PostAsync($"/api/calls/{id}/end", null)).EnsureSuccessStatusCode();

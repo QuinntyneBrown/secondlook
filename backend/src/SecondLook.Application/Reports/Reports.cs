@@ -17,8 +17,12 @@ public sealed record FindingDto(Guid Id, string Title, string Note, string Statu
 /// <summary>The body shop's part of the report: not requested, in progress or (from J12) ready.</summary>
 public sealed record BodyShopDto(string Status, string? ReviewerName, IReadOnlyList<FindingDto> Findings);
 
+/// <summary>
+/// The report as the buyer reads it. <c>Findings</c> and the cost totals are the mechanic's estimate alone; the body shop's
+/// findings are their own part and never change the totals (ADR 0014).
+/// </summary>
 public sealed record ReportDto(
-    Guid InspectionId, DateTimeOffset SubmittedAt, DateTimeOffset? CallEndedAt, string MechanicName,
+    Guid InspectionId, string Review, DateTimeOffset SubmittedAt, DateTimeOffset? CallEndedAt, string? MechanicName, bool MechanicReady,
     string Vin, int OdometerKm, int AskingPriceCents,
     IReadOnlyList<FindingDto> Findings, int RequiredCount, int CostMinCents, int CostMaxCents, int AllInMinCents, int AllInMaxCents,
     BodyShopDto BodyShop, string Disclaimer);
@@ -47,43 +51,41 @@ internal static class ReportMapper
     public static async Task<ReportDto> ToDtoAsync(IAppDbContext db, Inspection i, Report report, bool includeBodyShop, CancellationToken ct)
     {
         var rows = (await db.ReportFindings.Where(f => f.ReportId == report.Id).ToListAsync(ct)).OrderBy(f => f.Position).ToList();
-        var findings = rows.Select(f => new FindingDto(f.Id, f.Title, f.Note, f.Status.ToString(), f.MinCents, f.MaxCents)).ToList();
-        var required = rows.Where(f => f.Status == FindingStatus.Required).ToList();
+        FindingDto Dto(ReportFinding f) => new(f.Id, f.Title, f.Note, f.Status.ToString(), f.MinCents, f.MaxCents);
+        var mechanicRows = rows.Where(f => f.Source == FindingSource.Mechanic).ToList();
+        var required = mechanicRows.Where(f => f.Status == FindingStatus.Required).ToList();
         var min = required.Sum(f => f.MinCents ?? 0);
         var max = required.Sum(f => f.MaxCents ?? 0);
         var asking = (int)Math.Round(i.AskingPrice * 100);
-        var mechanic = await db.Users.FirstAsync(u => u.Id == report.MechanicId, ct);
+        var mechanic = report.MechanicId is { } mid ? await db.Users.FirstAsync(u => u.Id == mid, ct) : null;
         var ended = (await db.CallSessions.FirstOrDefaultAsync(s => s.InspectionId == i.Id, ct))?.EndedAt;
 
         BodyShopDto bodyShop;
         if (i.BodyShopId is not { } shopId) bodyShop = new("NotRequested", null, []);
         else if (!includeBodyShop) bodyShop = new("NotShared", null, []);
-        else bodyShop = new("InProgress", (await db.Users.FirstAsync(u => u.Id == shopId, ct)).DisplayName, []);
+        else
+        {
+            var reviewer = (await db.Users.FirstAsync(u => u.Id == shopId, ct)).DisplayName;
+            bodyShop = report.BodyShopSubmittedAt is null
+                ? new("InProgress", reviewer, [])
+                : new("Ready", reviewer, rows.Where(f => f.Source == FindingSource.BodyShop).Select(Dto).ToList());
+        }
 
-        return new ReportDto(i.Id, report.SubmittedAt, ended, mechanic.DisplayName, i.Vin, i.OdometerKm, asking,
-            findings, required.Count, min, max, asking + min, asking + max, bodyShop, Disclaimer);
+        return new ReportDto(i.Id, i.Review.ToString(), report.MechanicSubmittedAt ?? report.BodyShopSubmittedAt ?? default, ended, mechanic?.DisplayName, report.MechanicSubmittedAt is not null,
+            i.Vin, i.OdometerKm, asking, mechanicRows.Select(Dto).ToList(), required.Count, min, max, asking + min, asking + max, bodyShop, Disclaimer);
     }
 }
 
-public sealed record SubmitReportCommand(Guid InspectionId, IReadOnlyList<FindingInput>? Findings) : IRequest<ReportOutcome<ReportDto>>;
-
-/// <summary>The assigned mechanic submits (or replaces) the estimate once the call has ended (L2-050).</summary>
-public sealed class SubmitReportHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<SubmitReportCommand, ReportOutcome<ReportDto>>
+/// <summary>The checks both parts of a report share: how many findings, what each may say, and what costs are allowed.</summary>
+internal static class FindingRules
 {
     public const int MaxFindings = 30;
     public const int MaxCents = 10_000_000;
 
-    public async Task<ReportOutcome<ReportDto>> Handle(SubmitReportCommand c, CancellationToken ct)
+    public static (Dictionary<string, string[]> Errors, List<(string Title, string Note, FindingStatus Status, int? Min, int? Max)> Parsed) Validate(IReadOnlyList<FindingInput>? input)
     {
-        var i = await ReportMapper.ParticipantInspectionAsync(db, caller, c.InspectionId, ct);
-        if (i is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.NotFound);
-        if (caller.Role != UserRole.Mechanic) return ReportOutcome<ReportDto>.Fail(ReportFailure.Forbidden);
-
-        var session = await db.CallSessions.FirstOrDefaultAsync(s => s.InspectionId == i.Id, ct);
-        if (session?.EndedAt is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.Conflict, "Write the report once the call has ended.");
-
         var errors = new Dictionary<string, string[]>();
-        var input = c.Findings ?? [];
+        input ??= [];
         if (input.Count is 0 or > MaxFindings) errors["findings"] = [$"Add 1 to {MaxFindings} findings."];
         var parsed = new List<(string Title, string Note, FindingStatus Status, int? Min, int? Max)>();
         for (var n = 0; n < input.Count; n++)
@@ -106,24 +108,99 @@ public sealed class SubmitReportHandler(IAppDbContext db, ICurrentUser caller, T
             }
             parsed.Add((title, note, status, f.MinCents, f.MaxCents));
         }
+        return (errors, parsed);
+    }
+
+    /// <summary>Replaces one part's findings, leaving the other part's alone.</summary>
+    public static void Replace(IAppDbContext db, Report report, FindingSource source, IEnumerable<(string Title, string Note, FindingStatus Status, int? Min, int? Max)> parsed)
+    {
+        db.ReportFindings.RemoveRange(db.ReportFindings.Where(f => f.ReportId == report.Id && f.Source == source));
+        var position = 0;
+        foreach (var f in parsed)
+            db.ReportFindings.Add(new ReportFinding { Id = Guid.NewGuid(), ReportId = report.Id, Source = source, Position = position++, Title = f.Title, Note = f.Note, Status = f.Status, MinCents = f.Min, MaxCents = f.Max });
+    }
+}
+
+public sealed record SubmitReportCommand(Guid InspectionId, IReadOnlyList<FindingInput>? Findings) : IRequest<ReportOutcome<ReportDto>>;
+
+/// <summary>The assigned mechanic submits (or replaces) the estimate once the call has ended (L2-050).</summary>
+public sealed class SubmitReportHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<SubmitReportCommand, ReportOutcome<ReportDto>>
+{
+    public async Task<ReportOutcome<ReportDto>> Handle(SubmitReportCommand c, CancellationToken ct)
+    {
+        var i = await ReportMapper.ParticipantInspectionAsync(db, caller, c.InspectionId, ct);
+        if (i is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.NotFound);
+        if (caller.Role != UserRole.Mechanic) return ReportOutcome<ReportDto>.Fail(ReportFailure.Forbidden);
+
+        var session = await db.CallSessions.FirstOrDefaultAsync(s => s.InspectionId == i.Id, ct);
+        if (session?.EndedAt is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.Conflict, "Write the report once the call has ended.");
+
+        var (errors, parsed) = FindingRules.Validate(c.Findings);
         if (errors.Count > 0) return ReportOutcome<ReportDto>.Invalid(errors);
 
         var report = await db.Reports.FirstOrDefaultAsync(r => r.InspectionId == i.Id, ct);
         if (report is null)
         {
-            report = new Report { Id = Guid.NewGuid(), InspectionId = i.Id, MechanicId = caller.Id, SubmittedAt = clock.GetUtcNow() };
+            report = new Report { Id = Guid.NewGuid(), InspectionId = i.Id };
             db.Reports.Add(report);
         }
-        else
-        {
-            report.SubmittedAt = clock.GetUtcNow();
-            db.ReportFindings.RemoveRange(db.ReportFindings.Where(f => f.ReportId == report.Id));
-        }
-        var position = 0;
-        foreach (var f in parsed)
-            db.ReportFindings.Add(new ReportFinding { Id = Guid.NewGuid(), ReportId = report.Id, Position = position++, Title = f.Title, Note = f.Note, Status = f.Status, MinCents = f.Min, MaxCents = f.Max });
+        report.MechanicId = caller.Id;
+        report.MechanicSubmittedAt = clock.GetUtcNow();
+        FindingRules.Replace(db, report, FindingSource.Mechanic, parsed);
         await db.SaveChangesAsync(ct);
         return ReportOutcome<ReportDto>.Ok(await ReportMapper.ToDtoAsync(db, i, report, true, ct));
+    }
+}
+
+public sealed record SubmitBodyShopReviewCommand(Guid InspectionId, IReadOnlyList<FindingInput>? Findings) : IRequest<ReportOutcome<ReportDto>>;
+
+/// <summary>The assigned body shop submits (or replaces) its findings once the call has ended (L2-062); the mechanic's part is untouched.</summary>
+public sealed class SubmitBodyShopReviewHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<SubmitBodyShopReviewCommand, ReportOutcome<ReportDto>>
+{
+    public async Task<ReportOutcome<ReportDto>> Handle(SubmitBodyShopReviewCommand c, CancellationToken ct)
+    {
+        var i = await ReportMapper.ParticipantInspectionAsync(db, caller, c.InspectionId, ct);
+        if (i is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.NotFound);
+        if (caller.Role != UserRole.BodyShop) return ReportOutcome<ReportDto>.Fail(ReportFailure.Forbidden);
+
+        var session = await db.CallSessions.FirstOrDefaultAsync(s => s.InspectionId == i.Id, ct);
+        if (session?.EndedAt is null) return ReportOutcome<ReportDto>.Fail(ReportFailure.Conflict, "Write the body review once the call has ended.");
+
+        var (errors, parsed) = FindingRules.Validate(c.Findings);
+        if (errors.Count > 0) return ReportOutcome<ReportDto>.Invalid(errors);
+
+        var report = await db.Reports.FirstOrDefaultAsync(r => r.InspectionId == i.Id, ct);
+        if (report is null)
+        {
+            report = new Report { Id = Guid.NewGuid(), InspectionId = i.Id };
+            db.Reports.Add(report);
+        }
+        report.BodyShopId = caller.Id;
+        report.BodyShopSubmittedAt = clock.GetUtcNow();
+        FindingRules.Replace(db, report, FindingSource.BodyShop, parsed);
+        await db.SaveChangesAsync(ct);
+        return ReportOutcome<ReportDto>.Ok(await ReportMapper.ToDtoAsync(db, i, report, true, ct));
+    }
+}
+
+public sealed record AssignedReviewDto(Guid InspectionId, string Vin, DateTimeOffset Start, string Review, string CallStatus, bool Delivered);
+
+public sealed record ListAssignedReviewsQuery : IRequest<IReadOnlyList<AssignedReviewDto>>;
+
+/// <summary>The body shop's queue: its own scheduled inspections, soonest first, with where each stands (L2-058).</summary>
+public sealed class ListAssignedReviewsHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<ListAssignedReviewsQuery, IReadOnlyList<AssignedReviewDto>>
+{
+    public async Task<IReadOnlyList<AssignedReviewDto>> Handle(ListAssignedReviewsQuery q, CancellationToken ct)
+    {
+        var mine = (await db.Inspections.ForCaller(caller).ToListAsync(ct)).Where(i => i.Status == InspectionStatus.Scheduled).OrderBy(i => i.StartUtc).ToList();
+        var ids = mine.Select(i => i.Id).ToList();
+        var sessions = await db.CallSessions.Where(s => ids.Contains(s.InspectionId)).ToDictionaryAsync(s => s.InspectionId, ct);
+        var delivered = (await db.Reports.Where(r => ids.Contains(r.InspectionId) && r.BodyShopSubmittedAt != null).Select(r => r.InspectionId).ToListAsync(ct)).ToHashSet();
+        return mine.Select(i =>
+        {
+            var status = !sessions.TryGetValue(i.Id, out var s) ? "NotStarted" : s.EndedAt is null ? "Live" : "Ended";
+            return new AssignedReviewDto(i.Id, i.Vin, i.StartUtc, i.Review.ToString(), status, delivered.Contains(i.Id));
+        }).ToList();
     }
 }
 

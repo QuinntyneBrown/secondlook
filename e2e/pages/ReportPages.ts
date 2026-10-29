@@ -2,16 +2,36 @@ import { expect, type Page } from "@playwright/test";
 
 /** The mechanic's estimate editor (L2-050): add findings in a dialog, then submit. */
 export class EstimatePage {
-  constructor(private readonly page: Page) {}
+  /** `estimate` is the mechanic's estimate; `body` is the body shop's review (L2-062). */
+  constructor(
+    private readonly page: Page,
+    private readonly kind: "estimate" | "body" = "estimate",
+  ) {}
 
   async open(inspectionId: string) {
-    await this.page.goto(`/inspections/${inspectionId}/estimate`);
+    await this.page.goto(
+      `/inspections/${inspectionId}/${this.kind === "body" ? "body-review" : "estimate"}`,
+    );
   }
 
   async expectLoaded() {
     await expect(
-      this.page.getByRole("heading", { level: 1, name: "Write the estimate" }),
+      this.page.getByRole("heading", {
+        level: 1,
+        name: this.kind === "body" ? "Write the body review" : "Write the estimate",
+      }),
     ).toBeVisible();
+  }
+
+  async expectNotFound() {
+    await expect(
+      this.page
+        .getByRole("alert")
+        .filter({ hasText: "We couldn’t find that inspection" }),
+    ).toBeVisible();
+    await expect(
+      this.page.getByRole("button", { name: "Add a finding" }),
+    ).toHaveCount(0);
   }
 
   private get dialog() {
@@ -88,7 +108,11 @@ export class EstimatePage {
   }
 
   async submit() {
-    await this.page.getByRole("button", { name: "Submit estimate" }).click();
+    await this.page
+      .getByRole("button", {
+        name: this.kind === "body" ? "Submit review" : "Submit estimate",
+      })
+      .click();
   }
 
   async expectProblem(title: string) {
@@ -99,10 +123,83 @@ export class EstimatePage {
 
   async expectSubmitted() {
     await expect(
-      this.page
-        .getByRole("status")
-        .filter({ hasText: "Estimate sent. The buyer can read it now." }),
+      this.page.getByRole("status").filter({
+        hasText:
+          this.kind === "body"
+            ? "Body review sent. The buyer can read it now."
+            : "Estimate sent. The buyer can read it now.",
+      }),
     ).toBeVisible();
+  }
+}
+
+/** The body shop's queue of its own reviews (L2-058, L2-062). */
+export class ReviewQueuePage {
+  constructor(private readonly page: Page) {}
+
+  async openFromHome() {
+    await this.page.getByRole("link", { name: "Assigned reviews" }).click();
+    await this.page.waitForURL(/\/reviews$/);
+  }
+
+  async open() {
+    await this.page.goto("/reviews");
+  }
+
+  async expectLoaded() {
+    await expect(
+      this.page.getByRole("heading", { level: 1, name: "Assigned reviews" }),
+    ).toBeVisible();
+  }
+
+  private row(vin: string) {
+    return this.page.getByRole("listitem").filter({ hasText: vin });
+  }
+
+  async expectRow(
+    vin: string,
+    status: "Waiting for the call" | "Call in progress" | "Call ended" | "Delivered",
+    review?: string,
+  ) {
+    await expect(this.row(vin)).toContainText(status);
+    if (review) await expect(this.row(vin)).toContainText(review);
+  }
+
+  async expectNoRow(vin: string) {
+    await expect(this.row(vin)).toHaveCount(0);
+  }
+
+  async joinCall(vin: string) {
+    await this.row(vin).getByRole("link", { name: "Join call" }).click();
+    await this.page.waitForURL(/\/inspections\/[^/]+\/lobby$/);
+  }
+
+  async writeFindings(vin: string) {
+    await this.row(vin)
+      .getByRole("link", { name: /^(Write|Change) findings$/ })
+      .click();
+    await this.page.waitForURL(/\/inspections\/[^/]+\/body-review$/);
+  }
+
+  /** Makes the queue request fail the way a dropped connection would, once. */
+  async failLoadOnce() {
+    let failed = false;
+    await this.page.route(/\/api\/reviews\/assigned$/, async (route) => {
+      if (!failed) {
+        failed = true;
+        await route.abort();
+      } else await route.continue();
+    });
+  }
+
+  async expectLoadFailed() {
+    await expect(
+      this.page.getByRole("alert").filter({ hasText: "Your reviews didn’t load" }),
+    ).toBeVisible();
+  }
+
+  async tryAgain() {
+    await this.page.getByRole("button", { name: "Try again" }).click();
   }
 }
 
@@ -188,6 +285,50 @@ export class ReportPage {
   async expectNoBodyShop() {
     await expect(
       this.page.getByRole("region", { name: "Body shop review" }),
+    ).toHaveCount(0);
+  }
+
+  /** The body shop's own findings, shown apart from the mechanic's estimate (L2-062). */
+  async expectBodyShopFindings(
+    reviewer: string,
+    findings: { title: string; status: string; cost: string }[],
+  ) {
+    const card = this.page.getByRole("region", { name: "Body shop review" });
+    await expect(card).toContainText(`Reviewed by ${reviewer}`);
+    for (const f of findings) {
+      const item = card.getByRole("listitem").filter({ hasText: f.title });
+      await expect(item).toContainText(f.status);
+      await expect(item).toContainText(f.cost);
+    }
+    await expect(
+      card.getByText("Body repairs are separate from the safety certification estimate above."),
+    ).toBeVisible();
+  }
+
+  async expectEstimatePending() {
+    await expect(
+      this.page.getByText("The mechanic’s estimate is still being written."),
+    ).toBeVisible();
+    await expect(
+      this.page.getByRole("heading", { name: "Estimated cost to get it safety certified" }),
+    ).toHaveCount(0);
+  }
+
+  /** A review with the body shop alone has no certification estimate to show. */
+  async expectBodyShopOnly(reviewer: string) {
+    await expect(
+      this.page.getByRole("heading", { level: 1, name: "Your report" }),
+    ).toBeVisible();
+    await expect(
+      this.page.getByText(
+        new RegExp(`^Call finished \\w{3} \\d{1,2} \\w{3} \\d{4} · reviewed by ${reviewer}$`),
+      ),
+    ).toBeVisible();
+    await expect(
+      this.page.getByRole("heading", { name: "Estimated cost to get it safety certified" }),
+    ).toHaveCount(0);
+    await expect(
+      this.page.getByRole("heading", { name: "Is it worth it?" }),
     ).toHaveCount(0);
   }
 

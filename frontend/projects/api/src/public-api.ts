@@ -64,6 +64,7 @@ export {
 } from './lib/bookings-api';
 export {
   REPORTS_API,
+  type AssignedReview,
   type BodyShopReview,
   type Finding,
   type FindingInput,
@@ -72,4 +73,5 @@ export {
   type Report,
   type ReportShare,
   type ReportsApi,
+  type ReviewType,
 } from './lib/reports-api';

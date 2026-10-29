@@ -11,6 +11,7 @@ import { CallPage } from './pages/call-page';
 import { CheckoutPage } from './pages/checkout-page';
 import { EstimatePage } from './pages/estimate-page';
 import { ReportPage } from './pages/report-page';
+import { ReviewQueuePage } from './pages/review-queue-page';
 import { SharedReportPage } from './pages/shared-report-page';
 import { InspectionDetailPage } from './pages/inspection-detail-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
@@ -41,6 +42,13 @@ export const routes: Routes = [
   { path: 'inspections/:id/call', component: CallPage, canActivate: [signedIn] },
   { path: 'inspections/:id/report', component: ReportPage, canActivate: [signedIn] },
   { path: 'inspections/:id/estimate', component: EstimatePage, canActivate: [signedIn] },
+  {
+    path: 'inspections/:id/body-review',
+    component: EstimatePage,
+    data: { part: 'bodyShop' },
+    canActivate: [signedIn],
+  },
+  { path: 'reviews', component: ReviewQueuePage, canActivate: [signedIn] },
   { path: 'shared/:token', component: SharedReportPage },
   { path: 'book/vehicle', component: BookVehiclePage, canActivate: [signedIn] },
   { path: 'book/review', component: BookReviewPage, canActivate: [signedIn] },

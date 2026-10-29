@@ -20,7 +20,7 @@ The user's instruction to save prompts in the repository overrides the writing-f
 | J09 | [Add body shop review](09-add-body-shop-review-prompt.md) | J00, J02, J03, J05, J06 | `docs/videos/journeys/09-add-body-shop-review/demo.mp4` |
 | J10 | [Join live video inspection](10-join-live-video-inspection-prompt.md) | J00, J06 | [`docs/videos/journeys/10-join-live-video-inspection/demo.mp4`](../videos/journeys/10-join-live-video-inspection/demo.mp4) |
 | J11 | [Receive safety certification estimate](11-receive-safety-certification-estimate-prompt.md) | J00, J10 | [`docs/videos/journeys/11-receive-safety-certification-estimate/demo.mp4`](../videos/journeys/11-receive-safety-certification-estimate/demo.mp4) |
-| J12 | [Conduct body shop review](12-conduct-body-shop-review-prompt.md) | J00, J09, J10, J11 | `docs/videos/journeys/12-conduct-body-shop-review/demo.mp4` |
+| J12 | [Conduct body shop review](12-conduct-body-shop-review-prompt.md) | J00, J09, J10, J11 | [`docs/videos/journeys/12-conduct-body-shop-review/demo.mp4`](../videos/journeys/12-conduct-body-shop-review/demo.mp4) |
 | J13 | [Compare vehicle estimates](13-compare-vehicle-estimates-prompt.md) | J00, J08, J11 | `docs/videos/journeys/13-compare-vehicle-estimates/demo.mp4` |
 | J14 | [Review inspection history](14-review-inspection-history-prompt.md) | J00, J06, J11 | `docs/videos/journeys/14-review-inspection-history/demo.mp4` |
 

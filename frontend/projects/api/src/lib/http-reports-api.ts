@@ -3,7 +3,14 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { ApiProblem } from './auth-api';
 import { API_BASE_URL } from './http-platform-api';
-import { FindingInput, IssueReason, Report, ReportShare, ReportsApi } from './reports-api';
+import {
+  AssignedReview,
+  FindingInput,
+  IssueReason,
+  Report,
+  ReportShare,
+  ReportsApi,
+} from './reports-api';
 
 function toProblem(e: unknown): ApiProblem {
   if (e instanceof HttpErrorResponse) {
@@ -41,6 +48,14 @@ export class HttpReportsApi implements ReportsApi {
 
   submit(id: string, findings: FindingInput[]) {
     return this.guard(this.http.put<Report>(this.base(id), { findings }));
+  }
+
+  submitBodyShop(id: string, findings: FindingInput[]) {
+    return this.guard(this.http.put<Report>(`${this.base(id)}/body-shop`, { findings }));
+  }
+
+  assigned() {
+    return this.guard(this.http.get<AssignedReview[]>(`${this.origin}/api/reviews/assigned`));
   }
 
   share(id: string, includeBodyShop: boolean) {

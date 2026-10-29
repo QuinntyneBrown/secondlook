@@ -73,3 +73,7 @@ The handler marks an `InProgress` review `Delivered`, or returns not found or co
 The report query returns the delivered findings to the buyer who owns the inspection.
 
 ![Sequence diagram for reading the findings in the report](diagrams/sequence-read-findings.png)
+
+## Implementation notes (J12)
+
+The `<TO SUPPLY>` items are decided in [ADR 0014](../../../adr/0014-body-shop-review-in-the-report.md) (L2-062, L2-079). The body shop joins the same call as the others (the signalling hub already admits it); it finds its inspections in an assigned-reviews queue at `/reviews` (`GET /api/reviews/assigned`, body shop role only) and writes its findings at `/inspections/:id/body-review`, which is the estimate editor reused for the body shop (`PUT /api/inspections/{id}/report/body-shop`, after the call, same validation, replace on resubmission). Findings carry their author (`Source`), the body shop part has its own completion time, and the buyer reads it in the report's "Body shop review" part. The review is delivered in one step: there are no saved drafts. There is no separate `BodyShopReview` entity or `Delivered` status; completion is `BodyShopSubmittedAt` on the report. Notifying the buyer of delivery is J14.

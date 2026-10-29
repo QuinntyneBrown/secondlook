@@ -55,6 +55,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
               >Write the report</sl-button
             >
           }
+          @if (c.you.role === 'BodyShop') {
+            <sl-button [routerLink]="'/inspections/' + c.inspectionId + '/body-review'"
+              >Write the body review</sl-button
+            >
+          }
           <sl-button variant="outline" [routerLink]="'/inspections/' + c.inspectionId"
             >Back to inspection</sl-button
           >

@@ -6,49 +6,69 @@ import { Alert, Button } from 'components';
 import { FindingDialog } from '../dialogs/finding-dialog';
 import { dollarRange } from '../util/money';
 
-/** The mechanic writes the estimate after the call (L2-050): findings are added in a dialog, then submitted. */
+/**
+ * The mechanic writes the estimate after the call (L2-050), and the body shop writes its own review the same way (L2-062):
+ * findings are added in a dialog, then submitted. The route's `part` data says which one this is.
+ */
 @Component({
   selector: 'sl-estimate-page',
   imports: [Alert, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
-      <h1>Write the estimate</h1>
-      <p class="sub">
-        List what the car needs to pass a safety inspection, and what it will cost. The buyer reads
-        this as their report.
-      </p>
-
-      @if (sent()) {
+      <h1>{{ body ? 'Write the body review' : 'Write the estimate' }}</h1>
+      @if (notFound()) {
         <sl-alert
-          variant="success"
-          title="Estimate sent. The buyer can read it now."
-          text="You can change it and send it again."
+          variant="danger"
+          title="We couldn’t find that inspection"
+          text="Open it from your inspections or your assigned reviews."
         />
-      }
-      @if (problem(); as p) {
-        <sl-alert variant="danger" [title]="p" />
-      }
-
-      @if (findings().length) {
-        <ul aria-label="Findings" class="findings">
-          @for (f of findings(); track $index) {
-            <li>
-              <span class="title">{{ f.title }}</span>
-              <span>{{ f.status }}</span>
-              <span>{{ cost(f) }}</span>
-              <sl-button variant="outline" (pressed)="remove($index)">Remove</sl-button>
-            </li>
-          }
-        </ul>
       } @else {
-        <p class="sub">No findings yet.</p>
-      }
+        <p class="sub">
+          {{
+            body
+              ? 'List the body damage, paint and panel work you found, and what it will cost. The buyer reads this beside the mechanic’s estimate; it does not change the safety certification cost.'
+              : 'List what the car needs to pass a safety inspection, and what it will cost. The buyer reads this as their report.'
+          }}
+        </p>
 
-      <div class="actions">
-        <sl-button variant="outline" (pressed)="add()">Add a finding</sl-button>
-        <sl-button [busy]="busy()" (pressed)="submit()">Submit estimate</sl-button>
-      </div>
+        @if (sent()) {
+          <sl-alert
+            variant="success"
+            [title]="
+              body
+                ? 'Body review sent. The buyer can read it now.'
+                : 'Estimate sent. The buyer can read it now.'
+            "
+            text="You can change it and send it again."
+          />
+        }
+        @if (problem(); as p) {
+          <sl-alert variant="danger" [title]="p" />
+        }
+
+        @if (findings().length) {
+          <ul aria-label="Findings" class="findings">
+            @for (f of findings(); track $index) {
+              <li>
+                <span class="title">{{ f.title }}</span>
+                <span>{{ f.status }}</span>
+                <span>{{ cost(f) }}</span>
+                <sl-button variant="outline" (pressed)="remove($index)">Remove</sl-button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="sub">No findings yet.</p>
+        }
+
+        <div class="actions">
+          <sl-button variant="outline" (pressed)="add()">Add a finding</sl-button>
+          <sl-button [busy]="busy()" (pressed)="submit()">{{
+            body ? 'Submit review' : 'Submit estimate'
+          }}</sl-button>
+        </div>
+      }
     </main>
   `,
   styles: `
@@ -101,19 +121,23 @@ import { dollarRange } from '../util/money';
 export class EstimatePage implements OnInit {
   private readonly api = inject(REPORTS_API);
   private readonly dialog = inject(Dialog);
-  private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
+  private readonly route = inject(ActivatedRoute).snapshot;
+  private readonly id = this.route.paramMap.get('id') ?? '';
+  /** True when this is the body shop's review rather than the mechanic's estimate. */
+  protected readonly body = this.route.data['part'] === 'bodyShop';
 
   protected readonly findings = signal<FindingInput[]>([]);
   protected readonly problem = signal<string | null>(null);
   protected readonly sent = signal(false);
   protected readonly busy = signal(false);
+  protected readonly notFound = signal(false);
 
   /** An estimate already sent can be changed: its findings are loaded for editing. */
   ngOnInit() {
     this.api.get(this.id).subscribe({
       next: (r) =>
         this.findings.set(
-          r.findings.map((f) => ({
+          (this.body ? r.bodyShop.findings : r.findings).map((f) => ({
             title: f.title,
             note: f.note,
             status: f.status,
@@ -121,7 +145,7 @@ export class EstimatePage implements OnInit {
             maxCents: f.maxCents,
           })),
         ),
-      error: () => undefined,
+      error: (p: ApiProblem) => this.notFound.set(p.status === 404),
     });
   }
 
@@ -155,7 +179,10 @@ export class EstimatePage implements OnInit {
     }
     this.problem.set(null);
     this.busy.set(true);
-    this.api.submit(this.id, this.findings()).subscribe({
+    const send = this.body
+      ? this.api.submitBodyShop(this.id, this.findings())
+      : this.api.submit(this.id, this.findings());
+    send.subscribe({
       next: () => {
         this.busy.set(false);
         this.sent.set(true);
@@ -164,10 +191,12 @@ export class EstimatePage implements OnInit {
         this.busy.set(false);
         this.problem.set(
           p.status === 409
-            ? 'Write the report once the call has ended.'
+            ? this.body
+              ? 'Write the body review once the call has ended.'
+              : 'Write the report once the call has ended.'
             : p.status === 404
               ? 'We couldn’t find that inspection.'
-              : 'We couldn’t send the estimate. Try again in a moment.',
+              : 'We couldn’t send it. Try again in a moment.',
         );
       },
     });

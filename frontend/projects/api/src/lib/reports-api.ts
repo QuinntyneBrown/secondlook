@@ -22,11 +22,17 @@ export interface BodyShopReview {
   findings: Finding[];
 }
 
+export type ReviewType = 'Mechanic' | 'BodyShop' | 'Both';
+
 export interface Report {
   inspectionId: string;
+  review: ReviewType;
   submittedAt: string;
   callEndedAt: string | null;
-  mechanicName: string;
+  /** The mechanic who wrote the estimate; null until they have, and for a review with the body shop alone. */
+  mechanicName: string | null;
+  /** False while the mechanic's estimate is still being written; the body shop's part stands on its own. */
+  mechanicReady: boolean;
   vin: string;
   odometerKm: number;
   askingPriceCents: number;
@@ -39,6 +45,17 @@ export interface Report {
   allInMaxCents: number;
   bodyShop: BodyShopReview;
   disclaimer: string;
+}
+
+/** One inspection in the body shop's queue, and where it stands. */
+export interface AssignedReview {
+  inspectionId: string;
+  vin: string;
+  start: string;
+  review: ReviewType;
+  callStatus: 'NotStarted' | 'Live' | 'Ended';
+  /** True once the body shop has submitted its findings. */
+  delivered: boolean;
 }
 
 export interface FindingInput {
@@ -65,6 +82,10 @@ export interface ReportsApi {
   get(inspectionId: string): Observable<Report>;
   /** Mechanic only, after the call: submits the estimate, replacing any earlier one. */
   submit(inspectionId: string, findings: FindingInput[]): Observable<Report>;
+  /** Body shop only, after the call: submits its findings, replacing its earlier ones; the mechanic's part is untouched. */
+  submitBodyShop(inspectionId: string, findings: FindingInput[]): Observable<Report>;
+  /** Body shop only: its own inspections, soonest first. */
+  assigned(): Observable<AssignedReview[]>;
   /** Buyer only: the active share link, created if there is none. */
   share(inspectionId: string, includeBodyShop: boolean): Observable<ReportShare>;
   /** Buyer only: emails the active share link. */

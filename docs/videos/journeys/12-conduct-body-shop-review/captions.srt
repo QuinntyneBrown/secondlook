@@ -1,0 +1,139 @@
+1
+00:00:00,000 --> 00:00:03,290
+This is the implementation demo for journey twelve.
+
+2
+00:00:03,290 --> 00:00:07,090
+It is the real application and API running on this machine,
+
+3
+00:00:07,090 --> 00:00:11,990
+with synthetic people and the local adapters, so nothing is charged or sent.
+
+4
+00:00:11,990 --> 00:00:15,090
+It shows a body shop doing its part of a review,
+
+5
+00:00:15,090 --> 00:00:18,120
+and the buyer reading it beside the mechanic's.
+
+6
+00:00:19,270 --> 00:00:22,620
+The body shop signs in and opens its assigned reviews.
+
+7
+00:00:22,620 --> 00:00:26,780
+Each row is one of its own inspections, with where the call stands.
+
+8
+00:00:26,780 --> 00:00:30,630
+One is waiting for its call, one has ended and needs findings,
+
+9
+00:00:30,630 --> 00:00:31,990
+and two are delivered.
+
+10
+00:00:31,990 --> 00:00:34,910
+The shop joins the waiting call from the queue,
+
+11
+00:00:34,910 --> 00:00:38,510
+and lands in the same lobby as the buyer and the mechanic.
+
+12
+00:00:38,510 --> 00:00:40,990
+No other shop's inspections appear here.
+
+13
+00:00:42,140 --> 00:00:47,280
+After the call, the shop opens the call that has ended and chooses Write findings.
+
+14
+00:00:47,280 --> 00:00:51,100
+This is the same editor the mechanic used, for the body shop.
+
+15
+00:00:51,100 --> 00:00:55,790
+The shop adds a dent that must be repaired, paint that is worth freshening,
+
+16
+00:00:55,790 --> 00:00:57,240
+and a hood that passes.
+
+17
+00:00:57,240 --> 00:01:01,240
+Submit review sends it, and the queue now shows it as delivered.
+
+18
+00:01:02,390 --> 00:01:05,000
+The buyer's report keeps two parts apart.
+
+19
+00:01:05,000 --> 00:01:09,450
+The mechanic's estimate sets the cost to get the car safety certified,
+
+20
+00:01:09,450 --> 00:01:14,150
+and the body shop's findings sit in their own part, naming who wrote them.
+
+21
+00:01:14,150 --> 00:01:19,040
+The body repairs never change the certification cost, and the report says so.
+
+22
+00:01:19,040 --> 00:01:23,170
+A review with the body shop alone shows only the shop's findings,
+
+23
+00:01:23,170 --> 00:01:27,040
+with no certification estimate, because there is no mechanic.
+
+24
+00:01:28,190 --> 00:01:30,360
+The server decides who may do what.
+
+25
+00:01:30,360 --> 00:01:34,320
+The body shop cannot write its review before the call has ended.
+
+26
+00:01:34,320 --> 00:01:38,090
+The buyer and the mechanic cannot write the body shop's part.
+
+27
+00:01:38,090 --> 00:01:42,180
+A shop that is not assigned finds nothing, and so does a stranger.
+
+28
+00:01:42,180 --> 00:01:46,700
+Empty findings are refused, and the queue belongs to the body shop alone.
+
+29
+00:01:47,850 --> 00:01:49,510
+Here is what to remember.
+
+30
+00:01:49,510 --> 00:01:54,440
+The body shop's review is its own part of the report, with its own author.
+
+31
+00:01:54,440 --> 00:01:57,100
+It never changes the certification cost.
+
+32
+00:01:57,100 --> 00:02:02,430
+Each part can be delivered on its own, and a review with the shop alone needs no
+
+33
+00:02:02,430 --> 00:02:03,030
+estimate.
+
+34
+00:02:03,030 --> 00:02:06,360
+Not built yet: notifying the buyer, and recording.
+
+35
+00:02:06,360 --> 00:02:09,690
+Next, journey thirteen: compare vehicle estimates.

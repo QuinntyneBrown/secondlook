@@ -144,7 +144,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<Report>(e =>
         {
             e.HasKey(r => r.Id);
-            e.Property(r => r.SubmittedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(r => r.MechanicSubmittedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.Property(r => r.BodyShopSubmittedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
             e.HasIndex(r => r.InspectionId).IsUnique();
         });
         modelBuilder.Entity<ReportFinding>(e =>
@@ -153,6 +154,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(f => f.Title).HasMaxLength(200).IsRequired();
             e.Property(f => f.Note).HasMaxLength(500).IsRequired();
             e.Property(f => f.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(f => f.Source).HasConversion<string>().HasMaxLength(20).HasDefaultValue(FindingSource.Mechanic);
             e.HasIndex(f => f.ReportId);
         });
         modelBuilder.Entity<ReportShare>(e =>
