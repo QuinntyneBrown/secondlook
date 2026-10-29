@@ -102,7 +102,7 @@ export async function bookedInspection(
   );
   let start = "";
   for (let attempt = 0; attempt < 30 && !start; attempt++) {
-    const day = 3 + Math.floor(Math.random() * 9);
+    const day = 3 + Math.floor(Math.random() * 25);
     const hour = 15 + Math.floor(Math.random() * 7);
     const s = new Date(
       Date.UTC(
@@ -378,3 +378,80 @@ export const BODY_FINDINGS: FindingInput[] = [
   { title: "Front bumper paint", status: "Recommended", minCents: 30000, maxCents: 50000 },
   { title: "Hood", status: "Passes" },
 ];
+
+export type CarSpec = {
+  /** What the mechanic has delivered: a cost range in dollars, "pending" (call over, nothing written) or "waiting" (call not held). */
+  estimate: [number, number] | "pending" | "waiting";
+  asking?: number;
+};
+
+/**
+ * One buyer with several cars booked in the same window, through the API: the first payment opens the window and each later
+ * car is an additional vehicle. Each car's call is ended and its estimate submitted as `estimate` says.
+ */
+export async function buyerWithCars(request: APIRequestContext, cars: CarSpec[]) {
+  // Many specs share one seeded mechanic, so look across a wide spread of days and half-hours for a free stretch.
+  let start: Date | null = null;
+  for (let attempt = 0; attempt < 120 && !start; attempt++) {
+    const n = new Date();
+    const s = new Date(
+      Date.UTC(
+        n.getUTCFullYear(),
+        n.getUTCMonth(),
+        n.getUTCDate() + 3 + Math.floor(Math.random() * 25),
+        12 + Math.floor(Math.random() * 10),
+        Math.random() < 0.5 ? 0 : 30,
+        0,
+      ),
+    );
+    if (await openWindow(request, "mechanic", s, 30 * (cars.length + 1))) start = s;
+  }
+  if (!start) throw new Error("Could not open a window for the cars.");
+  const buyer = await newBuyer(request);
+  const booked: { id: string; vin: string; asking: number; spec: CarSpec }[] = [];
+  for (const [n, spec] of cars.entries()) {
+    const slot = new Date(start.getTime() + n * 30 * 60e3).toISOString();
+    const asking = spec.asking ?? 5000;
+    const vin = `2HGFC2F59GH${String((Date.now() + n * 977) % 1_000_000).padStart(6, "0")}`;
+    const vehicle = await (
+      await request.post(`${API}/api/vehicles`, {
+        ...auth(buyer.token),
+        data: { vin, odometerKm: 90000 + n * 1000, askingPrice: asking, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+      })
+    ).json();
+    const hold = await (
+      await request.post(`${API}/api/bookings/holds`, { ...auth(buyer.token), data: { providerId: MECHANIC_ID, start: slot } })
+    ).json();
+    const checkout = await (
+      await request.post(`${API}/api/checkouts`, {
+        ...auth(buyer.token),
+        data: { review: "Mechanic", idempotencyKey: `k-${vin}`, vehicleId: vehicle.id },
+      })
+    ).json();
+    const card = await (
+      await request.post(`${API}/api/payments/tokens`, {
+        ...auth(buyer.token),
+        data: { cardNumber: "4242 4242 4242 4242", expiry: "12 / 34", securityCode: "123", nameOnCard: "Mo", postalCode: "L8P 1A1" },
+      })
+    ).json();
+    await request.post(`${API}/api/checkouts/${checkout.id}/pay`, { ...auth(buyer.token), data: { paymentToken: card.token } });
+    const inspection = await (
+      await request.post(`${API}/api/bookings`, {
+        ...auth(buyer.token),
+        data: { checkoutId: checkout.id, holdId: hold.holdId, vehicleId: vehicle.id },
+      })
+    ).json();
+    const id = inspection.id as string;
+    if (spec.estimate !== "waiting") {
+      await request.post(`${API}/api/calls/${id}/join`, auth(buyer.token));
+      await request.post(`${API}/api/calls/${id}/end`, auth(buyer.token));
+    }
+    if (Array.isArray(spec.estimate)) {
+      await submitEstimate(request, id, [
+        { title: "Front brake pads", status: "Required", minCents: spec.estimate[0] * 100, maxCents: spec.estimate[1] * 100 },
+      ]);
+    }
+    booked.push({ id, vin, asking, spec });
+  }
+  return { buyer, cars: booked };
+}

@@ -30,6 +30,7 @@ type Load = 'loading' | 'ready' | 'not-ready' | 'not-found' | 'failed';
             <sl-button variant="outline" (pressed)="share(r)">Share</sl-button>
             <sl-button variant="outline" (pressed)="download()">Download report</sl-button>
             <sl-button variant="outline" (pressed)="issue(r)">Report an issue</sl-button>
+            <sl-button variant="outline" routerLink="/compare">Compare with another car</sl-button>
           </div>
           <sl-report-view [report]="r" />
         }

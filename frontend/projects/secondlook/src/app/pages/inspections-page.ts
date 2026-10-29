@@ -22,6 +22,7 @@ type View = 'loading' | 'ready' | 'failed';
       <nav aria-label="Primary">
         <a routerLink="/inspections" aria-current="page">Inspections</a>
         <a routerLink="/vehicles">Vehicles</a>
+        <a routerLink="/compare">Compare</a>
         <a routerLink="/billing">Billing</a>
       </nav>
       <span>{{ session.displayName() }}</span>

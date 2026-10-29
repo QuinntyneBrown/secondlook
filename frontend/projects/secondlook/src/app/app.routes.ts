@@ -9,6 +9,7 @@ import { BookingConfirmedPage } from './pages/booking-confirmed-page';
 import { CallLobbyPage } from './pages/call-lobby-page';
 import { CallPage } from './pages/call-page';
 import { CheckoutPage } from './pages/checkout-page';
+import { ComparePage } from './pages/compare-page';
 import { EstimatePage } from './pages/estimate-page';
 import { ReportPage } from './pages/report-page';
 import { ReviewQueuePage } from './pages/review-queue-page';
@@ -58,6 +59,7 @@ export const routes: Routes = [
   { path: 'vehicles', component: VehiclesPage, canActivate: [signedIn] },
   { path: 'checkout', component: CheckoutPage, canActivate: [signedIn] },
   { path: 'billing', component: BillingPage, canActivate: [signedIn] },
+  { path: 'compare', component: ComparePage, canActivate: [signedIn] },
   { path: 'forbidden', component: SystemPage, data: { state: 'forbidden' } },
   { path: 'offline', component: SystemPage, data: { state: 'offline' } },
   { path: 'maintenance', component: SystemPage, data: { state: 'maintenance' } },
