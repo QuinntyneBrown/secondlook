@@ -380,9 +380,14 @@ export const BODY_FINDINGS: FindingInput[] = [
 ];
 
 export type CarSpec = {
-  /** What the mechanic has delivered: a cost range in dollars, "pending" (call over, nothing written) or "waiting" (call not held). */
-  estimate: [number, number] | "pending" | "waiting";
+  /**
+   * What the mechanic has delivered: a cost range in dollars for a required repair, a "recommended" or "passes" report,
+   * "pending" (call over, nothing written) or "waiting" (call not held).
+   */
+  estimate: [number, number] | "recommended" | "passes" | "pending" | "waiting";
   asking?: number;
+  /** Cancel the booking (only before its call): the inspection moves to the history's Past tab. */
+  cancel?: boolean;
 };
 
 /**
@@ -446,12 +451,75 @@ export async function buyerWithCars(request: APIRequestContext, cars: CarSpec[])
       await request.post(`${API}/api/calls/${id}/join`, auth(buyer.token));
       await request.post(`${API}/api/calls/${id}/end`, auth(buyer.token));
     }
+    if (spec.estimate === "recommended" || spec.estimate === "passes") {
+      await submitEstimate(
+        request,
+        id,
+        spec.estimate === "recommended"
+          ? [{ title: "Wiper blades", status: "Recommended", minCents: 2000, maxCents: 4000 }]
+          : [{ title: "Steering", status: "Passes" }],
+      );
+    }
     if (Array.isArray(spec.estimate)) {
       await submitEstimate(request, id, [
         { title: "Front brake pads", status: "Required", minCents: spec.estimate[0] * 100, maxCents: spec.estimate[1] * 100 },
       ]);
     }
+    if (spec.cancel)
+      await request.post(`${API}/api/inspections/${id}/cancel`, { ...auth(buyer.token), data: { reason: "DifferentCar" } });
     booked.push({ id, vin, asking, spec });
   }
   return { buyer, cars: booked };
+}
+
+/**
+ * One buyer with `count` cancelled inspections, through the API. Each is booked into the same slot and cancelled again, which frees
+ * the slot, so a long history needs only one half-hour of the mechanic's time.
+ */
+export async function buyerWithCancelledCars(request: APIRequestContext, count: number) {
+  let start: Date | null = null;
+  for (let attempt = 0; attempt < 120 && !start; attempt++) {
+    const n = new Date();
+    const s = new Date(
+      Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + 3 + Math.floor(Math.random() * 25), 12 + Math.floor(Math.random() * 10), Math.random() < 0.5 ? 0 : 30, 0),
+    );
+    if (await openWindow(request, "mechanic", s, 30)) start = s;
+  }
+  if (!start) throw new Error("Could not open a window for the cancelled cars.");
+  const buyer = await newBuyer(request);
+  const vins: string[] = [];
+  for (let n = 0; n < count; n++) {
+    const vin = `2HGFC2F59GH${String(((Date.now() % 100_000) * 10 + n) % 1_000_000).padStart(6, "0")}`;
+    const vehicle = await (
+      await request.post(`${API}/api/vehicles`, {
+        ...auth(buyer.token),
+        data: { vin, odometerKm: 80000 + n, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+      })
+    ).json();
+    const hold = await (
+      await request.post(`${API}/api/bookings/holds`, { ...auth(buyer.token), data: { providerId: MECHANIC_ID, start: start.toISOString() } })
+    ).json();
+    const checkout = await (
+      await request.post(`${API}/api/checkouts`, {
+        ...auth(buyer.token),
+        data: { review: "Mechanic", idempotencyKey: `k-${vin}-${n}`, vehicleId: vehicle.id },
+      })
+    ).json();
+    const card = await (
+      await request.post(`${API}/api/payments/tokens`, {
+        ...auth(buyer.token),
+        data: { cardNumber: "4242 4242 4242 4242", expiry: "12 / 34", securityCode: "123", nameOnCard: "Mo", postalCode: "L8P 1A1" },
+      })
+    ).json();
+    await request.post(`${API}/api/checkouts/${checkout.id}/pay`, { ...auth(buyer.token), data: { paymentToken: card.token } });
+    const inspection = await (
+      await request.post(`${API}/api/bookings`, {
+        ...auth(buyer.token),
+        data: { checkoutId: checkout.id, holdId: hold.holdId, vehicleId: vehicle.id },
+      })
+    ).json();
+    await request.post(`${API}/api/inspections/${inspection.id}/cancel`, { ...auth(buyer.token), data: { reason: "Other" } });
+    vins.push(vin);
+  }
+  return { buyer, vins };
 }

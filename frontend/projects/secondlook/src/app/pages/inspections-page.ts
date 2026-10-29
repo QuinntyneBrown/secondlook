@@ -1,18 +1,32 @@
 import { Dialog } from '@angular/cdk/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { BOOKINGS_API, Inspection, PAYMENTS_API, PricingWindow } from 'api';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import {
+  BOOKINGS_API,
+  HistoryItem,
+  HistoryTab,
+  InspectionHistory,
+  PAYMENTS_API,
+  PricingWindow,
+} from 'api';
 import { Alert, Button } from 'components';
 import { AddAnotherCarDialog, AddAnotherResult } from '../dialogs/add-another-car-dialog';
 import { SignOutDialog } from '../dialogs/sign-out-dialog';
 import { WindowBanner } from '../booking/window-banner';
 import { Session } from '../session';
-import { callTime } from '../util/eastern-time';
+import { callTime, dayLabel } from '../util/eastern-time';
+import { dollarRange, dollars } from '../util/money';
 import { providerNames } from '../util/providers';
 
 type View = 'loading' | 'ready' | 'failed';
 
-/** The dashboard (L2-019): the buyer's inspections, with the way to book another. */
+const SUPPORT = 'mailto:support@secondlook.example';
+
+/**
+ * The dashboard and the buyer's history (L2-019 to L2-022): Active and Past tabs, rows with their estimates, twenty to a page. The
+ * tab and the page live in the address, so going back from a report returns to the same place.
+ */
 @Component({
   selector: 'sl-inspections-page',
   imports: [Alert, Button, RouterLink, WindowBanner],
@@ -49,53 +63,88 @@ type View = 'loading' | 'ready' | 'failed';
 
     @if (view() === 'failed') {
       <sl-alert
-        title="We couldn’t load your inspections"
-        text="They’re still booked. Try again in a moment."
+        variant="danger"
+        title="Your inspections didn’t load"
+        text="This is on our side. Your bookings are safe. Try again, or check back in a minute."
       >
         <sl-button variant="outline" (pressed)="load()">Try again</sl-button>
+        <a [href]="support">Contact support</a>
       </sl-alert>
-    } @else if (view() === 'ready' && inspections().length === 0) {
+    } @else if (view() === 'ready' && nothingBooked()) {
       <div class="none">
         <h2>No inspections yet</h2>
         <p>
           Book a mechanic to look at a car over video. Your first inspection is $50 and you get a
           cost estimate within an hour.
         </p>
-        <a routerLink="/book/vehicle">Book an inspection</a>
+        <div class="actions">
+          <a routerLink="/book/vehicle">Book an inspection</a>
+          <a routerLink="/sample-report">View sample report</a>
+        </div>
       </div>
     } @else {
       <div role="tablist" aria-label="Inspections">
         <button
           role="tab"
           type="button"
-          [attr.aria-selected]="tab() === 'active'"
-          (click)="tab.set('active')"
+          [attr.aria-selected]="tab() === 'Active'"
+          (click)="select('Active')"
         >
-          Active {{ active().length }}
+          Active{{ countOf('Active') }}
         </button>
         <button
           role="tab"
           type="button"
-          [attr.aria-selected]="tab() === 'past'"
-          (click)="tab.set('past')"
+          [attr.aria-selected]="tab() === 'Past'"
+          (click)="select('Past')"
         >
-          Past
+          Past{{ countOf('Past') }}
         </button>
       </div>
-      <ul [attr.aria-busy]="view() === 'loading' ? 'true' : null">
-        @for (i of shown(); track i.id) {
-          <li>
-            <a [routerLink]="['/inspections', i.id]">{{ i.vehicle.vin }}</a>
-            <span class="meta"
-              >{{ reviewLabel(i) }} · {{ names(i) }} ·
-              {{ '$' + i.vehicle.askingPrice.toLocaleString('en-CA') }}</span
-            >
-            <span class="chip">{{ i.status === 'Cancelled' ? 'Cancelled' : callTime(i) }}</span>
-          </li>
+      <ul aria-label="Inspections" [attr.aria-busy]="view() === 'loading' ? 'true' : null">
+        @if (view() === 'loading') {
+          @for (n of placeholders; track n) {
+            <li class="placeholder" aria-hidden="true"></li>
+          }
+        } @else {
+          @for (i of items(); track i.id) {
+            <li>
+              <a [routerLink]="link(i)">{{ i.vin }}</a>
+              <span class="meta"
+                >{{ reviewLabel(i) }} · {{ names(i) }} · {{ money(i.askingPriceCents) }}</span
+              >
+              <span class="chip">{{ chip(i) }}</span>
+              @if (estimate(i); as e) {
+                <span class="estimate">{{ e }}</span>
+              }
+            </li>
+          }
         }
       </ul>
       @if (view() === 'loading') {
-        <p role="status" class="sr-only">Loading your inspections</p>
+        <p role="status" class="sr-only">Fetching your list…</p>
+      } @else if (items().length === 0) {
+        <p class="empty-tab">
+          {{
+            tab() === 'Past'
+              ? 'No past inspections yet. Finished and cancelled inspections show up here.'
+              : 'Nothing active right now. Book an inspection to start one.'
+          }}
+        </p>
+      }
+      @if (showPaging()) {
+        <nav class="paging" aria-label="Pagination">
+          <span>Showing {{ from() }}–{{ to() }} of {{ history()!.total }}</span>
+          <sl-button variant="outline" [disabled]="page() <= 1" (pressed)="go(page() - 1)"
+            >Previous</sl-button
+          >
+          <sl-button
+            variant="outline"
+            [disabled]="to() >= history()!.total"
+            (pressed)="go(page() + 1)"
+            >Next</sl-button
+          >
+        </nav>
       }
     }
   `,
@@ -108,19 +157,22 @@ type View = 'loading' | 'ready' | 'failed';
     }
     header {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: var(--spacingHorizontalM);
+      gap: var(--spacingHorizontalL);
       margin-bottom: var(--spacingVerticalL);
     }
-    nav {
+    nav[aria-label='Primary'] {
       display: flex;
       gap: var(--spacingHorizontalL);
       margin-right: auto;
     }
     .head {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
+      gap: var(--spacingHorizontalM);
       margin-bottom: var(--spacingVerticalL);
     }
     h1,
@@ -128,7 +180,8 @@ type View = 'loading' | 'ready' | 'failed';
     p {
       margin: 0;
     }
-    .sub {
+    .sub,
+    .empty-tab {
       color: var(--colorNeutralForeground2);
     }
     [role='tablist'] {
@@ -142,6 +195,7 @@ type View = 'loading' | 'ready' | 'failed';
       padding: var(--spacingVerticalS) 0;
       font: inherit;
       color: var(--colorNeutralForeground2);
+      cursor: pointer;
     }
     [role='tab'][aria-selected='true'] {
       border-bottom: 2px solid var(--colorBrandStroke1);
@@ -156,14 +210,25 @@ type View = 'loading' | 'ready' | 'failed';
     }
     li {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: var(--spacingHorizontalL);
+      gap: var(--spacingVerticalS) var(--spacingHorizontalL);
       padding: var(--spacingVerticalM);
       border: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
       border-radius: var(--borderRadiusMedium);
     }
+    li a {
+      overflow-wrap: anywhere;
+    }
+    li.placeholder {
+      min-height: 56px;
+      background: var(--colorNeutralBackground3);
+      border-color: transparent;
+    }
     .meta {
-      flex: 1;
+      flex: 1 1 14rem;
+      min-width: 0;
+      overflow-wrap: anywhere;
       color: var(--colorNeutralForeground2);
     }
     .chip {
@@ -171,11 +236,30 @@ type View = 'loading' | 'ready' | 'failed';
       border-radius: 999px;
       background: var(--colorNeutralBackground3);
     }
+    .estimate {
+      font-weight: var(--fontWeightSemibold);
+    }
+    .paging {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--spacingHorizontalM);
+      margin-top: var(--spacingVerticalL);
+    }
+    .paging span {
+      margin-right: auto;
+      color: var(--colorNeutralForeground2);
+    }
     .none {
       display: grid;
       gap: var(--spacingVerticalS);
       padding: var(--spacingVerticalXXL) 0;
       max-width: 60ch;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacingHorizontalL);
     }
     .sr-only {
       position: absolute;
@@ -188,34 +272,56 @@ type View = 'loading' | 'ready' | 'failed';
 })
 export class InspectionsPage {
   protected readonly names = providerNames;
+  protected readonly money = dollars;
+  protected readonly support = SUPPORT;
+  protected readonly placeholders = [1, 2, 3];
   protected readonly session = inject(Session);
   private readonly dialog = inject(Dialog);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly api = inject(BOOKINGS_API);
   private readonly payments = inject(PAYMENTS_API);
   protected readonly window = signal<PricingWindow | null>(null);
   protected readonly added = signal<{ vin: string; price: string; count: string } | null>(null);
 
   protected readonly view = signal<View>('loading');
-  protected readonly inspections = signal<Inspection[]>([]);
-  protected readonly tab = signal<'active' | 'past'>('active');
-  protected readonly active = computed(() =>
-    this.inspections().filter((i) => i.status !== 'Cancelled'),
+  protected readonly history = signal<InspectionHistory | null>(null);
+  protected readonly tab = signal<HistoryTab>('Active');
+  protected readonly page = signal(1);
+  protected readonly items = computed(() => this.history()?.items ?? []);
+  protected readonly nothingBooked = computed(() => {
+    const h = this.history();
+    return !!h && h.activeCount === 0 && h.pastCount === 0;
+  });
+  protected readonly showPaging = computed(() => {
+    const h = this.history();
+    return this.view() === 'ready' && !!h && h.total > h.pageSize;
+  });
+  protected readonly from = computed(
+    () => (this.page() - 1) * (this.history()?.pageSize ?? 20) + 1,
   );
-  protected readonly shown = computed(() =>
-    this.tab() === 'active'
-      ? this.active()
-      : this.inspections().filter((i) => i.status === 'Cancelled'),
-  );
-  protected readonly callTime = (i: Inspection) => callTime(i.start);
+  protected readonly to = computed(() => {
+    const h = this.history();
+    return h ? Math.min(this.page() * h.pageSize, h.total) : 0;
+  });
   protected readonly subtitle = computed(() => {
-    if (this.view() === 'loading') return 'Loading your inspections';
-    const n = this.active().length;
-    return this.inspections().length === 0 ? 'Nothing booked yet' : `${n} active`;
+    const h = this.history();
+    if (this.view() === 'loading' || !h)
+      return this.view() === 'failed' ? '' : 'Loading your inspections';
+    if (this.nothingBooked()) return 'Nothing booked yet';
+    if (h.total > h.pageSize) return `${h.total} inspections · ${h.pageSize} per page`;
+    const w = this.window();
+    const open = w && (w.state === 'Open' || w.state === 'ClosingSoon') && w.endsAt;
+    return `${h.activeCount} active` + (open ? ` · window open until ${dayLabel(w.endsAt!)}` : '');
   });
 
   constructor() {
-    this.load();
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((q) => {
+      this.tab.set(q.get('tab') === 'past' ? 'Past' : 'Active');
+      const n = Number(q.get('page'));
+      this.page.set(Number.isInteger(n) && n >= 1 ? n : 1);
+      this.load();
+    });
     this.loadWindow();
   }
 
@@ -273,7 +379,7 @@ export class InspectionsPage {
     });
   }
 
-  protected reviewLabel(i: Inspection) {
+  protected reviewLabel(i: HistoryItem) {
     return i.review === 'Both'
       ? 'Mechanic + body shop'
       : i.review === 'BodyShop'
@@ -281,11 +387,57 @@ export class InspectionsPage {
         : 'Mechanic';
   }
 
+  /** What the row says about where the inspection stands (L2-019 AC3). */
+  protected chip(i: HistoryItem) {
+    switch (i.phase) {
+      case 'Cancelled':
+        return 'Cancelled';
+      case 'ReportReady':
+        return 'Report ready';
+      case 'CallEnded':
+        return 'Call done · report in progress';
+      default:
+        return callTime(i.start);
+    }
+  }
+
+  /** What the mechanic found, in words and cost (L2-021 AC4). */
+  protected estimate(i: HistoryItem) {
+    const e = i.estimate;
+    if (!e) return null;
+    return e.state === 'Required'
+      ? `Required: ${dollarRange(e.costMinCents ?? 0, e.costMaxCents ?? 0)}`
+      : e.state;
+  }
+
+  /** A finished inspection opens its report; any other opens the inspection (L2-019 AC4). */
+  protected link(i: HistoryItem) {
+    return i.phase === 'ReportReady' ? ['/inspections', i.id, 'report'] : ['/inspections', i.id];
+  }
+
+  protected countOf(tab: HistoryTab) {
+    const h = this.history();
+    if (!h) return '';
+    return ` ${tab === 'Active' ? h.activeCount : h.pastCount}`;
+  }
+
+  protected select(tab: HistoryTab) {
+    void this.router.navigate([], {
+      queryParams: { tab: tab === 'Past' ? 'past' : null, page: null },
+    });
+  }
+
+  protected go(page: number) {
+    void this.router.navigate([], {
+      queryParams: { tab: this.tab() === 'Past' ? 'past' : null, page: page > 1 ? page : null },
+    });
+  }
+
   protected load() {
     this.view.set('loading');
-    this.api.inspections().subscribe({
-      next: (list) => {
-        this.inspections.set(list);
+    this.api.history(this.tab(), this.page()).subscribe({
+      next: (h) => {
+        this.history.set(h);
         this.view.set('ready');
       },
       error: () => this.view.set('failed'),

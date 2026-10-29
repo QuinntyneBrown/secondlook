@@ -13,6 +13,7 @@ import { ComparePage } from './pages/compare-page';
 import { EstimatePage } from './pages/estimate-page';
 import { ReportPage } from './pages/report-page';
 import { ReviewQueuePage } from './pages/review-queue-page';
+import { SampleReportPage } from './pages/sample-report-page';
 import { SharedReportPage } from './pages/shared-report-page';
 import { InspectionDetailPage } from './pages/inspection-detail-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
@@ -51,6 +52,7 @@ export const routes: Routes = [
   },
   { path: 'reviews', component: ReviewQueuePage, canActivate: [signedIn] },
   { path: 'shared/:token', component: SharedReportPage },
+  { path: 'sample-report', component: SampleReportPage },
   { path: 'book/vehicle', component: BookVehiclePage, canActivate: [signedIn] },
   { path: 'book/review', component: BookReviewPage, canActivate: [signedIn] },
   { path: 'book/schedule', component: BookSchedulePage, canActivate: [signedIn] },
