@@ -10,21 +10,6 @@ namespace SecondLook.Api.Tests.Reports;
 /// </summary>
 public class ComparisonTests(ApiFactory factory) : ReportFlow(factory), IClassFixture<ApiFactory>
 {
-    /// <summary>Books another car for the same buyer at <paramref name="start"/>, holds its call and ends it.</summary>
-    private async Task<Guid> BookedCar(HttpClient buyer, DateTimeOffset start, bool endCall = true)
-    {
-        var id = await Book(buyer, start);
-        if (!endCall) return id;
-        var wait = start - TimeSpan.FromMinutes(5) - Factory.Clock.GetUtcNow();
-        if (wait > TimeSpan.Zero) Factory.Clock.Advance(wait);
-        (await buyer.PostAsync($"/api/calls/{id}/join", null)).EnsureSuccessStatusCode();
-        (await buyer.PostAsync($"/api/calls/{id}/end", null)).EnsureSuccessStatusCode();
-        return id;
-    }
-
-    private async Task Estimated(Guid id, int min, int max) =>
-        (await Submit(id, Finding("Brakes", "Required", min, max))).EnsureSuccessStatusCode();
-
     private static async Task<JsonElement> Compare(HttpClient who) => await Json(await who.GetAsync("/api/comparisons"));
 
     private static string[] Vins(JsonElement c) => c.GetProperty("columns").EnumerateArray().Select(x => x.GetProperty("vin").GetString()!).ToArray();
