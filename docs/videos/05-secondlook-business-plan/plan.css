@@ -1,0 +1,96 @@
+/* Business-plan video: brand palette from assets/mark.svg, picture-led scenes, no caption overlay. */
+:root {
+  --ink: #14181f;
+  --cream: #f6f4ef;
+  --orange: #ee6a1e;
+  --teal: #0f766e;
+  --muted: #5b6573;
+  --red: #c62828;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  background: #2b2a28;
+  font-family: "IBM Plex Sans", "Inter", "Segoe UI", system-ui, sans-serif;
+}
+section {
+  display: none;
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+section.active {
+  display: flex;
+}
+section.dark {
+  background: var(--ink);
+  color: var(--cream);
+}
+h1,
+h2,
+p {
+  margin: 0;
+  text-align: center;
+}
+h1 {
+  font-size: 104px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+h2 {
+  font-size: 78px;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.sub {
+  font-size: 44px;
+  color: var(--muted);
+}
+.dark .sub {
+  color: #b8bfca;
+}
+svg {
+  overflow: visible;
+}
+.row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 90px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.num {
+  font-size: 72px;
+  font-weight: 700;
+}
+.lbl {
+  font-size: 36px;
+  color: var(--muted);
+}
+.stage {
+  width: 1500px;
+  height: 620px;
+}
+.stage svg {
+  width: 100%;
+  height: 100%;
+}
+text {
+  font-family: inherit;
+}

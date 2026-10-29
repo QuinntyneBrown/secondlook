@@ -9,6 +9,7 @@ The recordings come from the static mocks in `docs/mocks/`, played through a thr
 | 01 | [Booking an inspection](01-booking-an-inspection/README.md) | 2:17 | Book a video inspection |
 | 02 | [The live inspection](02-the-live-inspection/README.md) | 2:14 | Join live video inspection |
 | 03 | [Your safety estimate](03-your-safety-estimate/README.md) | 2:21 | Receive safety certification estimate |
+| 05 | [The business plan](05-secondlook-business-plan/README.md) | 2:05 | Business plan, picture-led, no captions |
 
 ### Implementation demos
 
@@ -26,7 +27,6 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J07 | [Reschedule or cancel a booking](journeys/07-reschedule-or-cancel-booking/README.md) | 1:55 | Reschedule or cancel booking |
 | J08 | [Add an additional vehicle](journeys/08-add-additional-vehicle/README.md) | 2:09 | Add additional vehicle |
 | J09 | [Add a body shop review](journeys/09-add-body-shop-review/README.md) | 2:05 | Add body shop review |
-
 | J10 | [Join a live video inspection](journeys/10-join-live-video-inspection/README.md) | 2:36 | Join live video inspection |
 | J11 | [Receive the safety certification estimate](journeys/11-receive-safety-certification-estimate/README.md) | 2:27 | Receive safety certification estimate |
 | J12 | [Conduct a body shop review](journeys/12-conduct-body-shop-review/README.md) | 2:13 | Conduct body shop review |
