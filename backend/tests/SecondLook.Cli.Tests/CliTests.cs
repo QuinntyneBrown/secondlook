@@ -92,6 +92,35 @@ public sealed class CliTests : IDisposable
         (await Run("token", "--email", "nobody@example.test")).code.Should().NotBe(0);
     }
 
+    // A deployed host seeds one named account on every release; re-running keeps it and resets its password.
+    [Fact]
+    public async Task Seed_account_creates_a_verified_admin_and_is_repeatable()
+    {
+        await Run("migrate");
+        (await Run("seed-account", "--email", "rodney@secondlook.care", "--password", "P@ssw0rd")).code.Should().Be(0);
+        (await Run("seed-account", "--email", "rodney@secondlook.care", "--password", "P@ssw0rd2")).code.Should().Be(0);
+        CountUsers().Should().Be(1);
+
+        using var c = new SqliteConnection($"Data Source={_db};Pooling=False");
+        c.Open();
+        var cmd = c.CreateCommand();
+        cmd.CommandText = "select PasswordHash, Role, EmailVerified, IsActive from Users where Email = 'rodney@secondlook.care'";
+        using var r = cmd.ExecuteReader();
+        r.Read().Should().BeTrue();
+        new SecondLook.Infrastructure.Auth.IdentityPasswordHasher().Verify(r.GetString(0), "P@ssw0rd2").Should().BeTrue();
+        r.GetString(1).Should().Be("Admin");
+        r.GetInt32(2).Should().Be(1);
+        r.GetInt32(3).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Seed_account_without_a_password_fails()
+    {
+        await Run("migrate");
+        (await Run("seed-account", "--email", "rodney@secondlook.care")).code.Should().NotBe(0);
+        CountUsers().Should().Be(0);
+    }
+
     [Fact]
     public async Task Unknown_command_fails_with_usage()
     {

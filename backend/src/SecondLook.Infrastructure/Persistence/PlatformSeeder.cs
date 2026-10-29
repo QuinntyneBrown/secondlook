@@ -34,4 +34,20 @@ public static class PlatformSeeder
         }
         await db.SaveChangesAsync(ct);
     }
+
+    /// <summary>One real account for a deployed host: created if missing, otherwise made active and verified with the given password.</summary>
+    public static async Task SeedAccountAsync(AppDbContext db, string email, string password, string displayName, UserRole role, CancellationToken ct = default)
+    {
+        var hash = new Auth.IdentityPasswordHasher().Hash(password);
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        if (user is null)
+            db.Users.Add(new User { Id = Guid.NewGuid(), Email = email, DisplayName = displayName, Role = role, IsActive = true, EmailVerified = true, PasswordHash = hash });
+        else
+        {
+            user.PasswordHash = hash;
+            user.EmailVerified = true;
+            user.IsActive = true;
+        }
+        await db.SaveChangesAsync(ct);
+    }
 }

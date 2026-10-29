@@ -2,6 +2,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using SecondLook.Domain.Users;
 using SecondLook.Infrastructure.Auth;
 using SecondLook.Infrastructure.Persistence;
 
@@ -13,6 +14,8 @@ public static class CliApp
         Usage: secondlook <command> [--provider Sqlite|SqlServer] [--connection <connection string>]
           migrate                  Create or update the schema (explicit; the API never migrates).
           seed                     Add the synthetic buyer/mechanic/body-shop/admin identities (idempotent).
+          seed-account --email <email> --password <password> [--name <name>] [--role Admin]
+                                   Create or update one verified account with that password (idempotent).
           reset                    Delete the database and migrate it again (empty).
           token --email <email>    Print a local JWT for a seeded identity (development only).
         Connection falls back to SecondLook:Database:ConnectionString / SECONDLOOK_CONNECTION.
@@ -21,7 +24,7 @@ public static class CliApp
     public static async Task<int> RunAsync(string[] args, IConfiguration config, TextWriter output, TextWriter error)
     {
         var command = args.FirstOrDefault();
-        if (command is not ("migrate" or "seed" or "reset" or "token"))
+        if (command is not ("migrate" or "seed" or "seed-account" or "reset" or "token"))
         {
             await error.WriteLineAsync(Usage);
             return 2;
@@ -47,6 +50,27 @@ public static class CliApp
                 case "migrate":
                     await DatabaseSetup.MigrateAsync(db, provider);
                     await output.WriteLineAsync("Database is up to date.");
+                    return 0;
+                case "seed-account":
+                    var accountEmail = Option("--email");
+                    var accountPassword = Option("--password");
+                    if (string.IsNullOrWhiteSpace(accountEmail) || string.IsNullOrEmpty(accountPassword))
+                    {
+                        await error.WriteLineAsync("seed-account needs --email and --password.");
+                        return 2;
+                    }
+                    if (!Enum.TryParse<UserRole>(Option("--role") ?? "Admin", true, out var accountRole))
+                    {
+                        await error.WriteLineAsync("--role must be Buyer, Mechanic, BodyShop or Admin.");
+                        return 2;
+                    }
+                    if (!await SchemaExists(db))
+                    {
+                        await error.WriteLineAsync("The database has no schema. Run `secondlook migrate` first.");
+                        return 1;
+                    }
+                    await PlatformSeeder.SeedAccountAsync(db, accountEmail, accountPassword, Option("--name") ?? accountEmail, accountRole);
+                    await output.WriteLineAsync($"Account {accountEmail} is ready.");
                     return 0;
                 case "reset":
                     await db.Database.EnsureDeletedAsync();

@@ -224,6 +224,22 @@ jobs:
           echo "::add-mask::$conn"
           dotnet run --project "$CLI_PROJECT" -c Release -- migrate --provider SqlServer --connection "$conn"
 
+      # Idempotent: creates the account on the first run and resets its
+      # password to the secret's value on every later one.
+      - name: Seed the deployed account
+        env:
+          SQL_FQDN: ${{ needs.infra.outputs.sql_fqdn }}
+          SQL_DB: ${{ needs.infra.outputs.sql_db }}
+          SQL_ADMIN_LOGIN: ${{ secrets.SQL_ADMIN_LOGIN }}
+          SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
+          SEED_ACCOUNT_EMAIL: ${{ secrets.SEED_ACCOUNT_EMAIL }}
+          SEED_ACCOUNT_PASSWORD: ${{ secrets.SEED_ACCOUNT_PASSWORD }}
+        run: |
+          conn="Server=tcp:${SQL_FQDN},1433;Initial Catalog=${SQL_DB};User ID=${SQL_ADMIN_LOGIN};Password=${SQL_ADMIN_PASSWORD};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          echo "::add-mask::$conn"
+          dotnet run --project "$CLI_PROJECT" -c Release -- seed-account --provider SqlServer --connection "$conn" \
+            --email "$SEED_ACCOUNT_EMAIL" --password "$SEED_ACCOUNT_PASSWORD" --role Admin
+
       - name: Close the SQL firewall
         if: always() && steps.firewall.outputs.server != ''
         run: |
