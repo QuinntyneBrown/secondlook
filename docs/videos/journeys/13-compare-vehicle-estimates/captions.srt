@@ -1,0 +1,127 @@
+1
+00:00:00,000 --> 00:00:03,600
+This is the implementation demo for journey thirteen.
+
+2
+00:00:03,600 --> 00:00:07,610
+It is the real application and API running on this machine,
+
+3
+00:00:07,610 --> 00:00:12,770
+with synthetic people and the local adapters, so nothing is charged or sent.
+
+4
+00:00:12,770 --> 00:00:16,850
+It shows a buyer lining up the cars they have had inspected.
+
+5
+00:00:18,000 --> 00:00:21,580
+This buyer has had four cars inspected in the same window.
+
+6
+00:00:21,580 --> 00:00:23,920
+They open Compare from the navigation.
+
+7
+00:00:23,920 --> 00:00:28,240
+Three cars have an estimate, so they are lined up lowest all-in first,
+
+8
+00:00:28,240 --> 00:00:33,120
+where all-in is the asking price plus the cost to get the car safety certified.
+
+9
+00:00:33,120 --> 00:00:35,840
+The cheapest is marked as the lowest all-in.
+
+10
+00:00:35,840 --> 00:00:39,540
+The fourth car is still waiting for its mechanic's estimate,
+
+11
+00:00:39,540 --> 00:00:43,240
+so it sits at the end and says so, rather than disappearing.
+
+12
+00:00:43,240 --> 00:00:47,870
+The note reminds the buyer that the cheapest car isn't always the best car.
+
+13
+00:00:47,870 --> 00:00:52,010
+Opening the lowest car's report shows the same total as its column.
+
+14
+00:00:53,160 --> 00:00:54,820
+The same page on a phone.
+
+15
+00:00:54,820 --> 00:01:00,260
+The cars stack in one column, each with the same details: the car, its kilometres,
+
+16
+00:01:00,260 --> 00:01:04,180
+the all-in total, the asking price and the cost to certify.
+
+17
+00:01:04,180 --> 00:01:09,490
+The lowest all-in car keeps its mark, and the car still waiting for its estimate
+
+18
+00:01:09,490 --> 00:01:10,620
+still comes last.
+
+19
+00:01:10,620 --> 00:01:16,000
+Nothing scrolls sideways, so a buyer can compare cars while standing next to one.
+
+20
+00:01:17,150 --> 00:01:19,520
+The rules are enforced by the server.
+
+21
+00:01:19,520 --> 00:01:23,540
+The buyer with four cars gets the four, with the lowest marked.
+
+22
+00:01:23,540 --> 00:01:27,570
+A different buyer, with two cars of their own, gets only those.
+
+23
+00:01:27,570 --> 00:01:30,960
+A buyer with no inspections gets an empty comparison.
+
+24
+00:01:30,960 --> 00:01:34,730
+The mechanic is refused, and so is a request with no token.
+
+25
+00:01:34,730 --> 00:01:39,200
+The lowest car's own report shows the same all-in total as its column,
+
+26
+00:01:39,200 --> 00:01:42,520
+because the comparison is computed from the reports.
+
+27
+00:01:43,670 --> 00:01:45,490
+Here is what to remember.
+
+28
+00:01:45,490 --> 00:01:50,060
+Compare lines up the cars from one window, lowest all-in first.
+
+29
+00:01:50,060 --> 00:01:54,050
+A car without an estimate stays in the list as pending.
+
+30
+00:01:54,050 --> 00:01:58,620
+It works on a phone, and a buyer only ever sees their own cars.
+
+31
+00:01:58,620 --> 00:02:02,240
+Not built yet: the car's make, model and location.
+
+32
+00:02:02,240 --> 00:02:05,870
+Next, journey fourteen: review inspection history.
