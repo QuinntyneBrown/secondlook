@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 10 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="10" data-video-title="Join a live video inspection" data-parts="Introduction|Joining the call|Inspecting together|When the connection drops|Who may join|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 10</div>
+  <h1>Join a live video inspection</h1>
+  <p class="lead">Buyer and mechanic on one authorized call, with recovery</p>
+</section>
+
+<section id="join" data-part="1" data-cue="On the left is the buyer" data-clip="clips/join.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Two browser sessions, one call</h3>
+    <p class="muted">Chromium's fake camera and microphone. Nothing is recorded.</p>
+  </aside>
+</section>
+
+<section id="inspect" data-part="2" data-cue="Marking brakes done moves the call on" data-clip="clips/inspect.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Checklist and notes</h3>
+    <p class="muted">Only the mechanic can change them.</p>
+  </aside>
+</section>
+
+<section id="recover" data-part="3" data-cue="Now the buyer's connection is cut" data-clip="clips/recover.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Reconnect, then end for everyone</h3>
+    <p class="muted">ADR 0012: about six seconds of retries, then Rejoin.</p>
+  </aside>
+</section>
+
+<section id="access" data-part="4" data-cue="The rules are enforced by the server" data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>404, 401, 403</h3>
+    <p class="muted">Outsiders learn nothing; ending twice is safe.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="5" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Two real sessions share one call, peer to peer</li>
+    <li>Only people on the inspection can see it; only the mechanic runs the checklist</li>
+    <li>A dropped connection recovers; ending ends it for everyone</li>
+  </ul>
+  <p class="small muted">Next: Journey 11, receive the safety certification estimate</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
