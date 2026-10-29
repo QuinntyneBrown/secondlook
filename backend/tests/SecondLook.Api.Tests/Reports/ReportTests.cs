@@ -134,6 +134,7 @@ public class ReportTests(ApiFactory factory) : ReportFlow(factory), IClassFixtur
         var report = await Json(response);
 
         report.GetProperty("mechanicName").GetString().Should().Be("Maya Mechanic");
+        report.GetProperty("vehicleName").GetString().Should().Be("2016 Honda Civic"); // L2-085 AC5
         report.GetProperty("requiredCount").GetInt32().Should().Be(2);
         report.GetProperty("costMinCents").GetInt32().Should().Be(50000);
         report.GetProperty("costMaxCents").GetInt32().Should().Be(75000);

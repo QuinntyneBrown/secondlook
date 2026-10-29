@@ -9,6 +9,7 @@ using SecondLook.Application.Scoping;
 using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Reports;
 using SecondLook.Domain.Users;
+using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Application.Reports;
 
@@ -23,7 +24,7 @@ public sealed record BodyShopDto(string Status, string? ReviewerName, IReadOnlyL
 /// </summary>
 public sealed record ReportDto(
     Guid InspectionId, string Review, DateTimeOffset SubmittedAt, DateTimeOffset? CallEndedAt, string? MechanicName, bool MechanicReady,
-    string? Vin, int OdometerKm, int AskingPriceCents,
+    string VehicleName, string? Vin, int OdometerKm, int AskingPriceCents,
     IReadOnlyList<FindingDto> Findings, int RequiredCount, int CostMinCents, int CostMaxCents, int AllInMinCents, int AllInMaxCents,
     BodyShopDto BodyShop, string Disclaimer);
 
@@ -72,7 +73,7 @@ internal static class ReportMapper
         }
 
         return new ReportDto(i.Id, i.Review.ToString(), report.MechanicSubmittedAt ?? report.BodyShopSubmittedAt ?? default, ended, mechanic?.DisplayName, report.MechanicSubmittedAt is not null,
-            i.Vin, i.OdometerKm, asking, mechanicRows.Select(Dto).ToList(), required.Count, min, max, asking + min, asking + max, bodyShop, Disclaimer);
+            VehicleName.Of(i.Year, i.Make, i.Model, i.Vin), i.Vin, i.OdometerKm, asking, mechanicRows.Select(Dto).ToList(), required.Count, min, max, asking + min, asking + max, bodyShop, Disclaimer);
     }
 }
 
@@ -183,7 +184,7 @@ public sealed class SubmitBodyShopReviewHandler(IAppDbContext db, ICurrentUser c
     }
 }
 
-public sealed record AssignedReviewDto(Guid InspectionId, string? Vin, DateTimeOffset Start, string Review, string CallStatus, bool Delivered);
+public sealed record AssignedReviewDto(Guid InspectionId, string VehicleName, string? Vin, DateTimeOffset Start, string Review, string CallStatus, bool Delivered);
 
 public sealed record ListAssignedReviewsQuery : IRequest<IReadOnlyList<AssignedReviewDto>>;
 
@@ -199,7 +200,7 @@ public sealed class ListAssignedReviewsHandler(IAppDbContext db, ICurrentUser ca
         return mine.Select(i =>
         {
             var status = !sessions.TryGetValue(i.Id, out var s) ? "NotStarted" : s.EndedAt is null ? "Live" : "Ended";
-            return new AssignedReviewDto(i.Id, i.Vin, i.StartUtc, i.Review.ToString(), status, delivered.Contains(i.Id));
+            return new AssignedReviewDto(i.Id, VehicleName.Of(i.Year, i.Make, i.Model, i.Vin), i.Vin, i.StartUtc, i.Review.ToString(), status, delivered.Contains(i.Id));
         }).ToList();
     }
 }

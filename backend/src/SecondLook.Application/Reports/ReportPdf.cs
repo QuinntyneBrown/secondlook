@@ -18,7 +18,7 @@ internal static class ReportPdf
         {
             "SecondLook - Your report",
             "",
-            $"Vehicle {r.Vin} - {r.OdometerKm.ToString("N0", CultureInfo.InvariantCulture)} km - asking {Money(r.AskingPriceCents)}",
+            $"Vehicle {r.VehicleName}{(r.Vin is { } vin && vin != r.VehicleName ? $" - VIN {vin}" : "")} - {r.OdometerKm.ToString("N0", CultureInfo.InvariantCulture)} km - asking {Money(r.AskingPriceCents)}",
         };
         if (r.MechanicName is { } mechanic)
             lines.Add($"Estimate written by {mechanic}" + (r.CallEndedAt is { } ended ? $" after the call on {ended:ddd d MMM yyyy}" : ""));

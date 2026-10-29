@@ -34,6 +34,7 @@ public class ComparisonTests(ApiFactory factory) : ReportFlow(factory), IClassFi
 
         var first = columns[0];
         first.GetProperty("status").GetString().Should().Be("Ready");
+        first.GetProperty("vehicleName").GetString().Should().Be("2016 Honda Civic"); // L2-085 AC5
         first.GetProperty("askingPriceCents").GetInt32().Should().Be(700000);
         first.GetProperty("costMinCents").GetInt32().Should().Be(30000);
         first.GetProperty("costMaxCents").GetInt32().Should().Be(50000);

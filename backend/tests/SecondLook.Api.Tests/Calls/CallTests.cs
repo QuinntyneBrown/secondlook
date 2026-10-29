@@ -60,6 +60,7 @@ public class CallTests(ApiFactory factory) : BookingFlow(factory), IClassFixture
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var body = await Json(response);
         body.GetProperty("status").GetString().Should().Be("NotStarted");
+        body.GetProperty("vehicleName").GetString().Should().Be("2016 Honda Civic"); // L2-085 AC5
         body.GetProperty("start").GetDateTimeOffset().Should().Be(start);
         body.GetProperty("opensAt").GetDateTimeOffset().Should().Be(start - Opens);
         var people = body.GetProperty("participants").EnumerateArray().ToArray();

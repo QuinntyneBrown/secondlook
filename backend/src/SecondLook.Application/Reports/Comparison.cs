@@ -5,6 +5,7 @@ using SecondLook.Application.Scoping;
 using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Payments;
 using SecondLook.Domain.Reports;
+using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Application.Reports;
 
@@ -15,7 +16,7 @@ public sealed record ComparisonWindowDto(DateTimeOffset StartsAt, DateTimeOffset
 /// not written yet) or NoEstimate (a review with the body shop alone has no certification estimate).
 /// </summary>
 public sealed record ComparisonColumnDto(
-    Guid InspectionId, string? Vin, int OdometerKm, int AskingPriceCents, string Review, string Status,
+    Guid InspectionId, string VehicleName, string? Vin, int OdometerKm, int AskingPriceCents, string Review, string Status,
     int? CostMinCents, int? CostMaxCents, int? AllInMinCents, int? AllInMaxCents, bool Lowest);
 
 public sealed record ComparisonDto(ComparisonWindowDto? Window, IReadOnlyList<ComparisonColumnDto> Columns, int ReadyCount);
@@ -62,7 +63,7 @@ public sealed class GetComparisonHandler(IAppDbContext db, ICurrentUser caller, 
         if (ready.Count >= 2) best = (ready[0].Asking + ready[0].Min!.Value, ready[0].Asking + ready[0].Max!.Value);
         var columns = ready.Concat(others).Select(r =>
             new ComparisonColumnDto(
-                r.Car.Id, r.Car.Vin, r.Car.OdometerKm, r.Asking, r.Car.Review.ToString(), r.Status, r.Min, r.Max,
+                r.Car.Id, VehicleName.Of(r.Car.Year, r.Car.Make, r.Car.Model, r.Car.Vin), r.Car.Vin, r.Car.OdometerKm, r.Asking, r.Car.Review.ToString(), r.Status, r.Min, r.Max,
                 r.Status == "Ready" ? r.Asking + r.Min : null, r.Status == "Ready" ? r.Asking + r.Max : null,
                 r.Status == "Ready" && best is { } b && r.Asking + r.Min == b.Min && r.Asking + r.Max == b.Max)).ToList();
 
