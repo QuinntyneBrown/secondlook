@@ -73,6 +73,17 @@ test.describe("Join a live video inspection (J10)", () => {
     await mech.context.close();
   });
 
+  // L2-039: the booked inspection leads into its lobby.
+  test("the inspection page leads into the call lobby", async ({
+    page,
+    request,
+  }) => {
+    const booked = await buyerSession(page, request);
+    const lobby = new CallLobbyPage(page);
+    await lobby.openFromInspection(booked.id);
+    await lobby.expectLoaded();
+  });
+
   // L2-040: a blocked camera is explained, and the buyer can still join with audio only.
   test("a blocked camera still allows audio only", async ({
     page,

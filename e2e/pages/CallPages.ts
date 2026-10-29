@@ -8,6 +8,13 @@ export class CallLobbyPage {
     await this.page.goto(`/inspections/${inspectionId}/lobby`);
   }
 
+  /** The way in from the inspection page, as a buyer would take it. */
+  async openFromInspection(inspectionId: string) {
+    await this.page.goto(`/inspections/${inspectionId}`);
+    await this.page.getByRole("link", { name: "Join the call" }).click();
+    await this.page.waitForURL(/\/inspections\/[^/]+\/lobby$/);
+  }
+
   async expectLoaded() {
     await expect(
       this.page.getByRole("heading", {

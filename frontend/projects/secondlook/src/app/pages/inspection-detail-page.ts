@@ -81,6 +81,11 @@ const whole = (cents: number) => `$${cents % 100 === 0 ? cents / 100 : (cents / 
           <p>Paid {{ money(i.amountCents) }}</p>
         </section>
 
+        @if (i.status !== 'Cancelled') {
+          <div class="actions">
+            <sl-button [routerLink]="'/inspections/' + i.id + '/lobby'">Join the call</sl-button>
+          </div>
+        }
         @if (i.canChange) {
           <div class="actions">
             <sl-button variant="outline" (pressed)="reschedule(i)">Reschedule</sl-button>
