@@ -49,7 +49,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
         @if (unchecked(c).length) {
           <p>Not checked: {{ unchecked(c).join(', ') }}</p>
         }
-        <a [routerLink]="['/inspections', c.inspectionId]">Back to inspection</a>
+        <div class="actions">
+          <sl-button [routerLink]="'/inspections/' + c.inspectionId">Back to inspection</sl-button>
+        </div>
       </main>
     } @else if (phase() === 'unavailable') {
       <main class="summary">
@@ -197,7 +199,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     .call {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
-      gap: var(--spacingHorizontalXL);
+      gap: var(--spacingHorizontalXXL);
       padding: var(--spacingVerticalL);
     }
     @media (max-width: 800px) {
@@ -245,7 +247,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     }
     .ctl {
       min-height: 40px;
-      padding: 0 var(--spacingHorizontalXL);
+      padding: 0 var(--spacingHorizontalXXL);
       border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
       border-radius: var(--borderRadiusMedium);
       background: var(--colorNeutralBackground1);
@@ -263,9 +265,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
       color: var(--colorNeutralBackground1);
     }
     .ctl.danger {
-      border-color: var(--colorStatusDangerBackground3);
-      background: var(--colorStatusDangerBackground3);
-      color: var(--colorNeutralForegroundOnBrand);
+      border-color: var(--colorStatusDangerForeground1);
+      background: var(--colorStatusDangerBackground1);
+      color: var(--colorStatusDangerForeground1);
     }
     ol {
       display: grid;

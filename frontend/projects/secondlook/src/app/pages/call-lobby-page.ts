@@ -151,7 +151,7 @@ const ROLE_LABEL: Record<string, string> = {
     .split {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: var(--spacingHorizontalXL);
+      gap: var(--spacingHorizontalXXL);
     }
     .card {
       display: grid;
@@ -192,7 +192,7 @@ const ROLE_LABEL: Record<string, string> = {
     }
     .device {
       display: grid;
-      gap: var(--spacingVerticalXS);
+      gap: var(--spacingVerticalS);
     }
     label {
       color: var(--colorNeutralForeground2);

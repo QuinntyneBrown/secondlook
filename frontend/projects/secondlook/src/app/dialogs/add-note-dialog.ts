@@ -48,7 +48,7 @@ import { Alert, Button } from 'components';
     }
     label {
       display: grid;
-      gap: var(--spacingVerticalXS);
+      gap: var(--spacingVerticalS);
     }
     textarea {
       font: inherit;
