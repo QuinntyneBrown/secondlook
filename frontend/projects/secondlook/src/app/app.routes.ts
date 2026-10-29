@@ -9,6 +9,9 @@ import { BookingConfirmedPage } from './pages/booking-confirmed-page';
 import { CallLobbyPage } from './pages/call-lobby-page';
 import { CallPage } from './pages/call-page';
 import { CheckoutPage } from './pages/checkout-page';
+import { EstimatePage } from './pages/estimate-page';
+import { ReportPage } from './pages/report-page';
+import { SharedReportPage } from './pages/shared-report-page';
 import { InspectionDetailPage } from './pages/inspection-detail-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
 import { InspectionsPage } from './pages/inspections-page';
@@ -36,6 +39,9 @@ export const routes: Routes = [
   { path: 'inspections/:id', component: InspectionDetailPage, canActivate: [signedIn] },
   { path: 'inspections/:id/lobby', component: CallLobbyPage, canActivate: [signedIn] },
   { path: 'inspections/:id/call', component: CallPage, canActivate: [signedIn] },
+  { path: 'inspections/:id/report', component: ReportPage, canActivate: [signedIn] },
+  { path: 'inspections/:id/estimate', component: EstimatePage, canActivate: [signedIn] },
+  { path: 'shared/:token', component: SharedReportPage },
   { path: 'book/vehicle', component: BookVehiclePage, canActivate: [signedIn] },
   { path: 'book/review', component: BookReviewPage, canActivate: [signedIn] },
   { path: 'book/schedule', component: BookSchedulePage, canActivate: [signedIn] },
