@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BOOKINGS_API, Inspection } from 'api';
+import { BOOKINGS_API, Inspection, vehicleName } from 'api';
 import { Alert, Button } from 'components';
 import { callTime, longWeekday, timeLabel } from '../util/eastern-time';
 import { providerNames } from '../util/providers';
@@ -23,7 +23,7 @@ import { providerNames } from '../util/providers';
           <ol>
             <li>
               <strong>Booked and paid</strong> {{ '$' + (i.amountCents / 100).toFixed(2) }} for
-              {{ i.vehicle.vin }}.
+              {{ name(i) }}.
             </li>
             <li>
               <strong>We text {{ i.vehicle.sellerName }}</strong> They get a link to join, and a
@@ -83,6 +83,7 @@ import { providerNames } from '../util/providers';
 })
 export class BookingConfirmedPage {
   protected readonly names = providerNames;
+  protected readonly name = (i: Inspection) => vehicleName(i.vehicle);
   private readonly api = inject(BOOKINGS_API);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 

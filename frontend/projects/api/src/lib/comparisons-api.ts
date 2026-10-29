@@ -10,7 +10,9 @@ export type ComparisonStatus = 'Ready' | 'Pending' | 'NoEstimate';
 
 export interface ComparisonColumn {
   inspectionId: string;
-  vin: string;
+  /** "2016 Honda Civic"; the VIN for a car booked before make and model were recorded (ADR 0018). */
+  vehicleName: string;
+  vin: string | null;
   odometerKm: number;
   askingPriceCents: number;
   review: ReviewType;

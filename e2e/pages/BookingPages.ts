@@ -46,21 +46,30 @@ export class DashboardPage {
       .click();
   }
 
-  async expectInspection(vin: string, chip: string) {
-    await expect(this.page.getByRole("tab", { name: /^Active/ })).toBeVisible();
-    const row = this.page
+  /** An inspection's row, found by the car's name ("2016 Honda Civic") or its VIN. */
+  private row(vehicle: string) {
+    return this.page
+      .getByRole("list", { name: "Inspections" })
       .getByRole("listitem")
-      .filter({ has: this.page.getByRole("link", { name: vin }) });
+      .filter({ hasText: vehicle });
+  }
+
+  async expectInspection(vehicle: string, chip: string) {
+    await expect(this.page.getByRole("tab", { name: /^Active/ })).toBeVisible();
+    const row = this.row(vehicle);
     await expect(row).toBeVisible();
     await expect(row.getByText(chip)).toBeVisible();
   }
 
-  async openInspection(vin: string) {
-    await this.page.getByRole("link", { name: vin }).click();
+  async openInspection(vehicle: string) {
+    await this.row(vehicle).getByRole("link").click();
   }
 }
 
 export interface BookingVehicle {
+  year: string;
+  make: string;
+  model: string;
   vin: string;
   km: string;
   price: string;
@@ -85,7 +94,10 @@ export class BookVehiclePage {
   }
 
   async fill(v: BookingVehicle) {
-    await this.page.getByLabel("VIN", { exact: true }).fill(v.vin);
+    await this.page.getByLabel("Year", { exact: true }).fill(v.year);
+    await this.page.getByLabel("Make", { exact: true }).fill(v.make);
+    await this.page.getByLabel("Model", { exact: true }).fill(v.model);
+    await this.page.getByLabel("VIN (optional)", { exact: true }).fill(v.vin);
     await this.page.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
     await this.page
       .getByLabel("Asking price ($)", { exact: true })
@@ -111,6 +123,9 @@ export class BookVehiclePage {
 
   /** Every field except the VIN, for a page that opened with the VIN already filled in. */
   async fillRest(v: Omit<BookingVehicle, "vin">) {
+    await this.page.getByLabel("Year", { exact: true }).fill(v.year);
+    await this.page.getByLabel("Make", { exact: true }).fill(v.make);
+    await this.page.getByLabel("Model", { exact: true }).fill(v.model);
     await this.page.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
     await this.page
       .getByLabel("Asking price ($)", { exact: true })
@@ -271,10 +286,10 @@ export class InspectionDetailPage {
     ).toBeVisible();
   }
 
-  async expectScheduled(vin: string, startIso: string, paid: string) {
+  async expectScheduled(vehicle: string, startIso: string, paid: string) {
     const l = slotLabels(startIso);
     await expect(
-      this.page.getByRole("heading", { level: 1, name: vin }),
+      this.page.getByRole("heading", { level: 1, name: vehicle }),
     ).toBeVisible();
     await expect(
       this.page.getByText(`Scheduled · ${l.day}, ${l.time}`),

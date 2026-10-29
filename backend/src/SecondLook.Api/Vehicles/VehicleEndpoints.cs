@@ -4,9 +4,9 @@ using SecondLook.Application.Vehicles;
 
 namespace SecondLook.Api.Vehicles;
 
-public sealed record VehicleRequest(string? Vin, int? OdometerKm, decimal? AskingPrice, string? ListingUrl, string? SellerName, string? SellerPhone)
+public sealed record VehicleRequest(int? Year, string? Make, string? Model, string? Vin, int? OdometerKm, decimal? AskingPrice, string? ListingUrl, string? SellerName, string? SellerPhone)
 {
-    public VehicleInput ToInput() => new(Vin, OdometerKm, AskingPrice, ListingUrl, SellerName, SellerPhone);
+    public VehicleInput ToInput() => new(Year, Make, Model, Vin, OdometerKm, AskingPrice, ListingUrl, SellerName, SellerPhone);
 }
 
 public static class VehicleEndpoints

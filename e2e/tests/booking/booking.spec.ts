@@ -97,9 +97,13 @@ test.describe("Book a video inspection (J06)", () => {
     // Vehicle: invalid first, then valid.
     const vehicle = new BookVehiclePage(page);
     await vehicle.expectLoaded();
+    // L2-085 AC1, AC3: the car is booked by its year, make and model, without a VIN.
     const vin = uniqueVin();
     const car = {
-      vin,
+      year: "2017",
+      make: "Toyota",
+      model: "Corolla",
+      vin: "",
       km: "142300",
       price: "8900",
       url: "https://example.test/civic",
@@ -113,7 +117,7 @@ test.describe("Book a video inspection (J06)", () => {
       "Enter the seller’s 10-digit phone number.",
     ]);
     await vehicle.expectFieldError(
-      "VIN",
+      "VIN (optional)",
       "A VIN has 17 characters. This one has 15.",
     );
     await vehicle.expectFieldError(
@@ -146,11 +150,18 @@ test.describe("Book a video inspection (J06)", () => {
     const confirmed = new ConfirmedPage(page);
     await confirmed.expectBooked(slot, "Maya Mechanic", "Bo Bodyshop");
     await confirmed.viewInspection();
-    await new InspectionDetailPage(page).expectScheduled(vin, slot, "$70.00");
+    await new InspectionDetailPage(page).expectScheduled(
+      "2017 Toyota Corolla",
+      slot,
+      "$70.00",
+    );
 
     await dashboard.open();
     const labels = slotLabels(slot);
-    await dashboard.expectInspection(vin, `${labels.day}, ${labels.time}`);
+    await dashboard.expectInspection(
+      "2017 Toyota Corolla",
+      `${labels.day}, ${labels.time}`,
+    );
   });
 
   // L2-025 AC8: a slot taken between choosing and holding is refused without losing the buyer's answers.
@@ -165,6 +176,9 @@ test.describe("Book a video inspection (J06)", () => {
     const vehicle = new BookVehiclePage(page);
     const vin = uniqueVin();
     await vehicle.fill({
+      year: "2016",
+      make: "Honda",
+      model: "Civic",
       vin,
       km: "90000",
       price: "5000",
@@ -207,6 +221,9 @@ test.describe("Book a video inspection (J06)", () => {
     await new DashboardPage(page).startBooking();
     const vehicle = new BookVehiclePage(page);
     await vehicle.fill({
+      year: "2016",
+      make: "Honda",
+      model: "Civic",
       vin: uniqueVin(),
       km: "90000",
       price: "5000",

@@ -22,7 +22,13 @@ type Load = 'loading' | 'ready' | 'not-shared' | 'failed';
             A read-only copy of a SecondLook report. Call finished {{ finished(r) }} ·
             {{ author(r) }}
           </p>
-          <p class="sub">VIN {{ r.vin }} · {{ r.odometerKm.toLocaleString('en-CA') }} km</p>
+          <p class="sub">
+            {{ r.vehicleName }} ·
+            @if (r.vin && r.vin !== r.vehicleName) {
+              VIN {{ r.vin }} ·
+            }
+            {{ r.odometerKm.toLocaleString('en-CA') }} km
+          </p>
           <sl-report-view [report]="r" />
         }
         @case ('not-shared') {

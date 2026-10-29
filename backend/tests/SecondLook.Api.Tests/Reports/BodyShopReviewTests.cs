@@ -148,6 +148,7 @@ public class BodyShopReviewTests(ApiFactory factory) : ReportFlow(factory), ICla
         row.GetProperty("delivered").GetBoolean().Should().BeFalse();
         row.GetProperty("review").GetString().Should().Be("Both");
         row.GetProperty("vin").GetString().Should().NotBeNullOrEmpty();
+        row.GetProperty("vehicleName").GetString().Should().Be("2016 Honda Civic"); // L2-085 AC5
 
         (await SubmitShop(assigned, ShopFindings)).EnsureSuccessStatusCode();
         var after = (await Json(await BodyShop.GetAsync("/api/reviews/assigned"))).EnumerateArray().Single(r => r.GetProperty("inspectionId").GetGuid() == assigned);

@@ -1,6 +1,6 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { BOOKINGS_API, CancelReason, Inspection } from 'api';
+import { BOOKINGS_API, CancelReason, Inspection, vehicleName } from 'api';
 import { Alert, Button } from 'components';
 import { callTime } from '../util/eastern-time';
 
@@ -17,7 +17,7 @@ const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form class="dialog" novalidate (submit)="submit($event)">
-      <h2 id="cancel-title">Cancel the {{ data.inspection.vehicle.vin }} inspection?</h2>
+      <h2 id="cancel-title">Cancel the {{ name }} inspection?</h2>
       <p id="cancel-description">
         {{ data.inspection.mechanicName }}’s slot on {{ when }} will be released and
         {{ data.inspection.vehicle.sellerName }} will be told.
@@ -122,6 +122,7 @@ const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
 export class CancelInspectionDialog {
   protected readonly ref = inject<DialogRef<Inspection | false>>(DialogRef);
   protected readonly data = inject<CancelData>(DIALOG_DATA);
+  protected readonly name = vehicleName(this.data.inspection.vehicle);
   private readonly api = inject(BOOKINGS_API);
 
   protected readonly money = money;

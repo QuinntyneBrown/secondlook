@@ -25,7 +25,7 @@ const uniqueVin = () =>
   `2HGFC2F59GH${String((Date.now() + 91) % 1_000_000).padStart(6, "0")}`;
 
 test.describe("Add an additional vehicle (J08)", () => {
-  // L2-034 AC1, L2-033 AC1 and AC2: the banner, the dialog and its validation.
+  // L2-034 AC1, L2-033 AC1, L2-085 AC6: the banner, the dialog, and its optional VIN.
   test("an open window offers another car for $25", async ({
     page,
     request,
@@ -40,8 +40,14 @@ test.describe("Add an additional vehicle (J08)", () => {
     await banner.expectDialog(
       `Your window is open until ${end.long}, so this car is $25. Choosing both adds $20.`,
     );
-    await banner.continueEmpty();
-    await banner.expectVinRequired();
+    await banner.continueWithVin("2HGFC2F59");
+    await banner.expectVinIncomplete();
+
+    // Without a VIN the buyer goes on to the vehicle step, where the year, make and model are asked.
+    await banner.continueWithVin("");
+    const vehicle = new BookVehiclePage(page);
+    await vehicle.expectLoaded();
+    await vehicle.expectValue("VIN (optional)", "");
   });
 
   // L2-033 AC4: a failed window check offers Try again and keeps the dialog.
@@ -75,8 +81,11 @@ test.describe("Add an additional vehicle (J08)", () => {
     // The details step opens with the VIN filled in; the review is already Both.
     const vehicle = new BookVehiclePage(page);
     await vehicle.expectLoaded();
-    await vehicle.expectValue("VIN", vin);
+    await vehicle.expectValue("VIN (optional)", vin);
     await vehicle.fillRest({
+      year: "2014",
+      make: "Toyota",
+      model: "Corolla",
       km: "120000",
       price: "6500",
       url: "",
@@ -105,6 +114,7 @@ test.describe("Add an additional vehicle (J08)", () => {
     );
 
     await new DashboardPage(page).open();
-    await banner.expectAdded(vin, "$45", "Two");
+    // L2-085 AC5: the car is announced by its year, make and model.
+    await banner.expectAdded("2014 Toyota Corolla", "$45", "Two");
   });
 });

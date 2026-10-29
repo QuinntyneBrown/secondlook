@@ -57,7 +57,7 @@ test.describe("Review inspection history (J14)", () => {
     await history.expectSelected("Past");
     await history.openRow(cancelled.vin);
     await history.expectOnDetail();
-    await history.expectCancelledDetail(cancelled.vin);
+    await history.expectCancelledDetail("2016 Honda Civic", cancelled.vin);
   });
 
   // L2-021 AC4: a report with only recommended repairs, or none, says so.

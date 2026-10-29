@@ -2,13 +2,12 @@ import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ApiProblem, Vehicle, VEHICLES_API } from 'api';
 import { Alert, Button, FormField, SummaryItem } from 'components';
+import { validateVehicle } from '../util/vehicle-form';
 
 export interface VehicleDialogData {
   /** Present when editing a saved vehicle. */
   vehicle?: Vehicle;
 }
-
-const VIN_LETTERS = /^[A-HJ-NPR-Z0-9]{17}$/i;
 
 /** Adds or edits a saved vehicle. Opened with the CDK Dialog (modal, Escape closes), per L2-065. */
 @Component({
@@ -35,8 +34,29 @@ const VIN_LETTERS = /^[A-HJ-NPR-Z0-9]{17}$/i;
         <sl-alert [title]="p.title" [text]="p.text" />
       }
       <sl-form-field
+        fieldId="v-year"
+        label="Year"
+        [error]="errors()['v-year']"
+        [readonly]="busy()"
+        [(value)]="year"
+      />
+      <sl-form-field
+        fieldId="v-make"
+        label="Make"
+        [error]="errors()['v-make']"
+        [readonly]="busy()"
+        [(value)]="make"
+      />
+      <sl-form-field
+        fieldId="v-model"
+        label="Model"
+        [error]="errors()['v-model']"
+        [readonly]="busy()"
+        [(value)]="model"
+      />
+      <sl-form-field
         fieldId="v-vin"
-        label="VIN"
+        label="VIN (optional)"
         [error]="errors()['v-vin']"
         [readonly]="busy()"
         [(value)]="vin"
@@ -114,6 +134,10 @@ export class VehicleDialog {
   private readonly api = inject(VEHICLES_API);
 
   protected readonly editing = !!this.data.vehicle;
+  // A vehicle saved before ADR 0018 has year 0 and no make: the buyer is asked for them.
+  protected readonly year = signal(this.data.vehicle?.year ? String(this.data.vehicle.year) : '');
+  protected readonly make = signal(this.data.vehicle?.make ?? '');
+  protected readonly model = signal(this.data.vehicle?.model ?? '');
   protected readonly vin = signal(this.data.vehicle?.vin ?? '');
   protected readonly km = signal(this.data.vehicle ? String(this.data.vehicle.odometerKm) : '');
   protected readonly price = signal(this.data.vehicle ? String(this.data.vehicle.askingPrice) : '');
@@ -130,53 +154,26 @@ export class VehicleDialog {
     if (this.busy()) return;
     this.problem.set(null);
 
-    const errors: Record<string, string> = {};
-    const items: SummaryItem[] = [];
-    const add = (id: string, summary: string, field = summary) => {
-      errors[id] = field;
-      items.push({ message: summary, fieldId: id });
-    };
-    const vin = this.vin().trim();
-    if (vin.length !== 17)
-      add(
-        'v-vin',
-        'Enter the full 17-character VIN.',
-        `A VIN has 17 characters. This one has ${vin.length}.`,
-      );
-    else if (!VIN_LETTERS.test(vin))
-      add('v-vin', 'A VIN uses letters and digits, but never I, O or Q.');
-
-    const km = Number(this.km().replace(/[\s,]/g, ''));
-    if (!this.km().trim() || !Number.isInteger(km) || km < 0 || km > 1_500_000)
-      add('v-km', 'Enter the odometer reading in kilometres, up to 1,500,000.');
-    const price = Number(this.price().replace(/[\s,$]/g, ''));
-    if (!this.price().trim() || Number.isNaN(price) || price < 0 || price > 1_000_000)
-      add('v-price', 'Enter the asking price in dollars, up to 1,000,000.');
-    const url = this.url().trim();
-    if (url && !/^https?:\/\/\S+$/i.test(url))
-      add('v-url', 'Enter a link that starts with http:// or https://.');
-    const name = this.name().trim();
-    if (!name || name.length > 100) add('v-name', 'Enter the seller’s name, up to 100 characters.');
-    const digits = this.phone().replace(/\D/g, '');
-    if (!(digits.length === 10 || (digits.length === 11 && digits.startsWith('1'))))
-      add('v-phone', 'Enter the seller’s 10-digit phone number.', 'Enter a 10-digit phone number.');
-
-    this.errors.set(errors);
+    const result = validateVehicle({
+      year: this.year(),
+      make: this.make(),
+      model: this.model(),
+      vin: this.vin(),
+      km: this.km(),
+      price: this.price(),
+      url: this.url(),
+      name: this.name(),
+      phone: this.phone(),
+    });
+    this.errors.set(result.errors);
     this.summary.set([]);
-    if (items.length) {
-      queueMicrotask(() => this.summary.set(items));
+    if (!result.input) {
+      queueMicrotask(() => this.summary.set(result.items));
       return;
     }
 
     this.busy.set(true);
-    const input = {
-      vin,
-      odometerKm: km,
-      askingPrice: price,
-      listingUrl: url || null,
-      sellerName: name,
-      sellerPhone: this.phone().trim(),
-    };
+    const input = result.input;
     const call = this.data.vehicle
       ? this.api.update(this.data.vehicle.id, input)
       : this.api.add(input);

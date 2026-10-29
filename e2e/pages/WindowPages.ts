@@ -22,10 +22,10 @@ export class WindowBanner {
     ).toBeVisible();
   }
 
-  async expectAdded(vin: string, amount: string, count: string) {
+  async expectAdded(vehicle: string, amount: string, count: string) {
     const status = this.page
       .getByRole("status")
-      .filter({ hasText: `${vin} added for ${amount}` });
+      .filter({ hasText: `${vehicle} added for ${amount}` });
     await expect(status).toBeVisible();
     await expect(
       status.getByText(
@@ -61,17 +61,13 @@ export class WindowBanner {
 
   async continueWithVin(vin: string) {
     await this.dialog
-      .getByLabel("VIN of the next car", { exact: true })
+      .getByLabel("VIN of the next car (optional)", { exact: true })
       .fill(vin);
     await this.dialog.getByRole("button", { name: "Continue" }).click();
   }
 
-  async continueEmpty() {
-    await this.dialog.getByRole("button", { name: "Continue" }).click();
-  }
-
-  async expectVinRequired() {
-    const field = this.dialog.getByLabel("VIN of the next car", {
+  async expectVinIncomplete() {
+    const field = this.dialog.getByLabel("VIN of the next car (optional)", {
       exact: true,
     });
     await expect(field).toBeFocused();

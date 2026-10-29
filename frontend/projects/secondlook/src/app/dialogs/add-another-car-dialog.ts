@@ -13,7 +13,7 @@ export interface AddAnotherResult {
   review: ReviewChoice;
 }
 
-/** The first step of adding another car inside the window (L2-033): its VIN and review, then the booking flow. */
+/** The first step of adding another car inside the window (L2-033, L2-085): its optional VIN and review, then the booking flow. */
 @Component({
   selector: 'sl-add-another-car-dialog',
   imports: [Alert, Button],
@@ -39,7 +39,7 @@ export interface AddAnotherResult {
         />
       }
       <div class="field">
-        <label for="next-vin">VIN of the next car</label>
+        <label for="next-vin">VIN of the next car (optional)</label>
         <input
           id="next-vin"
           type="text"
@@ -159,8 +159,9 @@ export class AddAnotherCarDialog {
     if (this.busy()) return;
     this.failed.set(false);
     this.closed.set(false);
+    // The VIN is optional (ADR 0018): it only pre-fills the vehicle step, where the year, make and model are asked.
     const vin = this.vin().trim();
-    if (vin.length !== 17) {
+    if (vin && vin.length !== 17) {
       this.error.set('Enter the full 17-character VIN.');
       queueMicrotask(() =>
         this.host.nativeElement.querySelector<HTMLElement>('#next-vin')?.focus(),

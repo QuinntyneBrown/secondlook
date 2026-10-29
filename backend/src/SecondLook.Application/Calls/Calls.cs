@@ -5,6 +5,7 @@ using SecondLook.Application.Scoping;
 using SecondLook.Domain.Calls;
 using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Users;
+using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Application.Calls;
 
@@ -17,7 +18,7 @@ public sealed record NoteDto(string Author, string Text, DateTimeOffset At);
 
 public sealed record CallStateDto(
     Guid InspectionId, string Status, DateTimeOffset Start, DateTimeOffset OpensAt, DateTimeOffset? StartedAt, DateTimeOffset? EndedAt, int? DurationSeconds,
-    string Vin, ParticipantDto You, IReadOnlyList<ParticipantDto> Participants, IReadOnlyList<ChecklistItemDto> Checklist, IReadOnlyList<NoteDto> Notes);
+    string VehicleName, string? Vin, ParticipantDto You, IReadOnlyList<ParticipantDto> Participants, IReadOnlyList<ChecklistItemDto> Checklist, IReadOnlyList<NoteDto> Notes);
 
 public abstract record CallResult
 {
@@ -60,7 +61,7 @@ internal static class CallMapper
 
         var status = session is null ? "NotStarted" : session.EndedAt is null ? "Live" : "Ended";
         int? duration = session?.EndedAt is { } end ? (int)(end - session.StartedAt).TotalSeconds : null;
-        return new CallStateDto(i.Id, status, i.StartUtc, i.StartUtc - options.OpensBefore, session?.StartedAt, session?.EndedAt, duration, i.Vin, you, people, checklist, notes);
+        return new CallStateDto(i.Id, status, i.StartUtc, i.StartUtc - options.OpensBefore, session?.StartedAt, session?.EndedAt, duration, VehicleName.Of(i.Year, i.Make, i.Model, i.Vin), i.Vin, you, people, checklist, notes);
     }
 }
 

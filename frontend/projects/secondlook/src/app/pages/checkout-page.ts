@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiProblem, BOOKINGS_API, Checkout, PAYMENTS_API, ReviewChoice } from 'api';
+import { ApiProblem, BOOKINGS_API, Checkout, PAYMENTS_API, ReviewChoice, vehicleName } from 'api';
 import { Alert, Button, FormField, SummaryItem } from 'components';
 import { BookingDraft, checkoutKey } from '../booking/booking-draft';
 
@@ -376,7 +376,10 @@ export class CheckoutPage {
             try {
               sessionStorage.setItem(
                 'secondlook.addedCar',
-                JSON.stringify({ vin: inspection.vehicle.vin, cents: quote.totalCents }),
+                JSON.stringify({
+                  vehicle: vehicleName(inspection.vehicle),
+                  cents: quote.totalCents,
+                }),
               );
             } catch {
               // the dashboard simply shows no announcement

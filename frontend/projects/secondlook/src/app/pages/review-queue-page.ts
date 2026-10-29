@@ -27,8 +27,13 @@ const REVIEW_LABEL: Record<ReviewType, string> = {
               @for (r of reviews(); track r.inspectionId) {
                 <li>
                   <div class="what">
-                    <strong>{{ r.vin }}</strong>
-                    <span class="muted">{{ when(r) }} · {{ label(r) }}</span>
+                    <strong>{{ r.vehicleName }}</strong>
+                    <span class="muted">
+                      @if (r.vin && r.vin !== r.vehicleName) {
+                        VIN {{ r.vin }} ·
+                      }
+                      {{ when(r) }} · {{ label(r) }}</span
+                    >
                   </div>
                   <span class="status">{{ status(r) }}</span>
                   <div class="actions">

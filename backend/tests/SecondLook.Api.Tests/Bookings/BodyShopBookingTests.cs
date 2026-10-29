@@ -25,7 +25,7 @@ public class BodyShopBookingTests(ApiFactory factory) : BookingFlow(factory), IC
 
     private async Task<(Guid checkout, Guid vehicle)> PaidCheckout(HttpClient buyer, string review)
     {
-        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
+        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
         var checkout = (await Json(await buyer.PostAsJsonAsync("/api/checkouts", new { review, idempotencyKey = Guid.NewGuid().ToString(), vehicleId = vehicle }))).GetProperty("id").GetGuid();
         var token = (await Json(await buyer.PostAsJsonAsync("/api/payments/tokens", new { cardNumber = Visa, expiry = "12 / 34", securityCode = "123", nameOnCard = "Bo", postalCode = "L8P 1A1" }))).GetProperty("token").GetString();
         (await buyer.PostAsJsonAsync($"/api/checkouts/{checkout}/pay", new { paymentToken = token })).StatusCode.Should().Be(HttpStatusCode.OK);

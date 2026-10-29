@@ -140,6 +140,8 @@ public class HistoryTests(ApiFactory factory) : ReportFlow(factory), IClassFixtu
         // Newest first; a page past the end is empty, and a bad page is the first page.
         var vins = first.GetProperty("items").EnumerateArray().Select(r => r.GetProperty("vin").GetString()).ToArray();
         vins[0].Should().Be("LONGLIST000000044");
+        // L2-085 AC7: an inspection booked before make and model were recorded is named by its VIN.
+        first.GetProperty("items")[0].GetProperty("vehicleName").GetString().Should().Be("LONGLIST000000044");
         (await Of(buyer, "Past", "9")).GetProperty("items").GetArrayLength().Should().Be(0);
         (await Of(buyer, "Past", "0")).GetProperty("page").GetInt32().Should().Be(1);
         (await Of(buyer, "Past", "abc")).GetProperty("page").GetInt32().Should().Be(1);

@@ -27,7 +27,7 @@ public abstract class ReportFlow(ApiFactory factory) : BookingFlow(factory)
             await OpenWindow(2, start);
             (await BodyShop.PostAsJsonAsync("/api/availability", new { start, end = start.AddHours(2) })).StatusCode.Should().Be(HttpStatusCode.Created);
             var hold = await Json(await buyer.PostAsJsonAsync("/api/bookings/holds", new { providerId = MechanicId, start, bodyShopId = ApiFactory.SeededId("BodyShop") }));
-            var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
+            var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
             var checkout = (await Json(await buyer.PostAsJsonAsync("/api/checkouts", new { review, idempotencyKey = Guid.NewGuid().ToString(), vehicleId = vehicle }))).GetProperty("id").GetGuid();
             var token = (await Json(await buyer.PostAsJsonAsync("/api/payments/tokens", new { cardNumber = Visa, expiry = "12 / 34", securityCode = "123", nameOnCard = "Bo", postalCode = "L8P 1A1" }))).GetProperty("token").GetString();
             (await buyer.PostAsJsonAsync($"/api/checkouts/{checkout}/pay", new { paymentToken = token })).StatusCode.Should().Be(HttpStatusCode.OK);
@@ -59,7 +59,7 @@ public abstract class ReportFlow(ApiFactory factory) : BookingFlow(factory)
         (await BodyShop.PostAsJsonAsync("/api/availability", new { start, end = start.AddHours(2) })).StatusCode.Should().Be(HttpStatusCode.Created);
         var buyer = NewBuyer();
         var hold = (await Json(await buyer.PostAsJsonAsync("/api/bookings/holds", new { providerId = ShopId, start }))).GetProperty("holdId").GetGuid();
-        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
+        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
         var checkout = (await Json(await buyer.PostAsJsonAsync("/api/checkouts", new { review = "BodyShop", idempotencyKey = Guid.NewGuid().ToString(), vehicleId = vehicle }))).GetProperty("id").GetGuid();
         var token = (await Json(await buyer.PostAsJsonAsync("/api/payments/tokens", new { cardNumber = Visa, expiry = "12 / 34", securityCode = "123", nameOnCard = "Bo", postalCode = "L8P 1A1" }))).GetProperty("token").GetString();
         (await buyer.PostAsJsonAsync($"/api/checkouts/{checkout}/pay", new { paymentToken = token })).StatusCode.Should().Be(HttpStatusCode.OK);
@@ -134,6 +134,7 @@ public class ReportTests(ApiFactory factory) : ReportFlow(factory), IClassFixtur
         var report = await Json(response);
 
         report.GetProperty("mechanicName").GetString().Should().Be("Maya Mechanic");
+        report.GetProperty("vehicleName").GetString().Should().Be("2016 Honda Civic"); // L2-085 AC5
         report.GetProperty("requiredCount").GetInt32().Should().Be(2);
         report.GetProperty("costMinCents").GetInt32().Should().Be(50000);
         report.GetProperty("costMaxCents").GetInt32().Should().Be(75000);

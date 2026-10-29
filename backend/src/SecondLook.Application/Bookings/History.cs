@@ -5,6 +5,7 @@ using SecondLook.Application.Scoping;
 using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Payments;
 using SecondLook.Domain.Reports;
+using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Application.Bookings;
 
@@ -16,7 +17,7 @@ public sealed record EstimateSummaryDto(string State, int RequiredCount, int? Co
 /// ReportReady or Cancelled. A cancelled inspection keeps what it was booked with.
 /// </summary>
 public sealed record HistoryItemDto(
-    Guid Id, string Vin, string Review, string? MechanicName, string? BodyShopName, int AskingPriceCents, DateTimeOffset Start, string Phase,
+    Guid Id, string VehicleName, string? Vin, string Review, string? MechanicName, string? BodyShopName, int AskingPriceCents, DateTimeOffset Start, string Phase,
     EstimateSummaryDto? Estimate, DateTimeOffset? CancelledAt, int RefundedCents);
 
 public sealed record HistoryDto(string Tab, int Page, int PageSize, int Total, int ActiveCount, int PastCount, IReadOnlyList<HistoryItemDto> Items);
@@ -79,7 +80,7 @@ public sealed class GetHistoryHandler(IAppDbContext db, ICurrentUser caller) : I
                 : r.Delivered ? "ReportReady"
                 : !sessions.TryGetValue(i.Id, out var s) ? "Upcoming"
                 : s.EndedAt is null ? "Live" : "CallEnded";
-            return new HistoryItemDto(i.Id, i.Vin, i.Review.ToString(), Name(i.MechanicId), Name(i.BodyShopId), (int)Math.Round(i.AskingPrice * 100), i.StartUtc, phase,
+            return new HistoryItemDto(i.Id, VehicleName.Of(i.Year, i.Make, i.Model, i.Vin), i.Vin, i.Review.ToString(), Name(i.MechanicId), Name(i.BodyShopId), (int)Math.Round(i.AskingPrice * 100), i.StartUtc, phase,
                 Summary(i, r.Report, findings), i.CancelledAt, i.RefundedCents);
         }).ToList();
 

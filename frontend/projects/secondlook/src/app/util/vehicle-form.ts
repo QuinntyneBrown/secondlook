@@ -1,6 +1,9 @@
 import { SummaryItem } from 'components';
 
 export interface VehicleFormValues {
+  year: string;
+  make: string;
+  model: string;
   vin: string;
   km: string;
   price: string;
@@ -10,13 +13,16 @@ export interface VehicleFormValues {
 }
 
 export interface VehicleFormResult {
-  /** Inline message per field id (`v-vin`, `v-km`, `v-price`, `v-url`, `v-name`, `v-phone`). */
+  /** Inline message per field id (`v-year`, `v-make`, `v-model`, `v-vin`, `v-km`, `v-price`, `v-url`, `v-name`, `v-phone`). */
   errors: Record<string, string>;
   /** The summary entries, each linking to its field. */
   items: SummaryItem[];
   /** The values to send, present only when valid. */
   input?: {
-    vin: string;
+    year: number;
+    make: string;
+    model: string;
+    vin: string | null;
     odometerKm: number;
     askingPrice: number;
     listingUrl: string | null;
@@ -27,7 +33,7 @@ export interface VehicleFormResult {
 
 const VIN_LETTERS = /^[A-HJ-NPR-Z0-9]{17}$/i;
 
-/** The vehicle rules of ADR 0006 as the buyer meets them, with the messages of L2-023 and L2-063. */
+/** The vehicle rules of ADR 0006 and ADR 0018 as the buyer meets them, with the messages of L2-023, L2-063 and L2-085. */
 export function validateVehicle(v: VehicleFormValues): VehicleFormResult {
   const errors: Record<string, string> = {};
   const items: SummaryItem[] = [];
@@ -36,14 +42,24 @@ export function validateVehicle(v: VehicleFormValues): VehicleFormResult {
     items.push({ message: summary, fieldId: id });
   };
 
+  const year = Number(v.year.trim());
+  const nextYear = new Date().getFullYear() + 1;
+  if (!v.year.trim() || !Number.isInteger(year) || year < 1900 || year > nextYear)
+    add('v-year', 'Enter the year the car was made, from 1900 to next year.');
+  const make = v.make.trim();
+  if (!make || make.length > 50) add('v-make', 'Enter the make, like Honda.');
+  const model = v.model.trim();
+  if (!model || model.length > 50) add('v-model', 'Enter the model, like Civic.');
+
+  // The VIN is optional (ADR 0018); when given it keeps the rules of L2-023.
   const vin = v.vin.trim();
-  if (vin.length !== 17)
+  if (vin && vin.length !== 17)
     add(
       'v-vin',
       'Enter the full 17-character VIN.',
       `A VIN has 17 characters. This one has ${vin.length}.`,
     );
-  else if (!VIN_LETTERS.test(vin))
+  else if (vin && !VIN_LETTERS.test(vin))
     add('v-vin', 'A VIN uses letters and digits, but never I, O or Q.');
 
   const km = Number(v.km.replace(/[\s,]/g, ''));
@@ -66,7 +82,10 @@ export function validateVehicle(v: VehicleFormValues): VehicleFormResult {
     errors,
     items,
     input: {
-      vin,
+      year,
+      make,
+      model,
+      vin: vin || null,
       odometerKm: km,
       askingPrice: price,
       listingUrl: url || null,

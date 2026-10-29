@@ -1,7 +1,7 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Vehicle, VEHICLES_API } from 'api';
+import { Vehicle, vehicleName, VEHICLES_API } from 'api';
 import { Alert, Button } from 'components';
 import { RemoveVehicleDialog } from '../dialogs/remove-vehicle-dialog';
 import { VehicleDialog } from '../dialogs/vehicle-dialog';
@@ -48,7 +48,7 @@ type View = 'loading' | 'ready' | 'failed';
           </caption>
           <thead>
             <tr>
-              <th scope="col">VIN</th>
+              <th scope="col">Vehicle</th>
               <th scope="col">Odometer</th>
               <th scope="col">Asking price</th>
               <th scope="col">Seller</th>
@@ -58,7 +58,12 @@ type View = 'loading' | 'ready' | 'failed';
           <tbody>
             @for (v of vehicles(); track v.id) {
               <tr>
-                <th scope="row">{{ v.vin }}</th>
+                <th scope="row">
+                  {{ name(v) }}
+                  @if (v.vin && v.make) {
+                    <span class="vin">VIN {{ v.vin }}</span>
+                  }
+                </th>
                 <td>{{ odometer(v) }}</td>
                 <td>{{ price(v) }}</td>
                 <td>{{ v.sellerName }} · {{ v.sellerPhone }}</td>
@@ -112,6 +117,11 @@ type View = 'loading' | 'ready' | 'failed';
       border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
       text-align: left;
     }
+    .vin {
+      display: block;
+      font-weight: var(--fontWeightRegular);
+      color: var(--colorNeutralForeground2);
+    }
     .actions {
       display: flex;
       gap: var(--spacingHorizontalS);
@@ -147,6 +157,7 @@ export class VehiclesPage {
     return n === 0 ? 'Nothing saved yet' : `${n} saved ${n === 1 ? 'vehicle' : 'vehicles'}`;
   }
 
+  protected name = vehicleName;
   protected odometer = (v: Vehicle) => `${v.odometerKm.toLocaleString('en-CA')} km`;
   protected price = (v: Vehicle) =>
     `$${v.askingPrice.toLocaleString('en-CA', { maximumFractionDigits: 2 })}`;

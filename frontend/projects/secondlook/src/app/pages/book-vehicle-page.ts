@@ -38,8 +38,29 @@ import { validateVehicle } from '../util/vehicle-form';
           />
         }
         <sl-form-field
+          fieldId="v-year"
+          label="Year"
+          [error]="errors()['v-year']"
+          [readonly]="busy()"
+          [(value)]="year"
+        />
+        <sl-form-field
+          fieldId="v-make"
+          label="Make"
+          [error]="errors()['v-make']"
+          [readonly]="busy()"
+          [(value)]="make"
+        />
+        <sl-form-field
+          fieldId="v-model"
+          label="Model"
+          [error]="errors()['v-model']"
+          [readonly]="busy()"
+          [(value)]="model"
+        />
+        <sl-form-field
           fieldId="v-vin"
-          label="VIN"
+          label="VIN (optional)"
           [error]="errors()['v-vin']"
           [readonly]="busy()"
           [(value)]="vin"
@@ -124,6 +145,9 @@ export class BookVehiclePage {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
+  protected readonly year = signal('');
+  protected readonly make = signal('');
+  protected readonly model = signal('');
   protected readonly vin = signal('');
   protected readonly km = signal('');
   protected readonly price = signal('');
@@ -151,6 +175,9 @@ export class BookVehiclePage {
     if (this.busy()) return;
     this.failed.set(false);
     const result = validateVehicle({
+      year: this.year(),
+      make: this.make(),
+      model: this.model(),
       vin: this.vin(),
       km: this.km(),
       price: this.price(),
@@ -170,11 +197,11 @@ export class BookVehiclePage {
     this.vehicles.add(input).subscribe({
       next: (v) => this.next(v),
       error: (p: ApiProblem) => {
-        // The same VIN already saved: book that saved vehicle instead of failing.
+        // The same VIN already saved: book that saved vehicle instead of failing. Only a given VIN can conflict (ADR 0018).
         if (p.status === 409)
           this.vehicles.list().subscribe({
             next: (list) => {
-              const saved = list.find((x) => x.vin === input.vin.toUpperCase());
+              const saved = list.find((x) => x.vin === input.vin?.toUpperCase());
               if (saved) this.next(saved);
               else this.fail();
             },

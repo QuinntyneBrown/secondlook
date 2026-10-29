@@ -41,7 +41,7 @@ public abstract class BookingFlow(ApiFactory factory)
     /// <summary>Books the slot at <paramref name="start"/> and returns the inspection id.</summary>
     protected async Task<Guid> Book(HttpClient buyer, DateTimeOffset start, string review = "Mechanic")
     {
-        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
+        var vehicle = (await Json(await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = 100000, askingPrice = 7000, sellerName = "Sam Whitaker", sellerPhone = "9055550142" }))).GetProperty("id").GetGuid();
         var hold = (await Json(await buyer.PostAsJsonAsync("/api/bookings/holds", new { providerId = MechanicId, start }))).GetProperty("holdId").GetGuid();
         var checkout = (await Json(await buyer.PostAsJsonAsync("/api/checkouts", new { review, idempotencyKey = Guid.NewGuid().ToString(), vehicleId = vehicle }))).GetProperty("id").GetGuid();
         var token = (await Json(await buyer.PostAsJsonAsync("/api/payments/tokens", new { cardNumber = Visa, expiry = "12 / 34", securityCode = "123", nameOnCard = "Mo", postalCode = "L8P 1A1" }))).GetProperty("token").GetString();

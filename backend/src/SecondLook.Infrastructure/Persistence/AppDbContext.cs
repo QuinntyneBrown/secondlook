@@ -70,7 +70,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         modelBuilder.Entity<Vehicle>(e =>
         {
             e.HasKey(v => v.Id);
-            e.Property(v => v.Vin).HasMaxLength(17).IsRequired();
+            e.Property(v => v.Vin).HasMaxLength(17);
+            e.Property(v => v.Make).HasMaxLength(50).IsRequired();
+            e.Property(v => v.Model).HasMaxLength(50).IsRequired();
             e.Property(v => v.AskingPrice).HasPrecision(18, 2);
             e.Property(v => v.ListingUrl).HasMaxLength(500);
             e.Property(v => v.SellerName).HasMaxLength(100).IsRequired();
@@ -117,7 +119,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(i => i.StartUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(i => i.EndUtc).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.Property(i => i.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
-            e.Property(i => i.Vin).HasMaxLength(17).IsRequired();
+            e.Property(i => i.Vin).HasMaxLength(17);
+            e.Property(i => i.Make).HasMaxLength(50).IsRequired();
+            e.Property(i => i.Model).HasMaxLength(50).IsRequired();
             e.Property(i => i.AskingPrice).HasPrecision(18, 2);
             e.Property(i => i.ListingUrl).HasMaxLength(500);
             e.Property(i => i.SellerName).HasMaxLength(100).IsRequired();

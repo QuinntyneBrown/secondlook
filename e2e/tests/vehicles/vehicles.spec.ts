@@ -29,6 +29,9 @@ const uniqueVin = () =>
   `2HGFC2F59GH${String(Date.now() % 1_000_000).padStart(6, "0")}`;
 
 const civic = (vin: string): VehicleValues => ({
+  year: "2016",
+  make: "Honda",
+  model: "Civic",
   vin,
   km: "142300",
   price: "8900",
@@ -66,7 +69,7 @@ test.describe("Manage vehicles (J04)", () => {
     ]);
     await vehicles.expectFieldError(
       "Add a vehicle",
-      "VIN",
+      "VIN (optional)",
       "A VIN has 17 characters. This one has 16.",
     );
     await vehicles.expectFieldError(
@@ -78,6 +81,7 @@ test.describe("Manage vehicles (J04)", () => {
     await vehicles.fill("Add a vehicle", civic(vin));
     await vehicles.save("Add a vehicle", "Save vehicle");
     await vehicles.expectDialogClosed();
+    await vehicles.expectVehicleName(vin, "2016 Honda Civic");
     await vehicles.expectVehicle(
       vin,
       "142,300 km",
@@ -124,6 +128,62 @@ test.describe("Manage vehicles (J04)", () => {
     await vehicles.expectEmpty();
   });
 
+  // L2-085 AC1 to AC4: year, make and model are required, the VIN is optional, and cars without one are never duplicates.
+  test("a buyer saves vehicles without a VIN by year, make and model", async ({
+    page,
+    request,
+  }) => {
+    const email = await newBuyer(request);
+    const signIn = new SignInPage(page);
+    await signIn.open();
+    await signIn.signIn(email, PASSWORD);
+    await new InspectionsPage(page).expectSignedIn("Vera Vehicle");
+    const vehicles = new VehiclesPage(page);
+    await vehicles.openFromInspections();
+
+    const corolla: VehicleValues = {
+      ...civic(""),
+      year: "2017",
+      make: "Toyota",
+      model: "Corolla",
+    };
+    await vehicles.openAdd();
+    await vehicles.fill("Add a vehicle", {
+      ...corolla,
+      year: "",
+      make: "",
+      model: "",
+    });
+    await vehicles.save("Add a vehicle", "Save vehicle");
+    await vehicles.expectSummary("Add a vehicle", "Fix 3 things to continue", [
+      "Enter the year the car was made, from 1900 to next year.",
+      "Enter the make, like Honda.",
+      "Enter the model, like Civic.",
+    ]);
+    await vehicles.expectFieldError(
+      "Add a vehicle",
+      "Make",
+      "Enter the make, like Honda.",
+    );
+
+    await vehicles.fill("Add a vehicle", corolla);
+    await vehicles.save("Add a vehicle", "Save vehicle");
+    await vehicles.expectDialogClosed();
+    await vehicles.expectVehicle(
+      "2017 Toyota Corolla",
+      "142,300 km",
+      "$8,900",
+      "Sam Whitaker · 9055550142",
+    );
+
+    // The same car again, still without a VIN, is a second vehicle rather than a duplicate.
+    await vehicles.openAdd();
+    await vehicles.fill("Add a vehicle", corolla);
+    await vehicles.save("Add a vehicle", "Save vehicle");
+    await vehicles.expectDialogClosed();
+    await vehicles.expectVehicleCount("2017 Toyota Corolla", 2);
+  });
+
   // L2-057 / L2-063 AC8: another buyer's vehicles are not visible.
   test("a buyer does not see another buyer's vehicles", async ({
     page,
@@ -138,6 +198,9 @@ test.describe("Manage vehicles (J04)", () => {
     const created = await request.post(`${API}/api/vehicles`, {
       headers: { Authorization: `Bearer ${token}` },
       data: {
+        year: 2016,
+        make: "Honda",
+        model: "Civic",
         vin,
         odometerKm: 90000,
         askingPrice: 5000,

@@ -7,7 +7,12 @@ public sealed class Vehicle : IBuyerOwned
 {
     public Guid Id { get; set; }
     public Guid BuyerId { get; set; }
-    public string Vin { get; set; } = "";
+    public int Year { get; set; }
+    public string Make { get; set; } = "";
+    public string Model { get; set; } = "";
+
+    /// <summary>Optional (ADR 0018); null when the buyer did not give one.</summary>
+    public string? Vin { get; set; }
     public int OdometerKm { get; set; }
     public decimal AskingPrice { get; set; }
     public string? ListingUrl { get; set; }

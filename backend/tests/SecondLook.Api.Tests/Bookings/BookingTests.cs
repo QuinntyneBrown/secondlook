@@ -41,7 +41,7 @@ public class BookingTests : IClassFixture<ApiFactory>
 
     private async Task<Guid> SaveVehicle(HttpClient buyer, int km = 142300)
     {
-        var response = await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = km, askingPrice = 8900, listingUrl = "https://example.test/civic", sellerName = "Sam Whitaker", sellerPhone = "905-555-0142" });
+        var response = await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = km, askingPrice = 8900, listingUrl = "https://example.test/civic", sellerName = "Sam Whitaker", sellerPhone = "905-555-0142" });
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         return (await Json(response)).GetProperty("id").GetGuid();
     }
@@ -130,6 +130,29 @@ public class BookingTests : IClassFixture<ApiFactory>
         // The booked slot stays taken after the hold window would have ended.
         _factory.Clock.Advance(TimeSpan.FromMinutes(15));
         (await Slots(buyer, start)).Select(s => s.GetProperty("start").GetDateTimeOffset()).Should().NotContain(start);
+    }
+
+    // L2-085 AC3, AC5: given a car saved without a VIN, when it is booked, then the inspection keeps its year, make and model and is named by them.
+    [Fact]
+    public async Task A_car_booked_without_a_vin_is_named_by_its_year_make_and_model()
+    {
+        var start = await OpenWindow();
+        var buyer = NewBuyer();
+        var saved = await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2017, make = "Toyota", model = "Corolla", odometerKm = 118450, askingPrice = 9600, sellerName = "Lee Chen", sellerPhone = "289-555-0120" });
+        saved.StatusCode.Should().Be(HttpStatusCode.Created);
+        var vehicle = (await Json(saved)).GetProperty("id").GetGuid();
+        var hold = (await Json(await Hold(buyer, start))).GetProperty("holdId").GetGuid();
+        var checkout = await PaidCheckout(buyer, vehicle);
+        var inspection = await Json(await Confirm(buyer, checkout, hold, vehicle));
+
+        var copy = inspection.GetProperty("vehicle");
+        copy.GetProperty("year").GetInt32().Should().Be(2017);
+        copy.GetProperty("make").GetString().Should().Be("Toyota");
+        copy.GetProperty("model").GetString().Should().Be("Corolla");
+        copy.GetProperty("vin").ValueKind.Should().Be(JsonValueKind.Null);
+        var row = (await Json(await buyer.GetAsync("/api/inspections/history?tab=Active"))).GetProperty("items")[0];
+        row.GetProperty("vehicleName").GetString().Should().Be("2017 Toyota Corolla");
+        row.GetProperty("vin").ValueKind.Should().Be(JsonValueKind.Null);
     }
 
     // L2-029 AC1: the same booking posted again, or concurrently, returns the one inspection.
@@ -222,7 +245,7 @@ public class BookingTests : IClassFixture<ApiFactory>
         var inspectionId = (await Json(await Confirm(buyer, checkout, hold, vehicle))).GetProperty("id").GetGuid();
 
         var saved = await Json(await buyer.GetAsync($"/api/vehicles/{vehicle}"));
-        await buyer.PutAsJsonAsync($"/api/vehicles/{vehicle}", new { vin = saved.GetProperty("vin").GetString(), odometerKm = 999999, askingPrice = 1, sellerName = "Changed", sellerPhone = "9055550000" });
+        await buyer.PutAsJsonAsync($"/api/vehicles/{vehicle}", new { year = 2016, make = "Honda", model = "Civic", vin = saved.GetProperty("vin").GetString(), odometerKm = 999999, askingPrice = 1, sellerName = "Changed", sellerPhone = "9055550000" });
         (await buyer.DeleteAsync($"/api/vehicles/{vehicle}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var inspection = await Json(await buyer.GetAsync($"/api/inspections/{inspectionId}"));
