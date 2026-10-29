@@ -20,8 +20,9 @@ public class VehicleTests : IClassFixture<ApiFactory>
     /// <summary>A valid 17-character VIN, unique per call.</summary>
     private static string NewVin() => $"2HGFC2F59GH{Interlocked.Increment(ref _vinCounter)}";
 
-    private static object Body(string vin, string phone = "905-555-0142", string name = "Sam Whitaker", int km = 142300, decimal price = 8900m, string? url = "https://example.test/civic") =>
-        new { vin, odometerKm = km, askingPrice = price, listingUrl = url, sellerName = name, sellerPhone = phone };
+    private static object Body(string? vin, string phone = "905-555-0142", string name = "Sam Whitaker", int km = 142300, decimal price = 8900m, string? url = "https://example.test/civic",
+        int? year = 2016, string? make = "Honda", string? model = "Civic") =>
+        new { year, make, model, vin, odometerKm = km, askingPrice = price, listingUrl = url, sellerName = name, sellerPhone = phone };
 
     private async Task<JsonElement> Add(HttpClient client, string? vin = null)
     {
@@ -61,6 +62,58 @@ public class VehicleTests : IClassFixture<ApiFactory>
         errors.GetProperty("sellerPhone")[0].GetString().Should().Be("Enter the seller’s 10-digit phone number.");
         foreach (var field in new[] { "sellerName", "odometerKm", "askingPrice", "listingUrl" })
             errors.TryGetProperty(field, out _).Should().BeTrue(field);
+    }
+
+    // L2-085 AC1, AC3: given the year, make and model and no VIN, when the buyer saves, then the vehicle is saved without a VIN.
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task A_vehicle_is_saved_with_year_make_and_model_and_no_vin(string? vin)
+    {
+        var response = await Buyer.PostAsJsonAsync("/api/vehicles", Body(vin, year: 2016, make: " Honda ", model: "Civic"));
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        var created = await response.Content.ReadFromJsonAsync<JsonElement>();
+        created.GetProperty("vin").ValueKind.Should().Be(JsonValueKind.Null);
+        created.GetProperty("year").GetInt32().Should().Be(2016);
+        created.GetProperty("make").GetString().Should().Be("Honda");
+        created.GetProperty("model").GetString().Should().Be("Civic");
+    }
+
+    // L2-085 AC2: given the year, make or model is missing, when the buyer saves, then each is reported.
+    [Fact]
+    public async Task A_missing_year_make_or_model_is_reported()
+    {
+        var response = await Buyer.PostAsJsonAsync("/api/vehicles", Body(NewVin(), year: null, make: " ", model: null));
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var errors = (await response.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("errors");
+        errors.GetProperty("year")[0].GetString().Should().Be("Enter the year the car was made, from 1900 to next year.");
+        errors.GetProperty("make")[0].GetString().Should().Be("Enter the make, like Honda.");
+        errors.GetProperty("model")[0].GetString().Should().Be("Enter the model, like Civic.");
+    }
+
+    // L2-085 AC2: the year runs from 1900 to next calendar year; make and model allow 50 characters.
+    [Fact]
+    public async Task The_year_runs_from_1900_to_next_year_and_names_are_limited()
+    {
+        var next = DateTime.UtcNow.Year + 1;
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, year: 1899))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, year: next + 1))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, make: new string('a', 51)))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, model: new string('a', 51)))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, year: 1900))).StatusCode.Should().Be(HttpStatusCode.Created);
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null, year: next))).StatusCode.Should().Be(HttpStatusCode.Created);
+    }
+
+    // L2-085 AC4: two vehicles without a VIN, even the same car, are not duplicates.
+    [Fact]
+    public async Task Vehicles_without_a_vin_are_never_duplicates()
+    {
+        (await Buyer.PostAsJsonAsync("/api/vehicles", Body(null))).StatusCode.Should().Be(HttpStatusCode.Created);
+        var second = await Buyer.PostAsJsonAsync("/api/vehicles", Body(null));
+        second.StatusCode.Should().Be(HttpStatusCode.Created);
+        var id = Id(await second.Content.ReadFromJsonAsync<JsonElement>());
+        (await Buyer.PutAsJsonAsync($"/api/vehicles/{id}", Body("", name: "Priya Nair"))).StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Theory]

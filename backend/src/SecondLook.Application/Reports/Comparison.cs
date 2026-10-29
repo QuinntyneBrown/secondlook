@@ -15,7 +15,7 @@ public sealed record ComparisonWindowDto(DateTimeOffset StartsAt, DateTimeOffset
 /// not written yet) or NoEstimate (a review with the body shop alone has no certification estimate).
 /// </summary>
 public sealed record ComparisonColumnDto(
-    Guid InspectionId, string Vin, int OdometerKm, int AskingPriceCents, string Review, string Status,
+    Guid InspectionId, string? Vin, int OdometerKm, int AskingPriceCents, string Review, string Status,
     int? CostMinCents, int? CostMaxCents, int? AllInMinCents, int? AllInMaxCents, bool Lowest);
 
 public sealed record ComparisonDto(ComparisonWindowDto? Window, IReadOnlyList<ComparisonColumnDto> Columns, int ReadyCount);

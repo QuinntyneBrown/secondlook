@@ -58,7 +58,7 @@ public sealed class HoldSlotHandler(IAppDbContext db, ICurrentUser caller, IMedi
     }
 }
 
-public sealed record VehicleCopyDto(string Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
+public sealed record VehicleCopyDto(string? Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
 
 public sealed record InspectionDto(
     Guid Id, string Status, DateTimeOffset Start, DateTimeOffset End, string? MechanicName, string? BodyShopName, string Review, int AmountCents, VehicleCopyDto Vehicle, DateTimeOffset CreatedAt,
@@ -168,7 +168,7 @@ public sealed class ConfirmBookingHandler(IAppDbContext db, ICurrentUser caller,
             BodyShopReservationId = shopHold?.Id, CheckoutId = checkout.Id, PaymentId = payment.Id,
             SlotReservationId = anyHold.Id, Review = checkout.Review, StartUtc = anyHold.StartUtc, EndUtc = anyHold.StartUtc + AvailabilityWindow.SlotLength,
             AmountCents = payment.AmountCents, CreatedAt = now,
-            Vin = vehicle.Vin, OdometerKm = vehicle.OdometerKm, AskingPrice = vehicle.AskingPrice, ListingUrl = vehicle.ListingUrl,
+            Year = vehicle.Year, Make = vehicle.Make, Model = vehicle.Model, Vin = vehicle.Vin, OdometerKm = vehicle.OdometerKm, AskingPrice = vehicle.AskingPrice, ListingUrl = vehicle.ListingUrl,
             SellerName = vehicle.SellerName, SellerPhone = vehicle.SellerPhone,
         };
         db.Inspections.Add(inspection);

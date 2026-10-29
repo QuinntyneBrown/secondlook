@@ -178,8 +178,18 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("Make")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<Guid?>("MechanicId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("OdometerKm")
                         .HasColumnType("int");
@@ -223,9 +233,11 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Vin")
-                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("nvarchar(17)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -597,6 +609,16 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("Make")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int>("OdometerKm")
                         .HasColumnType("int");
 
@@ -614,9 +636,11 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Vin")
-                        .IsRequired()
                         .HasMaxLength(17)
                         .HasColumnType("nvarchar(17)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

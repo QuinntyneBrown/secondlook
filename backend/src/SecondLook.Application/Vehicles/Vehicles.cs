@@ -7,27 +7,34 @@ using SecondLook.Domain.Vehicles;
 
 namespace SecondLook.Application.Vehicles;
 
-public sealed record VehicleDto(Guid Id, string Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone)
+public sealed record VehicleDto(Guid Id, int Year, string Make, string Model, string? Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone)
 {
-    public static VehicleDto From(Vehicle v) => new(v.Id, v.Vin, v.OdometerKm, v.AskingPrice, v.ListingUrl, v.SellerName, v.SellerPhone);
+    public static VehicleDto From(Vehicle v) => new(v.Id, v.Year, v.Make, v.Model, v.Vin, v.OdometerKm, v.AskingPrice, v.ListingUrl, v.SellerName, v.SellerPhone);
 }
 
 /// <summary>The editable fields of a saved vehicle, as submitted.</summary>
-public sealed record VehicleInput(string? Vin, int? OdometerKm, decimal? AskingPrice, string? ListingUrl, string? SellerName, string? SellerPhone);
+public sealed record VehicleInput(int? Year, string? Make, string? Model, string? Vin, int? OdometerKm, decimal? AskingPrice, string? ListingUrl, string? SellerName, string? SellerPhone);
 
-internal sealed record CleanVehicle(string Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
+internal sealed record CleanVehicle(int Year, string Make, string Model, string? Vin, int OdometerKm, decimal AskingPrice, string? ListingUrl, string SellerName, string SellerPhone);
 
 internal static partial class VehicleRules
 {
     [GeneratedRegex("^[A-HJ-NPR-Z0-9]{17}$")]
     private static partial Regex VinPattern();
 
-    public static (CleanVehicle? Clean, IReadOnlyDictionary<string, string[]>? Errors) Validate(VehicleInput i)
+    public static (CleanVehicle? Clean, IReadOnlyDictionary<string, string[]>? Errors) Validate(VehicleInput i, DateTimeOffset now)
     {
         var errors = new Dictionary<string, string[]>();
-        var vin = (i.Vin ?? "").Trim().ToUpperInvariant();
-        if (vin.Length != 17) errors["vin"] = ["Enter the full 17-character VIN."];
-        else if (!VinPattern().IsMatch(vin)) errors["vin"] = ["A VIN uses letters and digits, but never I, O or Q."];
+        if (i.Year is not { } year || year < 1900 || year > now.Year + 1) errors["year"] = ["Enter the year the car was made, from 1900 to next year."];
+        var make = (i.Make ?? "").Trim();
+        if (make.Length is 0 or > 50) errors["make"] = ["Enter the make, like Honda."];
+        var model = (i.Model ?? "").Trim();
+        if (model.Length is 0 or > 50) errors["model"] = ["Enter the model, like Civic."];
+
+        // The VIN is optional (ADR 0018); when given it keeps the ADR 0006 rules.
+        string? vin = string.IsNullOrWhiteSpace(i.Vin) ? null : i.Vin.Trim().ToUpperInvariant();
+        if (vin is { Length: not 17 }) errors["vin"] = ["Enter the full 17-character VIN."];
+        else if (vin is not null && !VinPattern().IsMatch(vin)) errors["vin"] = ["A VIN uses letters and digits, but never I, O or Q."];
 
         if (i.OdometerKm is null or < 0 or > 1_500_000) errors["odometerKm"] = ["Enter the odometer reading in kilometres, up to 1,500,000."];
         if (i.AskingPrice is null or < 0 or > 1_000_000) errors["askingPrice"] = ["Enter the asking price in dollars, up to 1,000,000."];
@@ -45,7 +52,7 @@ internal static partial class VehicleRules
 
         return errors.Count > 0
             ? (null, errors)
-            : (new CleanVehicle(vin, i.OdometerKm!.Value, decimal.Round(i.AskingPrice!.Value, 2), url, name, digits), null);
+            : (new CleanVehicle(i.Year!.Value, make, model, vin, i.OdometerKm!.Value, decimal.Round(i.AskingPrice!.Value, 2), url, name, digits), null);
     }
 }
 
@@ -65,7 +72,7 @@ public sealed class ListVehiclesHandler(IAppDbContext db, ICurrentUser caller) :
     public async Task<IReadOnlyList<VehicleDto>> Handle(ListVehiclesQuery q, CancellationToken ct)
     {
         var rows = await db.Vehicles.ForBuyer(caller).Where(v => v.RemovedAt == null).ToListAsync(ct);
-        return rows.OrderBy(v => v.SellerName).ThenBy(v => v.Vin).Select(VehicleDto.From).ToList();
+        return rows.OrderBy(v => v.SellerName).ThenBy(v => VehicleName.Of(v.Year, v.Make, v.Model, v.Vin)).Select(VehicleDto.From).ToList();
     }
 }
 
@@ -82,17 +89,17 @@ public sealed class GetVehicleHandler(IAppDbContext db, ICurrentUser caller) : I
 
 public sealed record AddVehicleCommand(VehicleInput Input) : IRequest<VehicleResult>;
 
-public sealed class AddVehicleHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<AddVehicleCommand, VehicleResult>
+public sealed class AddVehicleHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<AddVehicleCommand, VehicleResult>
 {
     public async Task<VehicleResult> Handle(AddVehicleCommand c, CancellationToken ct)
     {
-        var (clean, errors) = VehicleRules.Validate(c.Input);
+        var (clean, errors) = VehicleRules.Validate(c.Input, clock.GetUtcNow());
         if (clean is null) return new VehicleResult.Invalid(errors!);
-        if (await db.Vehicles.ForBuyer(caller).AnyAsync(v => v.Vin == clean.Vin && v.RemovedAt == null, ct)) return new VehicleResult.Duplicate();
+        if (clean.Vin is not null && await db.Vehicles.ForBuyer(caller).AnyAsync(v => v.Vin == clean.Vin && v.RemovedAt == null, ct)) return new VehicleResult.Duplicate();
 
         var vehicle = new Vehicle
         {
-            Id = Guid.NewGuid(), BuyerId = caller.Id, Vin = clean.Vin, OdometerKm = clean.OdometerKm, AskingPrice = clean.AskingPrice,
+            Id = Guid.NewGuid(), BuyerId = caller.Id, Year = clean.Year, Make = clean.Make, Model = clean.Model, Vin = clean.Vin, OdometerKm = clean.OdometerKm, AskingPrice = clean.AskingPrice,
             ListingUrl = clean.ListingUrl, SellerName = clean.SellerName, SellerPhone = clean.SellerPhone,
         };
         db.Vehicles.Add(vehicle);
@@ -103,16 +110,19 @@ public sealed class AddVehicleHandler(IAppDbContext db, ICurrentUser caller) : I
 
 public sealed record UpdateVehicleCommand(Guid Id, VehicleInput Input) : IRequest<VehicleResult>;
 
-public sealed class UpdateVehicleHandler(IAppDbContext db, ICurrentUser caller) : IRequestHandler<UpdateVehicleCommand, VehicleResult>
+public sealed class UpdateVehicleHandler(IAppDbContext db, ICurrentUser caller, TimeProvider clock) : IRequestHandler<UpdateVehicleCommand, VehicleResult>
 {
     public async Task<VehicleResult> Handle(UpdateVehicleCommand c, CancellationToken ct)
     {
         var vehicle = await db.Vehicles.ForBuyer(caller).FirstOrDefaultAsync(v => v.Id == c.Id && v.RemovedAt == null, ct);
         if (vehicle is null) return new VehicleResult.NotFound();
-        var (clean, errors) = VehicleRules.Validate(c.Input);
+        var (clean, errors) = VehicleRules.Validate(c.Input, clock.GetUtcNow());
         if (clean is null) return new VehicleResult.Invalid(errors!);
-        if (await db.Vehicles.ForBuyer(caller).AnyAsync(v => v.Id != vehicle.Id && v.Vin == clean.Vin && v.RemovedAt == null, ct)) return new VehicleResult.Duplicate();
+        if (clean.Vin is not null && await db.Vehicles.ForBuyer(caller).AnyAsync(v => v.Id != vehicle.Id && v.Vin == clean.Vin && v.RemovedAt == null, ct)) return new VehicleResult.Duplicate();
 
+        vehicle.Year = clean.Year;
+        vehicle.Make = clean.Make;
+        vehicle.Model = clean.Model;
         vehicle.Vin = clean.Vin;
         vehicle.OdometerKm = clean.OdometerKm;
         vehicle.AskingPrice = clean.AskingPrice;

@@ -23,7 +23,7 @@ public sealed record BodyShopDto(string Status, string? ReviewerName, IReadOnlyL
 /// </summary>
 public sealed record ReportDto(
     Guid InspectionId, string Review, DateTimeOffset SubmittedAt, DateTimeOffset? CallEndedAt, string? MechanicName, bool MechanicReady,
-    string Vin, int OdometerKm, int AskingPriceCents,
+    string? Vin, int OdometerKm, int AskingPriceCents,
     IReadOnlyList<FindingDto> Findings, int RequiredCount, int CostMinCents, int CostMaxCents, int AllInMinCents, int AllInMaxCents,
     BodyShopDto BodyShop, string Disclaimer);
 
@@ -183,7 +183,7 @@ public sealed class SubmitBodyShopReviewHandler(IAppDbContext db, ICurrentUser c
     }
 }
 
-public sealed record AssignedReviewDto(Guid InspectionId, string Vin, DateTimeOffset Start, string Review, string CallStatus, bool Delivered);
+public sealed record AssignedReviewDto(Guid InspectionId, string? Vin, DateTimeOffset Start, string Review, string CallStatus, bool Delivered);
 
 public sealed record ListAssignedReviewsQuery : IRequest<IReadOnlyList<AssignedReviewDto>>;
 

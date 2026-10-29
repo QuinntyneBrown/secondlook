@@ -41,7 +41,7 @@ public class BookingTests : IClassFixture<ApiFactory>
 
     private async Task<Guid> SaveVehicle(HttpClient buyer, int km = 142300)
     {
-        var response = await buyer.PostAsJsonAsync("/api/vehicles", new { vin = NewVin(), odometerKm = km, askingPrice = 8900, listingUrl = "https://example.test/civic", sellerName = "Sam Whitaker", sellerPhone = "905-555-0142" });
+        var response = await buyer.PostAsJsonAsync("/api/vehicles", new { year = 2016, make = "Honda", model = "Civic", vin = NewVin(), odometerKm = km, askingPrice = 8900, listingUrl = "https://example.test/civic", sellerName = "Sam Whitaker", sellerPhone = "905-555-0142" });
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         return (await Json(response)).GetProperty("id").GetGuid();
     }
@@ -222,7 +222,7 @@ public class BookingTests : IClassFixture<ApiFactory>
         var inspectionId = (await Json(await Confirm(buyer, checkout, hold, vehicle))).GetProperty("id").GetGuid();
 
         var saved = await Json(await buyer.GetAsync($"/api/vehicles/{vehicle}"));
-        await buyer.PutAsJsonAsync($"/api/vehicles/{vehicle}", new { vin = saved.GetProperty("vin").GetString(), odometerKm = 999999, askingPrice = 1, sellerName = "Changed", sellerPhone = "9055550000" });
+        await buyer.PutAsJsonAsync($"/api/vehicles/{vehicle}", new { year = 2016, make = "Honda", model = "Civic", vin = saved.GetProperty("vin").GetString(), odometerKm = 999999, askingPrice = 1, sellerName = "Changed", sellerPhone = "9055550000" });
         (await buyer.DeleteAsync($"/api/vehicles/{vehicle}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var inspection = await Json(await buyer.GetAsync($"/api/inspections/{inspectionId}"));

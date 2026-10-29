@@ -48,7 +48,10 @@ public sealed class Inspection : IBuyerOwned, IProviderAssigned
     /// <summary>True once the refund of a cancellation has been recorded, so a repeated request can wait for it.</summary>
     public bool RefundSettled { get; set; }
 
-    public string Vin { get; set; } = "";
+    public int Year { get; set; }
+    public string Make { get; set; } = "";
+    public string Model { get; set; } = "";
+    public string? Vin { get; set; }
     public int OdometerKm { get; set; }
     public decimal AskingPrice { get; set; }
     public string? ListingUrl { get; set; }

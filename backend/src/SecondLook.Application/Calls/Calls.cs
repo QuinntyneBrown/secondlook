@@ -17,7 +17,7 @@ public sealed record NoteDto(string Author, string Text, DateTimeOffset At);
 
 public sealed record CallStateDto(
     Guid InspectionId, string Status, DateTimeOffset Start, DateTimeOffset OpensAt, DateTimeOffset? StartedAt, DateTimeOffset? EndedAt, int? DurationSeconds,
-    string Vin, ParticipantDto You, IReadOnlyList<ParticipantDto> Participants, IReadOnlyList<ChecklistItemDto> Checklist, IReadOnlyList<NoteDto> Notes);
+    string? Vin, ParticipantDto You, IReadOnlyList<ParticipantDto> Participants, IReadOnlyList<ChecklistItemDto> Checklist, IReadOnlyList<NoteDto> Notes);
 
 public abstract record CallResult
 {

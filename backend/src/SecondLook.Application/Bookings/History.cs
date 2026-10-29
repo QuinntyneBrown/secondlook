@@ -16,7 +16,7 @@ public sealed record EstimateSummaryDto(string State, int RequiredCount, int? Co
 /// ReportReady or Cancelled. A cancelled inspection keeps what it was booked with.
 /// </summary>
 public sealed record HistoryItemDto(
-    Guid Id, string Vin, string Review, string? MechanicName, string? BodyShopName, int AskingPriceCents, DateTimeOffset Start, string Phase,
+    Guid Id, string? Vin, string Review, string? MechanicName, string? BodyShopName, int AskingPriceCents, DateTimeOffset Start, string Phase,
     EstimateSummaryDto? Estimate, DateTimeOffset? CancelledAt, int RefundedCents);
 
 public sealed record HistoryDto(string Tab, int Page, int PageSize, int Total, int ActiveCount, int PastCount, IReadOnlyList<HistoryItemDto> Items);
