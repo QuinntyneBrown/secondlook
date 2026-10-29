@@ -129,6 +129,14 @@ type Load = 'loading' | 'ready' | 'failed';
       align-items: flex-start;
       gap: var(--spacingHorizontalM);
     }
+    .head > div {
+      display: grid;
+      gap: var(--spacingVerticalS);
+    }
+    section {
+      display: grid;
+      gap: var(--spacingVerticalL);
+    }
     h1,
     h2,
     p {
