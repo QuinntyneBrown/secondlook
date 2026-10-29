@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 13 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="13" data-video-title="Compare vehicle estimates" data-parts="Introduction|Lining the cars up|On a phone|Only your own cars|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 13</div>
+  <h1>Compare vehicle estimates</h1>
+  <p class="lead">The buyer's cars, lowest all-in first</p>
+</section>
+
+<section id="compare" data-part="1" data-cue="This buyer has had four cars inspected in the same window" data-clip="clips/compare.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Lowest all-in first</h3>
+    <p class="muted">A car without an estimate stays in the list as pending.</p>
+  </aside>
+</section>
+
+<section id="phone" data-part="2" data-cue="The same page on a phone" data-clip="clips/phone.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>One column, no sideways scroll</h3>
+    <p class="muted">A phone-sized screen.</p>
+  </aside>
+</section>
+
+<section id="privacy" data-part="3" data-cue="The rules are enforced by the server" data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Only your own cars</h3>
+    <p class="muted">ADR 0015: computed from the reports.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="4" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Cars from one window, lowest all-in first, the cheapest marked</li>
+    <li>A car without an estimate stays in the list as pending</li>
+    <li>Works on a phone; a buyer sees only their own cars</li>
+  </ul>
+  <p class="small muted">Next: Journey 14, review inspection history</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

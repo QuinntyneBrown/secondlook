@@ -75,3 +75,10 @@ export {
   type ReportsApi,
   type ReviewType,
 } from './lib/reports-api';
+export {
+  COMPARISONS_API,
+  type Comparison,
+  type ComparisonColumn,
+  type ComparisonStatus,
+  type ComparisonsApi,
+} from './lib/comparisons-api';

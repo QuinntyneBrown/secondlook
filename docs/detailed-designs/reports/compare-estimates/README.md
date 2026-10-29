@@ -68,3 +68,7 @@ The Angular app calls `SecondLook.Api`, which reads reports, vehicles and the pr
 The page marks the columns busy, requests the comparison, and renders the columns, the one-report state or the error state.
 
 ![Sequence diagram for loading the comparison](diagrams/sequence-load-comparison.png)
+
+## Implementation notes (J13)
+
+The `<TO SUPPLY>` items are decided in [ADR 0015](../../../adr/0015-comparing-a-buyers-cars.md) (L2-051, L2-052, L2-081). `ComparePage` at `/compare` (linked as "Compare" in the primary navigation of every buyer page) reads `GET /api/comparisons` through `COMPARISONS_API`. The handler composes the buyer's scheduled inspections in their latest pricing window with each car's report: totals are the report's own, the lowest all-in cars are marked once two can be compared, and a car without an estimate stays in the list as pending. Two cars are needed for the columns; one or none shows "Compare needs two cars". "Add another car" reuses the J08 dialog. Not delivered: location and make or model on each column (the booking does not capture them), so a car is shown by its VIN and kilometres; the written column count in the subtitle follows the number of cars.

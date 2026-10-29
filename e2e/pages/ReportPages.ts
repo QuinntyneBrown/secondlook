@@ -258,6 +258,12 @@ export class ReportPage {
     if (note) await expect(item).toContainText(note);
   }
 
+  /** The way from a report to the comparison of the buyer's cars (L2-051). */
+  async compareWithAnotherCar() {
+    await this.page.getByRole("link", { name: "Compare with another car" }).click();
+    await this.page.waitForURL(/\/compare$/);
+  }
+
   async expectDisclaimer() {
     await expect(
       this.page.getByText("It is not a safety certificate or a guarantee"),

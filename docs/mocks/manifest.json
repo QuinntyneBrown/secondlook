@@ -494,7 +494,8 @@
         "default",
         "loading",
         "empty",
-        "error"
+        "error",
+        "partial"
       ],
       "route": "/compare"
     },

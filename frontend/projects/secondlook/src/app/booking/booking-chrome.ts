@@ -104,6 +104,7 @@ export class OrderSummary {
     <nav aria-label="Primary">
       <a routerLink="/inspections">Inspections</a>
       <a routerLink="/vehicles">Vehicles</a>
+      <a routerLink="/compare">Compare</a>
       <a routerLink="/billing">Billing</a>
     </nav>
   `,

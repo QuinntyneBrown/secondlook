@@ -29,6 +29,9 @@ public static class ReportEndpoints
         report.MapPost("/issues", async (Guid id, ReportIssueRequest r, IMediator m, CancellationToken ct) =>
             Respond(await m.Send(new ReportIssueCommand(id, r.Reason, r.Details), ct), issueId => Results.Created($"/api/inspections/{id}/report/issues/{issueId}", new { id = issueId })));
 
+        // The buyer's cars from their latest pricing window, lined up (L2-051).
+        app.MapGet("/api/comparisons", async (IMediator m, CancellationToken ct) => Results.Ok(await m.Send(new GetComparisonQuery(), ct))).RequireAuthorization(Policies.Buyer);
+
         // The body shop's queue of its own inspections (L2-058).
         app.MapGet("/api/reviews/assigned", async (IMediator m, CancellationToken ct) => Results.Ok(await m.Send(new ListAssignedReviewsQuery(), ct))).RequireAuthorization(Policies.BodyShop);
 
