@@ -11,7 +11,8 @@ async function signInAs(page: Page, email: string, password: string) {
   const sign = new SignInPage(page);
   await sign.open();
   await sign.signIn(email, password);
-  await page.waitForURL(/\/inspections$/);
+  // Buyers land on their inspections, providers on their availability.
+  await page.waitForURL(/\/(inspections|availability)$/);
 }
 
 /** A second, separate browser session for the mechanic, with its own synthetic camera and microphone. */

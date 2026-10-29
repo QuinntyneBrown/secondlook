@@ -45,7 +45,7 @@ const ROLE_LABEL: Record<string, string> = {
             <figure [attr.aria-label]="camera() === 'ready' ? 'You' : 'You · camera blocked'">
               @if (camera() === 'ready' && stream()) {
                 <video [slStream]="stream()" muted></video>
-              } @else {
+              } @else if (camera() !== 'ready') {
                 <span class="none">No camera available</span>
               }
               <figcaption>You</figcaption>
@@ -59,11 +59,11 @@ const ROLE_LABEL: Record<string, string> = {
               </sl-alert>
             }
             <div class="devices">
-              <label>
-                Camera
-                <select [disabled]="camera() !== 'ready'" (change)="pickCamera($event)">
+              <div class="device">
+                <label for="camera">Camera</label>
+                <select id="camera" [disabled]="camera() !== 'ready'" (change)="pickCamera($event)">
                   @if (camera() !== 'ready') {
-                    <option>No camera available</option>
+                    <option>Camera unavailable</option>
                   }
                   @for (d of cameras(); track d.id) {
                     <option [value]="d.id" [selected]="d.id === devices.cameraId">
@@ -71,17 +71,17 @@ const ROLE_LABEL: Record<string, string> = {
                     </option>
                   }
                 </select>
-              </label>
-              <label>
-                Microphone
-                <select (change)="pickMicrophone($event)">
+              </div>
+              <div class="device">
+                <label for="microphone">Microphone</label>
+                <select id="microphone" (change)="pickMicrophone($event)">
                   @for (d of microphones(); track d.id) {
                     <option [value]="d.id" [selected]="d.id === devices.microphoneId">
                       {{ d.label }}
                     </option>
                   }
                 </select>
-              </label>
+              </div>
             </div>
           </div>
           <aside class="card">
@@ -190,9 +190,11 @@ const ROLE_LABEL: Record<string, string> = {
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: var(--spacingHorizontalM);
     }
-    label {
+    .device {
       display: grid;
       gap: var(--spacingVerticalXS);
+    }
+    label {
       color: var(--colorNeutralForeground2);
     }
     select {
