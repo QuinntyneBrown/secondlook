@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SecondLook.Domain.Availability;
 using SecondLook.Domain.Inspections;
 using SecondLook.Domain.Payments;
+using SecondLook.Domain.Reports;
 using SecondLook.Domain.Users;
 using SecondLook.Domain.Vehicles;
 
@@ -21,6 +22,10 @@ public interface IAppDbContext
     DbSet<Inspection> Inspections { get; }
     DbSet<CallSession> CallSessions { get; }
     DbSet<CallNote> CallNotes { get; }
+    DbSet<Report> Reports { get; }
+    DbSet<ReportFinding> ReportFindings { get; }
+    DbSet<ReportShare> ReportShares { get; }
+    DbSet<ReportIssue> ReportIssues { get; }
     Microsoft.EntityFrameworkCore.ChangeTracking.ChangeTracker ChangeTracker { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
