@@ -44,6 +44,16 @@ export {
   type ReviewChoice,
 } from './lib/payments-api';
 export {
+  CALLS_API,
+  type CallNote,
+  type CallParticipant,
+  type CallState,
+  type CallStatus,
+  type CallsApi,
+  type ChecklistItem,
+  type ParticipantRole,
+} from './lib/calls-api';
+export {
   BOOKINGS_API,
   type BookingsApi,
   type CancelReason,

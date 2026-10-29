@@ -89,3 +89,7 @@ The buyer selects "Text him again" on the seller-left banner. The handler sends 
 Recording starts, the success and persistent banners appear, and the worker deletes the recording after 30 days.
 
 ![Sequence diagram for starting and retaining a recording](diagrams/sequence-recording-retention.png)
+
+## Implementation notes (J10)
+
+Only the "<name> joined" banner is delivered in J10 (L2-044 AC1), shown as a status alert for twenty seconds when a participant joins after you. The connection banners are described in recover-from-connection-loss. The recording, weak-connection and "text him again" banners (L2-044 AC2 to AC5) are deferred because nothing is recorded, the connection quality is not measured and the seller does not join from a link yet (ADR 0012).

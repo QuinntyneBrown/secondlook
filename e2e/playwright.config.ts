@@ -87,22 +87,22 @@ export default defineConfig({
         cwd: __dirname,
       }
     : [
-          {
-            command: "npm run start -- --port 4200",
-            url: "http://localhost:4200",
-            reuseExistingServer: !process.env.CI,
-            timeout: 180_000,
-            cwd: `${__dirname}/../frontend`,
-          },
-          // SecondLook Admin (ADR-014): a second app in the workspace on its own port.
-          {
-            command: "npm run start:admin -- --port 4300",
-            url: "http://localhost:4300",
-            reuseExistingServer: !process.env.CI,
-            timeout: 180_000,
-            cwd: `${__dirname}/../frontend`,
-          },
-        ],
+        {
+          command: "npm run start -- --port 4200",
+          url: "http://localhost:4200",
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+          cwd: `${__dirname}/../frontend`,
+        },
+        // SecondLook Admin (ADR-014): a second app in the workspace on its own port.
+        {
+          command: "npm run start:admin -- --port 4300",
+          url: "http://localhost:4300",
+          reuseExistingServer: !process.env.CI,
+          timeout: 180_000,
+          cwd: `${__dirname}/../frontend`,
+        },
+      ],
   projects: [
     {
       name: "mobile",
@@ -117,7 +117,20 @@ export default defineConfig({
     {
       name: "desktop",
       testIgnore: OTHER_APP_SPECS,
-      use: { ...devices["Desktop Chrome"], viewport: VIEWPORTS.desktop },
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: VIEWPORTS.desktop,
+        // Calls run on Chromium's synthetic camera and microphone, with no prompt and no mDNS-hidden addresses,
+        // so two browser sessions on one machine can connect to each other.
+        permissions: ["camera", "microphone"],
+        launchOptions: {
+          args: [
+            "--use-fake-device-for-media-stream",
+            "--use-fake-ui-for-media-stream",
+            "--disable-features=WebRtcHideLocalIpsWithMdns",
+          ],
+        },
+      },
     },
     // SecondLook Admin: Chromium only, desktop-first (curators work on laptops);
     // specs that care about narrow widths resize the page themselves.

@@ -6,6 +6,8 @@ import { BookReviewPage } from './pages/book-review-page';
 import { BookSchedulePage } from './pages/book-schedule-page';
 import { BookVehiclePage } from './pages/book-vehicle-page';
 import { BookingConfirmedPage } from './pages/booking-confirmed-page';
+import { CallLobbyPage } from './pages/call-lobby-page';
+import { CallPage } from './pages/call-page';
 import { CheckoutPage } from './pages/checkout-page';
 import { InspectionDetailPage } from './pages/inspection-detail-page';
 import { ForgotPasswordPage } from './pages/forgot-password-page';
@@ -32,6 +34,8 @@ export const routes: Routes = [
   { path: 'reset-password', component: ResetPasswordPage },
   { path: 'inspections', component: InspectionsPage, canActivate: [signedIn] },
   { path: 'inspections/:id', component: InspectionDetailPage, canActivate: [signedIn] },
+  { path: 'inspections/:id/lobby', component: CallLobbyPage, canActivate: [signedIn] },
+  { path: 'inspections/:id/call', component: CallPage, canActivate: [signedIn] },
   { path: 'book/vehicle', component: BookVehiclePage, canActivate: [signedIn] },
   { path: 'book/review', component: BookReviewPage, canActivate: [signedIn] },
   { path: 'book/schedule', component: BookSchedulePage, canActivate: [signedIn] },

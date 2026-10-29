@@ -45,6 +45,8 @@ if ($Build) {
 $env:ASPNETCORE_ENVIRONMENT = 'Development'
 $env:SecondLook__Database__Provider = 'Sqlite'
 $env:SecondLook__Database__ConnectionString = $connection
+# Calls open this many minutes before their start; wide here so a booked inspection can be joined at once.
+$env:SecondLook__Calls__OpensBeforeMinutes = '43200'
 $env:SecondLook__Jwt__Issuer = 'secondlook'
 $env:SecondLook__Jwt__Audience = 'secondlook-api'
 $env:SecondLook__Jwt__SigningKey = 'e2e-only-signing-key-not-a-secret-0123456789abcdef'

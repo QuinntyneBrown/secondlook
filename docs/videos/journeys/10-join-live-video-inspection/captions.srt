@@ -1,0 +1,183 @@
+1
+00:00:00,000 --> 00:00:03,380
+This is the implementation demo for journey ten.
+
+2
+00:00:03,380 --> 00:00:07,540
+It is the real application and API running on this machine,
+
+3
+00:00:07,540 --> 00:00:12,050
+with synthetic people and Chromium's fake camera and microphone.
+
+4
+00:00:12,050 --> 00:00:14,650
+Nothing is recorded, charged or sent.
+
+5
+00:00:14,650 --> 00:00:19,660
+It shows a buyer and a mechanic joining the same live video inspection.
+
+6
+00:00:20,810 --> 00:00:24,600
+On the left is the buyer, and on the right is the mechanic,
+
+7
+00:00:24,600 --> 00:00:26,780
+each in their own browser session.
+
+8
+00:00:26,780 --> 00:00:30,890
+The buyer opens the booked inspection and chooses Join the call.
+
+9
+00:00:30,890 --> 00:00:35,130
+The lobby checks the camera and microphone, and lists who is here.
+
+10
+00:00:35,130 --> 00:00:38,210
+The mechanic and the seller have not joined yet.
+
+11
+00:00:38,210 --> 00:00:41,300
+The buyer joins, and the mechanic does the same.
+
+12
+00:00:41,300 --> 00:00:46,240
+Now each sees the other's live video, and the buyer is told that the mechanic
+
+13
+00:00:46,240 --> 00:00:46,690
+joined.
+
+14
+00:00:46,690 --> 00:00:49,900
+The video flows directly between the two browsers.
+
+15
+00:00:49,900 --> 00:00:51,960
+The server only introduces them.
+
+16
+00:00:53,110 --> 00:00:55,180
+The mechanic runs the checklist.
+
+17
+00:00:55,180 --> 00:00:58,230
+Marking brakes done moves the call on to tires,
+
+18
+00:00:58,230 --> 00:01:00,630
+and the buyer's list changes at once.
+
+19
+00:01:00,630 --> 00:01:04,190
+The mechanic adds a note, and it appears for the buyer.
+
+20
+00:01:04,190 --> 00:01:06,780
+Only the mechanic has these two buttons.
+
+21
+00:01:06,780 --> 00:01:10,220
+The buyer can watch, but cannot change the checklist.
+
+22
+00:01:11,370 --> 00:01:13,510
+Now the buyer's connection is cut.
+
+23
+00:01:13,510 --> 00:01:16,210
+The call says so, and reconnects by itself,
+
+24
+00:01:16,210 --> 00:01:19,730
+so the buyer keeps their place and the video comes back.
+
+25
+00:01:19,730 --> 00:01:22,870
+If it could not reconnect after about six seconds,
+
+26
+00:01:22,870 --> 00:01:26,390
+it would say disconnected and offer one click to rejoin.
+
+27
+00:01:26,390 --> 00:01:28,780
+To finish, the buyer chooses End call.
+
+28
+00:01:28,780 --> 00:01:32,180
+The dialog asks first, with Stay on the call selected,
+
+29
+00:01:32,180 --> 00:01:34,310
+and says who will be disconnected.
+
+30
+00:01:34,310 --> 00:01:35,760
+Ending is for everyone.
+
+31
+00:01:35,760 --> 00:01:40,100
+Both sides see the call length, and what was checked and not checked.
+
+32
+00:01:41,250 --> 00:01:45,170
+The rules are enforced by the server, not just the screens.
+
+33
+00:01:45,170 --> 00:01:48,620
+A buyer who is not on the inspection gets not found,
+
+34
+00:01:48,620 --> 00:01:50,750
+so nothing about it is revealed.
+
+35
+00:01:50,750 --> 00:01:53,540
+With no token, the answer is unauthorized.
+
+36
+00:01:53,540 --> 00:01:58,130
+The buyer who booked it cannot run the checklist, and gets forbidden,
+
+37
+00:01:58,130 --> 00:01:59,660
+while the mechanic can.
+
+38
+00:01:59,660 --> 00:02:03,980
+Ending the call twice gives the same answer, and changes nothing.
+
+39
+00:02:05,130 --> 00:02:06,870
+Here is what to remember.
+
+40
+00:02:06,870 --> 00:02:10,150
+Two real sessions share one call, peer to peer.
+
+41
+00:02:10,150 --> 00:02:13,280
+Only the people on the inspection can see it,
+
+42
+00:02:13,280 --> 00:02:16,140
+and only the mechanic runs the checklist.
+
+43
+00:02:16,140 --> 00:02:21,720
+A dropped connection recovers by itself, and ending a call ends it for everyone.
+
+44
+00:02:21,720 --> 00:02:26,040
+Not built yet: recording, the seller joining from a text link,
+
+45
+00:02:26,040 --> 00:02:28,410
+and calls across strict firewalls.
+
+46
+00:02:28,410 --> 00:02:32,870
+Next, journey eleven: receive the safety certification estimate.

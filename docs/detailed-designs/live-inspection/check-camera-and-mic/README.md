@@ -79,3 +79,7 @@ The page shows the busy state, loads the lobby view, and renders the default sta
 The buyer selects "Check again" after changing the browser setting. The page requests the camera once more and either clears or keeps the alert.
 
 ![Sequence diagram for checking the camera again](diagrams/sequence-check-again.png)
+
+## Implementation notes (J10)
+
+Delivered as `CallLobbyPage` at `/inspections/:id/lobby` (L2-039, L2-040, L2-075). The page reads the call with `CALLS_API.get` (never joining), opens the devices with `getUserMedia`, lists them with `enumerateDevices`, and hands the chosen devices and the audio-only choice to the call through `CallDevices`. A refused camera shows the blocked alert with "Check again", disables the camera choice and offers "Join with audio only". Before the opening time "Join the call" is disabled and the page says when the call opens. Anyone who is not on the inspection sees "We couldn’t find that call" and no names. The recording note, the seller's "Joins at" status and the body shop row timing are deferred (ADR 0012); the seller always shows "Not joined".

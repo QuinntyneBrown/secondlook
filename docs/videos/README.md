@@ -27,6 +27,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J08 | [Add an additional vehicle](journeys/08-add-additional-vehicle/README.md) | 2:09 | Add additional vehicle |
 | J09 | [Add a body shop review](journeys/09-add-body-shop-review/README.md) | 2:05 | Add body shop review |
 
+| J10 | [Join a live video inspection](journeys/10-join-live-video-inspection/README.md) | 2:36 | Join live video inspection |
 ## Making or updating a video
 
 Run from the repository root. Generated timing, slide renders and recordings go to `.cache/` (ignored by git).
