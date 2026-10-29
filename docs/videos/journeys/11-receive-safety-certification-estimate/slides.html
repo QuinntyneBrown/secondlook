@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 11 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="11" data-video-title="Receive the safety certification estimate" data-parts="Introduction|Writing the estimate|Reading the report|Sharing it|The rules|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 11</div>
+  <h1>Receive the safety certification estimate</h1>
+  <p class="lead">The mechanic's estimate becomes the buyer's report</p>
+</section>
+
+<section id="mechanic" data-part="1" data-cue="After the call, the mechanic opens the estimate editor" data-clip="clips/mechanic.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Findings, costs, Submit</h3>
+    <p class="muted">Bad cost ranges are refused with a reason.</p>
+  </aside>
+</section>
+
+<section id="buyer" data-part="2" data-cue="The buyer opens the report from the inspection" data-clip="clips/buyer.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Totals, findings, PDF, issue</h3>
+    <p class="muted">Not a safety certificate or a guarantee.</p>
+  </aside>
+</section>
+
+<section id="share" data-part="3" data-cue="Now the buyer shares the report" data-clip="clips/share.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>A link that needs no account</h3>
+    <p class="muted">14 days, or until it is turned off.</p>
+  </aside>
+</section>
+
+<section id="rules" data-part="4" data-cue="The server enforces all of this" data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>409, 403, 400, 404</h3>
+    <p class="muted">ADR 0013: one report per inspection.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="5" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>The estimate is written after the call, by the assigned mechanic</li>
+    <li>Required repairs set the cost; it is not a safety certificate</li>
+    <li>Share links expire and can be turned off</li>
+  </ul>
+  <p class="small muted">Next: Journey 12, conduct a body shop review</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>

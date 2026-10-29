@@ -28,6 +28,8 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J09 | [Add a body shop review](journeys/09-add-body-shop-review/README.md) | 2:05 | Add body shop review |
 
 | J10 | [Join a live video inspection](journeys/10-join-live-video-inspection/README.md) | 2:36 | Join live video inspection |
+| J11 | [Receive the safety certification estimate](journeys/11-receive-safety-certification-estimate/README.md) | 2:27 | Receive safety certification estimate |
+
 ## Making or updating a video
 
 Run from the repository root. Generated timing, slide renders and recordings go to `.cache/` (ignored by git).
