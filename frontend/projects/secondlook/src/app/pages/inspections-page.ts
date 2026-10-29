@@ -53,7 +53,7 @@ const SUPPORT = 'mailto:support@secondlook.example';
     @if (added(); as a) {
       <sl-alert
         variant="success"
-        [title]="a.vin + ' added for ' + a.price"
+        [title]="a.vehicle + ' added for ' + a.price"
         [text]="
           a.count + ' cars are in your window. Compare them side by side when the reports land.'
         "
@@ -109,7 +109,10 @@ const SUPPORT = 'mailto:support@secondlook.example';
         } @else {
           @for (i of items(); track i.id) {
             <li>
-              <a [routerLink]="link(i)">{{ i.vin }}</a>
+              <a [routerLink]="link(i)">{{ i.vehicleName }}</a>
+              @if (i.vin && i.vin !== i.vehicleName) {
+                <span class="vin">VIN {{ i.vin }}</span>
+              }
               <span class="meta"
                 >{{ reviewLabel(i) }} · {{ names(i) }} · {{ money(i.askingPriceCents) }}</span
               >
@@ -229,6 +232,10 @@ const SUPPORT = 'mailto:support@secondlook.example';
       background: var(--colorNeutralBackground3);
       border-color: transparent;
     }
+    .vin {
+      color: var(--colorNeutralForeground2);
+      overflow-wrap: anywhere;
+    }
     .meta {
       flex: 1 1 14rem;
       min-width: 0;
@@ -286,7 +293,7 @@ export class InspectionsPage {
   private readonly api = inject(BOOKINGS_API);
   private readonly payments = inject(PAYMENTS_API);
   protected readonly window = signal<PricingWindow | null>(null);
-  protected readonly added = signal<{ vin: string; price: string; count: string } | null>(null);
+  protected readonly added = signal<{ vehicle: string; price: string; count: string } | null>(null);
 
   protected readonly view = signal<View>('loading');
   protected readonly history = signal<InspectionHistory | null>(null);
@@ -348,7 +355,7 @@ export class InspectionsPage {
     this.payments.pricingWindow().subscribe({
       next: (w) => {
         this.window.set(w);
-        let flag: { vin: string; cents: number } | null = null;
+        let flag: { vehicle: string; cents: number } | null = null;
         try {
           flag = JSON.parse(sessionStorage.getItem('secondlook.addedCar') ?? 'null');
           sessionStorage.removeItem('secondlook.addedCar');
@@ -357,7 +364,7 @@ export class InspectionsPage {
         }
         if (flag)
           this.added.set({
-            vin: flag.vin,
+            vehicle: flag.vehicle,
             price: `$${flag.cents % 100 === 0 ? flag.cents / 100 : (flag.cents / 100).toFixed(2)}`,
             count: InspectionsPage.WORDS[w.carsInWindow] ?? String(w.carsInWindow),
           });

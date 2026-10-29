@@ -11,6 +11,7 @@ const SAMPLE: Report = {
   callEndedAt: null,
   mechanicName: 'A SecondLook mechanic',
   mechanicReady: true,
+  vehicleName: '2016 Honda Civic',
   vin: 'SAMPLE000000000',
   odometerKm: 142300,
   askingPriceCents: 890000,

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Checkout, PAYMENTS_API, ReviewChoice } from 'api';
+import { Checkout, PAYMENTS_API, ReviewChoice, vehicleName } from 'api';
 import { Alert, Button } from 'components';
 import { BookingDraft, checkoutKey } from '../booking/booking-draft';
 import { BookingSteps, BuyerNav, OrderSummary } from '../booking/booking-chrome';
@@ -140,7 +140,7 @@ export class BookReviewPage {
   protected vehicleLabel() {
     const v = this.draft.state().vehicle;
     return v
-      ? `${v.vin} · ${this.review() === 'Both' ? 'Mechanic + body shop' : this.review() === 'BodyShop' ? 'Body shop' : 'Mechanic'}`
+      ? `${vehicleName(v)} · ${this.review() === 'Both' ? 'Mechanic + body shop' : this.review() === 'BodyShop' ? 'Body shop' : 'Mechanic'}`
       : null;
   }
 

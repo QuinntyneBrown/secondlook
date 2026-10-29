@@ -70,7 +70,9 @@ export interface EstimateSummary {
 /** One inspection in the history. A cancelled one keeps what it was booked with. */
 export interface HistoryItem {
   id: string;
-  vin: string;
+  /** "2016 Honda Civic"; the VIN for a car booked before make and model were recorded (ADR 0018). */
+  vehicleName: string;
+  vin: string | null;
   review: 'Mechanic' | 'BodyShop' | 'Both';
   mechanicName: string | null;
   bodyShopName: string | null;

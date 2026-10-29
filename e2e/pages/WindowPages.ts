@@ -22,10 +22,10 @@ export class WindowBanner {
     ).toBeVisible();
   }
 
-  async expectAdded(vin: string, amount: string, count: string) {
+  async expectAdded(vehicle: string, amount: string, count: string) {
     const status = this.page
       .getByRole("status")
-      .filter({ hasText: `${vin} added for ${amount}` });
+      .filter({ hasText: `${vehicle} added for ${amount}` });
     await expect(status).toBeVisible();
     await expect(
       status.getByText(

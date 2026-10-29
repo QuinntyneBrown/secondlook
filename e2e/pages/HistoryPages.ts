@@ -37,10 +37,12 @@ export class HistoryPage {
     await this.page.getByRole("tab", { name: new RegExp(`^${tab}`) }).click();
   }
 
-  private row(vin: string) {
+  /** A row, found by the car's name ("2016 Honda Civic") or its VIN. */
+  private row(vehicle: string) {
     return this.page
+      .getByRole("list", { name: "Inspections" })
       .getByRole("listitem")
-      .filter({ has: this.page.getByRole("link", { name: vin }) });
+      .filter({ hasText: vehicle });
   }
 
   async expectRow(
@@ -64,8 +66,8 @@ export class HistoryPage {
     ).toHaveCount(count);
   }
 
-  async openRow(vin: string) {
-    await this.page.getByRole("link", { name: vin }).click();
+  async openRow(vehicle: string) {
+    await this.row(vehicle).getByRole("link").click();
   }
 
   async expectOnReport() {
@@ -77,8 +79,9 @@ export class HistoryPage {
   }
 
   /** The detail of a cancelled inspection keeps what it was booked with: the car and the refund (L2-035). */
-  async expectCancelledDetail(vin: string) {
-    await expect(this.page.getByRole("heading", { level: 1, name: vin })).toBeVisible();
+  async expectCancelledDetail(vehicle: string, vin: string) {
+    await expect(this.page.getByRole("heading", { level: 1, name: vehicle })).toBeVisible();
+    await expect(this.page.getByText(vin, { exact: true })).toBeVisible();
     await expect(this.page.getByText(/^Cancelled · refunded /)).toBeVisible();
     await expect(this.page.getByRole("link", { name: "Rebook this car" })).toBeVisible();
   }

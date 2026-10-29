@@ -37,8 +37,13 @@ type Load = 'loading' | 'ready' | 'failed';
                     @if (c.lowest) {
                       <span class="badge">Lowest all-in</span>
                     }
-                    <strong class="vin">{{ c.vin }}</strong>
-                    <span class="muted">{{ c.odometerKm.toLocaleString('en-CA') }} km</span>
+                    <strong class="car">{{ c.vehicleName }}</strong>
+                    <span class="muted">
+                      @if (c.vin && c.vin !== c.vehicleName) {
+                        VIN {{ c.vin }} ·
+                      }
+                      {{ c.odometerKm.toLocaleString('en-CA') }} km</span
+                    >
                     @switch (c.status) {
                       @case ('Ready') {
                         <p class="label">All-in, asking price plus certification</p>
@@ -175,7 +180,7 @@ type Load = 'loading' | 'ready' | 'failed';
       color: var(--colorStatusSuccessForeground1);
       font-weight: var(--fontWeightSemibold);
     }
-    .vin {
+    .car {
       overflow-wrap: anywhere;
     }
     .allin {

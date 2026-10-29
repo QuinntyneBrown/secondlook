@@ -32,7 +32,9 @@ export interface CallState {
   startedAt: string | null;
   endedAt: string | null;
   durationSeconds: number | null;
-  vin: string;
+  /** "2016 Honda Civic"; the VIN for a car booked before make and model were recorded (ADR 0018). */
+  vehicleName: string;
+  vin: string | null;
   you: CallParticipant;
   participants: CallParticipant[];
   checklist: ChecklistItem[];

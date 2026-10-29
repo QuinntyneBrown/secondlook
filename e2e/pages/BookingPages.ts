@@ -46,17 +46,23 @@ export class DashboardPage {
       .click();
   }
 
-  async expectInspection(vin: string, chip: string) {
-    await expect(this.page.getByRole("tab", { name: /^Active/ })).toBeVisible();
-    const row = this.page
+  /** An inspection's row, found by the car's name ("2016 Honda Civic") or its VIN. */
+  private row(vehicle: string) {
+    return this.page
+      .getByRole("list", { name: "Inspections" })
       .getByRole("listitem")
-      .filter({ has: this.page.getByRole("link", { name: vin }) });
+      .filter({ hasText: vehicle });
+  }
+
+  async expectInspection(vehicle: string, chip: string) {
+    await expect(this.page.getByRole("tab", { name: /^Active/ })).toBeVisible();
+    const row = this.row(vehicle);
     await expect(row).toBeVisible();
     await expect(row.getByText(chip)).toBeVisible();
   }
 
-  async openInspection(vin: string) {
-    await this.page.getByRole("link", { name: vin }).click();
+  async openInspection(vehicle: string) {
+    await this.row(vehicle).getByRole("link").click();
   }
 }
 
@@ -280,10 +286,10 @@ export class InspectionDetailPage {
     ).toBeVisible();
   }
 
-  async expectScheduled(vin: string, startIso: string, paid: string) {
+  async expectScheduled(vehicle: string, startIso: string, paid: string) {
     const l = slotLabels(startIso);
     await expect(
-      this.page.getByRole("heading", { level: 1, name: vin }),
+      this.page.getByRole("heading", { level: 1, name: vehicle }),
     ).toBeVisible();
     await expect(
       this.page.getByText(`Scheduled · ${l.day}, ${l.time}`),

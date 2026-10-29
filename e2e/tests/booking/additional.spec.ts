@@ -108,6 +108,7 @@ test.describe("Add an additional vehicle (J08)", () => {
     );
 
     await new DashboardPage(page).open();
-    await banner.expectAdded(vin, "$45", "Two");
+    // L2-085 AC5: the car is announced by its year, make and model.
+    await banner.expectAdded("2014 Toyota Corolla", "$45", "Two");
   });
 });

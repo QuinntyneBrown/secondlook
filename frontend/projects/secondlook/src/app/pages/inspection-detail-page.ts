@@ -1,7 +1,7 @@
 import { Dialog } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { BOOKINGS_API, Inspection } from 'api';
+import { BOOKINGS_API, Inspection, vehicleName } from 'api';
 import { Alert, Button } from 'components';
 import { BuyerNav } from '../booking/booking-chrome';
 import { CancelInspectionDialog } from '../dialogs/cancel-inspection-dialog';
@@ -20,7 +20,7 @@ const whole = (cents: number) => `$${cents % 100 === 0 ? cents / 100 : (cents / 
     <sl-buyer-nav />
     <main class="page" [attr.aria-busy]="inspection() || failed() ? null : 'true'">
       @if (inspection(); as i) {
-        <h1>{{ i.vehicle.vin }}</h1>
+        <h1>{{ name(i) }}</h1>
         <p class="sub">Booked {{ booked(i) }}</p>
 
         @if (toast(); as t) {
@@ -58,6 +58,10 @@ const whole = (cents: number) => `$${cents % 100 === 0 ? cents / 100 : (cents / 
         }
 
         <dl>
+          @if (i.vehicle.vin) {
+            <dt>VIN</dt>
+            <dd>{{ i.vehicle.vin }}</dd>
+          }
           <dt>Odometer</dt>
           <dd>{{ i.vehicle.odometerKm.toLocaleString('en-CA') }} km</dd>
           <dt>Asking price</dt>
@@ -154,6 +158,7 @@ export class InspectionDetailPage {
   private readonly dialog = inject(Dialog);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
 
+  protected readonly name = (i: Inspection) => vehicleName(i.vehicle);
   protected readonly money = money;
   protected readonly whole = whole;
   protected readonly callTime = (i: Inspection) => callTime(i.start);

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { ApiProblem, BOOKINGS_API, Checkout, PAYMENTS_API, Slot } from 'api';
+import { ApiProblem, BOOKINGS_API, Checkout, PAYMENTS_API, Slot, vehicleName } from 'api';
 import { Alert, Button } from 'components';
 import { BookingDraft, checkoutKey } from '../booking/booking-draft';
 import { BookingSteps, BuyerNav, OrderSummary } from '../booking/booking-chrome';
@@ -239,7 +239,7 @@ export class BookSchedulePage {
   protected vehicleLabel() {
     const d = this.draft.state();
     return d.vehicle
-      ? `${d.vehicle.vin} · ${d.review === 'Both' ? 'Mechanic + body shop' : d.review === 'BodyShop' ? 'Body shop' : 'Mechanic'}`
+      ? `${vehicleName(d.vehicle)} · ${d.review === 'Both' ? 'Mechanic + body shop' : d.review === 'BodyShop' ? 'Body shop' : 'Mechanic'}`
       : null;
   }
 

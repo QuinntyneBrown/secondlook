@@ -33,7 +33,9 @@ export interface Report {
   mechanicName: string | null;
   /** False while the mechanic's estimate is still being written; the body shop's part stands on its own. */
   mechanicReady: boolean;
-  vin: string;
+  /** "2016 Honda Civic"; the VIN for a car booked before make and model were recorded (ADR 0018). */
+  vehicleName: string;
+  vin: string | null;
   odometerKm: number;
   askingPriceCents: number;
   findings: Finding[];
@@ -50,7 +52,9 @@ export interface Report {
 /** One inspection in the body shop's queue, and where it stands. */
 export interface AssignedReview {
   inspectionId: string;
-  vin: string;
+  /** "2016 Honda Civic"; the VIN for a car booked before make and model were recorded (ADR 0018). */
+  vehicleName: string;
+  vin: string | null;
   start: string;
   review: ReviewType;
   callStatus: 'NotStarted' | 'Live' | 'Ended';

@@ -25,7 +25,13 @@ type Load = 'loading' | 'ready' | 'not-ready' | 'not-found' | 'failed';
           @let r = report()!;
           <h1>Your report</h1>
           <p class="sub">Call finished {{ finished(r) }} · {{ author(r) }}</p>
-          <p class="sub">VIN {{ r.vin }} · {{ r.odometerKm.toLocaleString('en-CA') }} km</p>
+          <p class="sub">
+            {{ r.vehicleName }} ·
+            @if (r.vin && r.vin !== r.vehicleName) {
+              VIN {{ r.vin }} ·
+            }
+            {{ r.odometerKm.toLocaleString('en-CA') }} km
+          </p>
           <div class="actions">
             <sl-button variant="outline" (pressed)="share(r)">Share</sl-button>
             <sl-button variant="outline" (pressed)="download()">Download report</sl-button>

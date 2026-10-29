@@ -157,7 +157,9 @@ export class ManageInspectionPage {
     await this.page.getByRole("tab", { name: "Past" }).click();
   }
 
-  async expectInPast(vin: string) {
-    await expect(this.page.getByRole("link", { name: vin })).toBeVisible();
+  async expectInPast(vehicle: string) {
+    await expect(
+      this.page.getByRole("list", { name: "Inspections" }).getByRole("listitem").filter({ hasText: vehicle }),
+    ).toBeVisible();
   }
 }

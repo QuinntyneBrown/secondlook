@@ -87,7 +87,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       </header>
       <main class="call">
         @if (call(); as c) {
-          <h1 class="vh">Live inspection: {{ c.vin }}</h1>
+          <h1 class="vh">Live inspection: {{ c.vehicleName }}</h1>
         }
         <div class="stage">
           @if (banner(); as b) {

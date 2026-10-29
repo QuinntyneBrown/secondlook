@@ -76,7 +76,7 @@ test.describe("Add a body shop review (J09)", () => {
     await confirmed.expectBooked(shared, "Maya Mechanic", "Bo Bodyshop");
     await confirmed.viewInspection();
     const detail = new InspectionDetailPage(page);
-    await detail.expectScheduled(vin, shared, "$70.00");
+    await detail.expectScheduled("2016 Honda Civic", shared, "$70.00");
     await detail.expectProvider("Maya Mechanic", "Mechanic");
     await detail.expectProvider("Bo Bodyshop", "Body shop");
   });
@@ -110,7 +110,7 @@ test.describe("Add a body shop review (J09)", () => {
     await confirmed.expectBooked(slot, "Bo Bodyshop");
     await confirmed.viewInspection();
     const detail = new InspectionDetailPage(page);
-    await detail.expectScheduled(vin, slot, "$50.00");
+    await detail.expectScheduled("2016 Honda Civic", slot, "$50.00");
     await detail.expectProvider("Bo Bodyshop", "Body shop");
   });
 
