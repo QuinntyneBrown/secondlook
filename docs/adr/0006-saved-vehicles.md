@@ -1,7 +1,7 @@
 # ADR 0006: Saved vehicles, validation, duplicates and history
 
 ## Status
-Accepted (J04)
+Accepted (J04). Amended by ADR 0018: year, make and model are required and the VIN is optional.
 
 ## Context
 `L2-063` lets a buyer add, edit and remove saved vehicles, `L2-057` says buyers see only their own data, and the manage-saved-vehicles design leaves the validation, duplicate handling, removal semantics and effect on past inspections open.
