@@ -2,7 +2,15 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 import { ApiProblem } from './auth-api';
-import { BookingsApi, CancelReason, Hold, Inspection, Slot } from './bookings-api';
+import {
+  BookingsApi,
+  CancelReason,
+  HistoryTab,
+  Hold,
+  Inspection,
+  InspectionHistory,
+  Slot,
+} from './bookings-api';
 import { API_BASE_URL } from './http-platform-api';
 
 function toProblem(e: unknown): ApiProblem {
@@ -51,6 +59,14 @@ export class HttpBookingsApi implements BookingsApi {
         holdId,
         vehicleId,
         bodyShopHoldId,
+      }),
+    );
+  }
+
+  history(tab: HistoryTab, page: number) {
+    return this.guard(
+      this.http.get<InspectionHistory>(`${this.base}/inspections/history`, {
+        params: { tab, page },
       }),
     );
   }

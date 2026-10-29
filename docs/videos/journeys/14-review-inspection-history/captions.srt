@@ -1,0 +1,147 @@
+1
+00:00:00,000 --> 00:00:03,540
+This is the implementation demo for journey fourteen,
+
+2
+00:00:03,540 --> 00:00:05,740
+the last of the buyer's journeys.
+
+3
+00:00:05,740 --> 00:00:09,680
+It is the real application and API running on this machine,
+
+4
+00:00:09,680 --> 00:00:14,750
+with synthetic people and the local adapters, so nothing is charged or sent.
+
+5
+00:00:14,750 --> 00:00:18,550
+It shows a buyer revisiting what they have had inspected.
+
+6
+00:00:19,700 --> 00:00:21,700
+This buyer has four inspections.
+
+7
+00:00:21,700 --> 00:00:26,560
+The Active tab holds the two that are not finished with: one booked for later,
+
+8
+00:00:26,560 --> 00:00:30,730
+and one whose call is done while the report is still being written.
+
+9
+00:00:30,730 --> 00:00:35,600
+The Past tab holds a completed inspection, with its estimate right on the row,
+
+10
+00:00:35,600 --> 00:00:39,150
+required repairs and what they cost, and a cancelled one.
+
+11
+00:00:39,150 --> 00:00:41,950
+Opening the completed row goes to its report.
+
+12
+00:00:41,950 --> 00:00:46,320
+Going back returns to the Past tab, because the tab is in the address.
+
+13
+00:00:46,320 --> 00:00:50,930
+Opening the cancelled row shows the car and the refund it was booked with,
+
+14
+00:00:50,930 --> 00:00:53,420
+so history never changes after the fact.
+
+15
+00:00:54,570 --> 00:00:57,650
+Now a buyer with forty-five past inspections.
+
+16
+00:00:57,650 --> 00:01:01,540
+The list shows twenty to a page, says how many there are,
+
+17
+00:01:01,540 --> 00:01:03,870
+and says which rows are on screen.
+
+18
+00:01:03,870 --> 00:01:06,540
+Previous is disabled on the first page.
+
+19
+00:01:06,540 --> 00:01:10,640
+Next moves on, and the last page shows the five that remain,
+
+20
+00:01:10,640 --> 00:01:13,510
+with Next disabled and Previous available.
+
+21
+00:01:14,660 --> 00:01:19,560
+A buyer with no inspections sees how to start, and can open a sample report,
+
+22
+00:01:19,560 --> 00:01:21,240
+clearly marked as made up.
+
+23
+00:01:21,240 --> 00:01:26,660
+Back on the buyer with four inspections, a list that fails to load says it is on our
+
+24
+00:01:26,660 --> 00:01:32,010
+side, that the bookings are safe, and offers Try again or a way to contact support.
+
+25
+00:01:32,010 --> 00:01:36,980
+Trying again shows the list busy with placeholder rows, then the inspections.
+
+26
+00:01:38,130 --> 00:01:40,640
+The rules are enforced by the server.
+
+27
+00:01:40,640 --> 00:01:44,240
+The tabs and their counts come from the same request.
+
+28
+00:01:44,240 --> 00:01:49,600
+A page past the end is empty, a different buyer sees none of these inspections,
+
+29
+00:01:49,600 --> 00:01:51,640
+and an unknown tab is refused.
+
+30
+00:01:51,640 --> 00:01:55,650
+The mechanic is refused, and so is a request with no token.
+
+31
+00:01:56,800 --> 00:01:58,520
+Here is what to remember.
+
+32
+00:01:58,520 --> 00:02:03,900
+Active holds what is not finished with, and Past holds completed and cancelled
+
+33
+00:02:03,900 --> 00:02:06,180
+inspections with their estimates.
+
+34
+00:02:06,180 --> 00:02:11,560
+Pages keep a long history manageable, and the tab and page are in the address.
+
+35
+00:02:11,560 --> 00:02:14,660
+A buyer only ever sees their own inspections.
+
+36
+00:02:14,660 --> 00:02:16,590
+That completes the journeys.
+
+37
+00:02:16,590 --> 00:02:21,830
+Not built yet: make, model and location on each row, and a retention policy.

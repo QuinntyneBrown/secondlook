@@ -74,3 +74,7 @@ Selecting the "Past" tab requests the past inspections. The page shows the list,
 Selecting a past inspection loads its estimate. A cancelled inspection or a missing report yields no estimate.
 
 ![Sequence diagram for viewing a past estimate](diagrams/sequence-view-estimate.png)
+
+## Implementation notes (J14)
+
+The `<TO SUPPLY>` items are decided in [ADR 0016](../../../adr/0016-inspection-history.md) (L2-022, L2-083). The Past tab is the same page and the same read as the Active tab: `GET /api/inspections/history?tab=Past&page=N` through `BOOKINGS_API.history`. Past holds cancelled inspections and ones whose review is delivered, newest first, 20 to a page; a delivered row reads "Report ready" with the estimate summary and opens its report; a cancelled row reads "Cancelled" and opens the inspection, which still shows the car and the refund it was booked with. The tab and page are in the address, so Back returns to the same place. An empty Past tab says "No past inspections yet. Finished and cancelled inspections show up here.".

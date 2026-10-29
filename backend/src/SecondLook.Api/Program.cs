@@ -56,6 +56,7 @@ app.MapPaymentEndpoints();
 app.MapBookingEndpoints();
 app.MapCallEndpoints();
 app.MapReportEndpoints();
+app.MapHistoryEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>

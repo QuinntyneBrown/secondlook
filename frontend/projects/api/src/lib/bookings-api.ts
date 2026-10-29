@@ -56,6 +56,44 @@ export interface Inspection {
   canChange: boolean;
 }
 
+/** What the mechanic found: Required repairs with their cost, else Recommended, else Passes. */
+export interface EstimateSummary {
+  state: 'Required' | 'Recommended' | 'Passes';
+  requiredCount: number;
+  costMinCents: number | null;
+  costMaxCents: number | null;
+}
+
+/** One inspection in the history. A cancelled one keeps what it was booked with. */
+export interface HistoryItem {
+  id: string;
+  vin: string;
+  review: 'Mechanic' | 'BodyShop' | 'Both';
+  mechanicName: string | null;
+  bodyShopName: string | null;
+  askingPriceCents: number;
+  start: string;
+  /** Upcoming, Live, CallEnded (the call is done and the report is not), ReportReady or Cancelled. */
+  phase: 'Upcoming' | 'Live' | 'CallEnded' | 'ReportReady' | 'Cancelled';
+  estimate: EstimateSummary | null;
+  cancelledAt: string | null;
+  refundedCents: number;
+}
+
+export type HistoryTab = 'Active' | 'Past';
+
+/** A page of the history: Active are not finished with, Past are cancelled or delivered. */
+export interface InspectionHistory {
+  tab: HistoryTab;
+  page: number;
+  pageSize: number;
+  /** Inspections in this tab, across all pages. */
+  total: number;
+  activeCount: number;
+  pastCount: number;
+  items: HistoryItem[];
+}
+
 export type CancelReason = 'DifferentCar' | 'SellerBackedOut' | 'PriceChanged' | 'Other';
 
 /**
@@ -73,6 +111,8 @@ export interface BookingsApi {
     bodyShopHoldId?: string | null,
   ): Observable<Inspection>;
   inspections(): Observable<Inspection[]>;
+  /** The buyer's inspections for one tab, a page of twenty at a time, with each estimate's summary. */
+  history(tab: HistoryTab, page: number): Observable<InspectionHistory>;
   inspection(id: string): Observable<Inspection>;
   rescheduleSlots(id: string): Observable<Slot[]>;
   reschedule(id: string, start: string): Observable<Inspection>;

@@ -91,3 +91,7 @@ The status of the row decides whether the vehicle link opens the inspection or t
 Decisions are in ADR 0008. Mocks reused: `book-vehicle`, `book-review-type`, `book-schedule`, `checkout`, `booking-confirmed`, `dashboard` and `inspection-detail`.
 
 `GET /api/inspections` (roles Buyer, Mechanic, BodyShop) returns the caller's inspections only: buyers their own, providers those assigned to them. The dashboard shows them with an Active tab, the call time as the status chip, and an empty state with "Book an inspection".
+
+## Implementation notes (J14)
+
+Delivered as the reworked `InspectionsPage` (L2-019 to L2-021, L2-083, [ADR 0016](../../../adr/0016-inspection-history.md)). The list is read a page at a time (`GET /api/inspections/history`), with both tab counts in every response; the subtitle shows the active count and the window end, or "N inspections · 20 per page" for a long list, with "Showing 1–20 of N" and Previous and Next. Loading shows placeholder rows and "Loading your inspections"; no inspections shows the welcome with "Book an inspection" and "View sample report" (`/sample-report`); a failed load shows "Your inspections didn’t load" with "Try again" and "Contact support". Differences from the mock: delivered reports are listed under Past, so the Active count excludes them, and rows show the VIN rather than make and model.

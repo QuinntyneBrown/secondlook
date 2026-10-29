@@ -57,8 +57,12 @@ export {
   BOOKINGS_API,
   type BookingsApi,
   type CancelReason,
+  type EstimateSummary,
+  type HistoryItem,
+  type HistoryTab,
   type Hold,
   type Inspection,
+  type InspectionHistory,
   type InspectionVehicle,
   type Slot,
 } from './lib/bookings-api';

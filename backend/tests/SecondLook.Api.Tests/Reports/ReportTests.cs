@@ -72,6 +72,21 @@ public abstract class ReportFlow(ApiFactory factory) : BookingFlow(factory)
         return (buyer, id);
     }
 
+    /// <summary>Books another car for the same buyer at <paramref name="start"/>, holds its call and ends it.</summary>
+    protected async Task<Guid> BookedCar(HttpClient buyer, DateTimeOffset start, bool endCall = true)
+    {
+        var id = await Book(buyer, start);
+        if (!endCall) return id;
+        var wait = start - TimeSpan.FromMinutes(5) - Factory.Clock.GetUtcNow();
+        if (wait > TimeSpan.Zero) Factory.Clock.Advance(wait);
+        (await buyer.PostAsync($"/api/calls/{id}/join", null)).EnsureSuccessStatusCode();
+        (await buyer.PostAsync($"/api/calls/{id}/end", null)).EnsureSuccessStatusCode();
+        return id;
+    }
+
+    protected async Task Estimated(Guid id, int min, int max) =>
+        (await Submit(id, Finding("Brakes", "Required", min, max))).EnsureSuccessStatusCode();
+
     protected static object Finding(string title, string status, int? min = null, int? max = null, string note = "") =>
         new { title, note, status, minCents = min, maxCents = max };
 

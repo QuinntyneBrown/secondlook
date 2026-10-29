@@ -265,7 +265,8 @@
         "empty",
         "error",
         "long",
-        "edge"
+        "edge",
+        "past"
       ],
       "route": "/inspections"
     },
@@ -411,6 +412,20 @@
       "route": "/inspections/civic-lx/report",
       "not_applicable": {
         "empty": "A report only exists once the call has happened, so it is never empty."
+      }
+    },
+    {
+      "id": "sample-report",
+      "kind": "page",
+      "title": "Sample report",
+      "states": [
+        "default"
+      ],
+      "route": "/sample-report",
+      "not_applicable": {
+        "loading": "The sample is fixed content that ships with the page.",
+        "empty": "The sample always has findings.",
+        "error": "There is no request to fail."
       }
     },
     {
