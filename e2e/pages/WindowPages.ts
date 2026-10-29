@@ -61,17 +61,13 @@ export class WindowBanner {
 
   async continueWithVin(vin: string) {
     await this.dialog
-      .getByLabel("VIN of the next car", { exact: true })
+      .getByLabel("VIN of the next car (optional)", { exact: true })
       .fill(vin);
     await this.dialog.getByRole("button", { name: "Continue" }).click();
   }
 
-  async continueEmpty() {
-    await this.dialog.getByRole("button", { name: "Continue" }).click();
-  }
-
-  async expectVinRequired() {
-    const field = this.dialog.getByLabel("VIN of the next car", {
+  async expectVinIncomplete() {
+    const field = this.dialog.getByLabel("VIN of the next car (optional)", {
       exact: true,
     });
     await expect(field).toBeFocused();

@@ -25,7 +25,7 @@ const uniqueVin = () =>
   `2HGFC2F59GH${String((Date.now() + 91) % 1_000_000).padStart(6, "0")}`;
 
 test.describe("Add an additional vehicle (J08)", () => {
-  // L2-034 AC1, L2-033 AC1 and AC2: the banner, the dialog and its validation.
+  // L2-034 AC1, L2-033 AC1, L2-085 AC6: the banner, the dialog, and its optional VIN.
   test("an open window offers another car for $25", async ({
     page,
     request,
@@ -40,8 +40,14 @@ test.describe("Add an additional vehicle (J08)", () => {
     await banner.expectDialog(
       `Your window is open until ${end.long}, so this car is $25. Choosing both adds $20.`,
     );
-    await banner.continueEmpty();
-    await banner.expectVinRequired();
+    await banner.continueWithVin("2HGFC2F59");
+    await banner.expectVinIncomplete();
+
+    // Without a VIN the buyer goes on to the vehicle step, where the year, make and model are asked.
+    await banner.continueWithVin("");
+    const vehicle = new BookVehiclePage(page);
+    await vehicle.expectLoaded();
+    await vehicle.expectValue("VIN (optional)", "");
   });
 
   // L2-033 AC4: a failed window check offers Try again and keeps the dialog.
