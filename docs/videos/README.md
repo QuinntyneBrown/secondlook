@@ -31,6 +31,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 | J11 | [Receive the safety certification estimate](journeys/11-receive-safety-certification-estimate/README.md) | 2:27 | Receive safety certification estimate |
 | J12 | [Conduct a body shop review](journeys/12-conduct-body-shop-review/README.md) | 2:13 | Conduct body shop review |
 | J13 | [Compare vehicle estimates](journeys/13-compare-vehicle-estimates/README.md) | 2:09 | Compare vehicle estimates |
+| J14 | [Review inspection history](journeys/14-review-inspection-history/README.md) | 2:25 | Review inspection history |
 
 ## Making or updating a video
 

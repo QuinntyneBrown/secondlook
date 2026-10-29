@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Journey 14 Slides</title>
+<link rel="stylesheet" href="../../assets/slides.css">
+</head>
+<body data-video-number="14" data-video-title="Review inspection history" data-parts="Introduction|Active and Past|A long history|Empty, failed and busy|Only your own history|Recap">
+
+<section id="title" data-part="0">
+  <img class="mark" src="../../assets/mark.svg" alt="">
+  <div class="kicker">SecondLook · Implementation demo · Journey 14</div>
+  <h1>Review inspection history</h1>
+  <p class="lead">Completed and cancelled inspections, with their estimates</p>
+</section>
+
+<section id="history" data-part="1" data-cue="This buyer has four inspections" data-clip="clips/history.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Active, Past, and what a row opens</h3>
+    <p class="muted">Back keeps the tab.</p>
+  </aside>
+</section>
+
+<section id="long" data-part="2" data-cue="Now a buyer with forty-five past inspections" data-clip="clips/long.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Twenty to a page</h3>
+    <p class="muted">Showing 1–20 of 45.</p>
+  </aside>
+</section>
+
+<section id="states" data-part="3" data-cue="A buyer with no inspections sees how to start" data-clip="clips/states.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">Real app</span>
+    <h3>Empty, failed, busy</h3>
+    <p class="muted">A sample report is clearly made up.</p>
+  </aside>
+</section>
+
+<section id="rules" data-part="4" data-cue="The rules are enforced by the server" data-clip="clips/api.mp4" data-clip-delay="0.5">
+  <video class="clip"></video>
+  <aside class="clip-notes">
+    <span class="tag">API</span>
+    <h3>Only your own history</h3>
+    <p class="muted">ADR 0016: computed from the reports.</p>
+  </aside>
+</section>
+
+<section id="recap" data-part="5" data-cue="Here is what to remember.">
+  <h2>Things to remember</h2>
+  <ul class="recap">
+    <li>Active is what is not finished; Past is completed and cancelled</li>
+    <li>Twenty to a page; the tab and page are in the address</li>
+    <li>A buyer only ever sees their own inspections</li>
+  </ul>
+  <p class="small muted">That completes the buyer's journeys</p>
+</section>
+
+<script src="../../assets/slides.js"></script>
+</body>
+</html>
