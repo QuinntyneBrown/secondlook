@@ -29,6 +29,7 @@ Recorded from the running application, API and CLI (not from the static mocks), 
 
 | J10 | [Join a live video inspection](journeys/10-join-live-video-inspection/README.md) | 2:36 | Join live video inspection |
 | J11 | [Receive the safety certification estimate](journeys/11-receive-safety-certification-estimate/README.md) | 2:27 | Receive safety certification estimate |
+| J12 | [Conduct a body shop review](journeys/12-conduct-body-shop-review/README.md) | 2:13 | Conduct body shop review |
 
 ## Making or updating a video
 
