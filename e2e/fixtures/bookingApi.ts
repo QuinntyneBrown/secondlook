@@ -133,6 +133,9 @@ export async function bookedInspection(
     await request.post(`${API}/api/vehicles`, {
       ...auth(buyer.token),
       data: {
+        year: 2016,
+        make: "Honda",
+        model: "Civic",
         vin,
         odometerKm: 90000,
         askingPrice: 5000,
@@ -231,6 +234,9 @@ export async function combinedInspection(request: APIRequestContext) {
     await request.post(`${API}/api/vehicles`, {
       ...auth(buyer.token),
       data: {
+        year: 2016,
+        make: "Honda",
+        model: "Civic",
         vin,
         odometerKm: 90000,
         askingPrice: 5000,
@@ -324,7 +330,7 @@ export async function finishedBodyShopOnlyCall(request: APIRequestContext) {
   const vehicle = await (
     await request.post(`${API}/api/vehicles`, {
       ...auth(buyer.token),
-      data: { vin, odometerKm: 90000, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+      data: { year: 2016, make: "Honda", model: "Civic", vin, odometerKm: 90000, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
     })
   ).json();
   const hold = await (
@@ -421,7 +427,7 @@ export async function buyerWithCars(request: APIRequestContext, cars: CarSpec[])
     const vehicle = await (
       await request.post(`${API}/api/vehicles`, {
         ...auth(buyer.token),
-        data: { vin, odometerKm: 90000 + n * 1000, askingPrice: asking, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+        data: { year: 2016, make: "Honda", model: "Civic", vin, odometerKm: 90000 + n * 1000, askingPrice: asking, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
       })
     ).json();
     const hold = await (
@@ -493,7 +499,7 @@ export async function buyerWithCancelledCars(request: APIRequestContext, count: 
     const vehicle = await (
       await request.post(`${API}/api/vehicles`, {
         ...auth(buyer.token),
-        data: { vin, odometerKm: 80000 + n, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+        data: { year: 2016, make: "Honda", model: "Civic", vin, odometerKm: 80000 + n, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
       })
     ).json();
     const hold = await (

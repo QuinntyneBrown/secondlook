@@ -19,6 +19,9 @@ import {
 const uniqueVin = () =>
   `2HGFC2F59GH${String((Date.now() + 7) % 1_000_000).padStart(6, "0")}`;
 const car = (vin: string) => ({
+  year: "2016",
+  make: "Honda",
+  model: "Civic",
   vin,
   km: "98000",
   price: "6400",

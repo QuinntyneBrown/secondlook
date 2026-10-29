@@ -75,8 +75,11 @@ test.describe("Add an additional vehicle (J08)", () => {
     // The details step opens with the VIN filled in; the review is already Both.
     const vehicle = new BookVehiclePage(page);
     await vehicle.expectLoaded();
-    await vehicle.expectValue("VIN", vin);
+    await vehicle.expectValue("VIN (optional)", vin);
     await vehicle.fillRest({
+      year: "2014",
+      make: "Toyota",
+      model: "Corolla",
       km: "120000",
       price: "6500",
       url: "",

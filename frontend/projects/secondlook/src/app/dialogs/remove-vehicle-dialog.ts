@@ -1,6 +1,6 @@
 import { DIALOG_DATA, DialogRef } from '@angular/cdk/dialog';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Vehicle, VEHICLES_API } from 'api';
+import { Vehicle, vehicleName, VEHICLES_API } from 'api';
 import { Alert, Button } from 'components';
 
 export interface RemoveVehicleData {
@@ -14,7 +14,7 @@ export interface RemoveVehicleData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="dialog">
-      <h2 id="remove-vehicle-title">Remove {{ data.vehicle.vin }}?</h2>
+      <h2 id="remove-vehicle-title">Remove {{ name }}?</h2>
       <p id="remove-vehicle-description">
         It will leave your list. Inspections you have already booked for it keep their details.
       </p>
@@ -59,6 +59,7 @@ export interface RemoveVehicleData {
 export class RemoveVehicleDialog {
   protected readonly ref = inject<DialogRef<boolean>>(DialogRef);
   protected readonly data = inject<RemoveVehicleData>(DIALOG_DATA);
+  protected readonly name = vehicleName(this.data.vehicle);
   private readonly api = inject(VEHICLES_API);
   protected readonly busy = signal(false);
   protected readonly failed = signal(false);

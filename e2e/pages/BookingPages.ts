@@ -61,6 +61,9 @@ export class DashboardPage {
 }
 
 export interface BookingVehicle {
+  year: string;
+  make: string;
+  model: string;
   vin: string;
   km: string;
   price: string;
@@ -85,7 +88,10 @@ export class BookVehiclePage {
   }
 
   async fill(v: BookingVehicle) {
-    await this.page.getByLabel("VIN", { exact: true }).fill(v.vin);
+    await this.page.getByLabel("Year", { exact: true }).fill(v.year);
+    await this.page.getByLabel("Make", { exact: true }).fill(v.make);
+    await this.page.getByLabel("Model", { exact: true }).fill(v.model);
+    await this.page.getByLabel("VIN (optional)", { exact: true }).fill(v.vin);
     await this.page.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
     await this.page
       .getByLabel("Asking price ($)", { exact: true })
@@ -111,6 +117,9 @@ export class BookVehiclePage {
 
   /** Every field except the VIN, for a page that opened with the VIN already filled in. */
   async fillRest(v: Omit<BookingVehicle, "vin">) {
+    await this.page.getByLabel("Year", { exact: true }).fill(v.year);
+    await this.page.getByLabel("Make", { exact: true }).fill(v.make);
+    await this.page.getByLabel("Model", { exact: true }).fill(v.model);
     await this.page.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
     await this.page
       .getByLabel("Asking price ($)", { exact: true })

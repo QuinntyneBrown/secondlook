@@ -1,6 +1,9 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 
 export interface VehicleValues {
+  year: string;
+  make: string;
+  model: string;
   vin: string;
   km: string;
   price: string;
@@ -33,10 +36,19 @@ export class VehiclesPage {
     ).toBeVisible();
   }
 
-  private row(vin: string): Locator {
+  /** A saved vehicle's row, found by its name ("2016 Honda Civic") or its VIN. */
+  private row(vehicle: string): Locator {
     return this.page
       .getByRole("row")
-      .filter({ has: this.page.getByRole("rowheader", { name: vin }) });
+      .filter({ has: this.page.getByRole("rowheader", { name: vehicle }) });
+  }
+
+  async expectVehicleCount(vehicle: string, count: number) {
+    await expect(this.row(vehicle)).toHaveCount(count);
+  }
+
+  async expectVehicleName(vin: string, name: string) {
+    await expect(this.row(vin).getByRole("rowheader")).toContainText(name);
   }
 
   async expectVehicle(
@@ -101,7 +113,10 @@ export class VehiclesPage {
 
   async fill(dialogName: string, v: VehicleValues) {
     const d = this.dialog(dialogName);
-    await d.getByLabel("VIN", { exact: true }).fill(v.vin);
+    await d.getByLabel("Year", { exact: true }).fill(v.year);
+    await d.getByLabel("Make", { exact: true }).fill(v.make);
+    await d.getByLabel("Model", { exact: true }).fill(v.model);
+    await d.getByLabel("VIN (optional)", { exact: true }).fill(v.vin);
     await d.getByLabel("Odometer (km)", { exact: true }).fill(v.km);
     await d.getByLabel("Asking price ($)", { exact: true }).fill(v.price);
     await d.getByLabel("Listing link (optional)", { exact: true }).fill(v.url);

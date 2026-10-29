@@ -30,6 +30,7 @@ export {
   type Vehicle,
   type VehicleInput,
   type VehiclesApi,
+  vehicleName,
 } from './lib/vehicles-api';
 export {
   PAYMENTS_API,

@@ -27,7 +27,10 @@ export interface Hold {
 }
 
 export interface InspectionVehicle {
-  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  vin: string | null;
   odometerKm: number;
   askingPrice: number;
   listingUrl: string | null;
