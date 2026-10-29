@@ -138,7 +138,7 @@ resource api 'Microsoft.Web/sites@2024-04-01' = {
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
       http20Enabled: true
-      use32BitWorkerProcess: false
+      use32BitWorkerProcess: apiSkuName == 'F1' // the free tier refuses 64-bit workers
       // The live video call signals over WebSockets.
       webSocketsEnabled: true
       healthCheckPath: '/health/live'
