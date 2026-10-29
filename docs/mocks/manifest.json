@@ -404,11 +404,56 @@
         "error",
         "partial",
         "edge",
-        "forbidden"
+        "forbidden",
+        "not-ready"
       ],
       "route": "/inspections/civic-lx/report",
       "not_applicable": {
         "empty": "A report only exists once the call has happened, so it is never empty."
+      }
+    },
+    {
+      "id": "estimate-editor",
+      "kind": "page",
+      "title": "Estimate editor",
+      "states": [
+        "default",
+        "empty",
+        "invalid",
+        "error",
+        "success"
+      ],
+      "route": "/inspections/civic-lx/estimate",
+      "not_applicable": {
+        "loading": "The editor opens at once; an estimate already sent is filled in if there is one."
+      }
+    },
+    {
+      "id": "shared-report",
+      "kind": "page",
+      "title": "Shared report",
+      "states": [
+        "default",
+        "forbidden"
+      ],
+      "route": "/shared/{token}",
+      "not_applicable": {
+        "loading": "The report is one request; the busy state is the same as the report page.",
+        "empty": "A shared report always has findings.",
+        "error": "An unknown, expired or turned-off link is the forbidden state."
+      }
+    },
+    {
+      "id": "add-finding",
+      "kind": "dialog",
+      "title": "Add a finding",
+      "states": [
+        "default",
+        "invalid"
+      ],
+      "opens_from": "estimate-editor",
+      "not_applicable": {
+        "busy": "Adding a finding changes the list on the page only; nothing is sent until the estimate is submitted."
       }
     },
     {
