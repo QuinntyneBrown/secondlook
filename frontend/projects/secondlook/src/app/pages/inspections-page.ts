@@ -175,6 +175,10 @@ const SUPPORT = 'mailto:support@secondlook.example';
       gap: var(--spacingHorizontalM);
       margin-bottom: var(--spacingVerticalL);
     }
+    .head > div {
+      display: grid;
+      gap: var(--spacingVerticalS);
+    }
     h1,
     h2,
     p {
