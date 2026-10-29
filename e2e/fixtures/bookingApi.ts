@@ -102,7 +102,7 @@ export async function bookedInspection(
   );
   let start = "";
   for (let attempt = 0; attempt < 30 && !start; attempt++) {
-    const day = 3 + Math.floor(Math.random() * 25);
+    const day = 3 + Math.floor(Math.random() * 9);
     const hour = 15 + Math.floor(Math.random() * 7);
     const s = new Date(
       Date.UTC(
