@@ -65,3 +65,7 @@ The Angular app calls `SecondLook.Api`, which writes the issue and the notificat
 The dialog rejects a missing choice, then sends the issue. The flow alternates between the success and failed states.
 
 ![Sequence diagram for reporting an issue](diagrams/sequence-report-issue.png)
+
+## Implementation notes (J11)
+
+Delivered as `ReportIssueDialog` and `POST /api/inspections/{id}/report/issues` (L2-049, L2-077). The reason is required ("Choose what’s wrong."), the details optional; the issue is stored against the report. The confirmation names the mechanic and says the report will be updated if something changes; the promised reply within one business day is not built, so it is not claimed.

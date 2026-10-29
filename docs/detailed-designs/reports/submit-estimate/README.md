@@ -64,3 +64,7 @@ The handler creates a `Report` that owns `Finding` items, moves the `Inspection`
 The mechanic submits, the handler delivers the report and notifies the buyer, and the buyer opens it on `ReportPage`.
 
 ![Sequence diagram for submitting an estimate](diagrams/sequence-submit-estimate.png)
+
+## Implementation notes (J11)
+
+Delivered as `EstimatePage` at `/inspections/:id/estimate` with `FindingDialog` (CDK Dialog) and `PUT /api/inspections/{id}/report` (L2-050, L2-077, [ADR 0013](../../../adr/0013-estimate-report-sharing-and-pdf.md)). The mechanic adds findings in a dialog, sees them listed with status and cost, and submits; the server refuses it before the call has ended (409) and validates every finding (400, nothing stored). Submitting again replaces the findings, so an estimate that was sent can be loaded back and changed. The mechanic reaches the editor from "Write the report" on the call-ended summary. Costs are ranges in cents; the certification total is the Required findings only.

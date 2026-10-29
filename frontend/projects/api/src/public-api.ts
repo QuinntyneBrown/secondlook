@@ -62,3 +62,14 @@ export {
   type InspectionVehicle,
   type Slot,
 } from './lib/bookings-api';
+export {
+  REPORTS_API,
+  type BodyShopReview,
+  type Finding,
+  type FindingInput,
+  type FindingStatus,
+  type IssueReason,
+  type Report,
+  type ReportShare,
+  type ReportsApi,
+} from './lib/reports-api';

@@ -84,6 +84,9 @@ const whole = (cents: number) => `$${cents % 100 === 0 ? cents / 100 : (cents / 
         @if (i.status !== 'Cancelled') {
           <div class="actions">
             <sl-button [routerLink]="'/inspections/' + i.id + '/lobby'">Join the call</sl-button>
+            <sl-button variant="outline" [routerLink]="'/inspections/' + i.id + '/report'"
+              >View report</sl-button
+            >
           </div>
         }
         @if (i.canChange) {

@@ -64,3 +64,7 @@ The Angular app requests the file from `SecondLook.Api`. The API reads the repor
 The dialog disables the formats and shows the busy copy while the handler renders the file. The flow alternates between a saved file and the failed state.
 
 ![Sequence diagram for downloading the report PDF](diagrams/sequence-download-pdf.png)
+
+## Implementation notes (J11)
+
+Delivered as `DownloadReportDialog` and `GET /api/inspections/{id}/report/pdf` (L2-048, L2-077). The PDF is generated in-process by a small text-only writer (no library, ADR 0013). The dialog disables the formats and says "Preparing your PDF…" while it works, saves `secondlook-report.pdf`, and offers "Try again" on failure. "PDF with call screenshots" is listed but unavailable, because calls are not recorded.

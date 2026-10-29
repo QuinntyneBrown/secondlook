@@ -1,4 +1,5 @@
 using SecondLook.Domain.Calls;
+using SecondLook.Domain.Reports;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Application.Abstractions;
 using SecondLook.Domain.Availability;
@@ -22,6 +23,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Inspection> Inspections => Set<Inspection>();
     public DbSet<CallSession> CallSessions => Set<CallSession>();
     public DbSet<CallNote> CallNotes => Set<CallNote>();
+    public DbSet<Report> Reports => Set<Report>();
+    public DbSet<ReportFinding> ReportFindings => Set<ReportFinding>();
+    public DbSet<ReportShare> ReportShares => Set<ReportShare>();
+    public DbSet<ReportIssue> ReportIssues => Set<ReportIssue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -135,6 +140,38 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             e.Property(n => n.Text).HasMaxLength(500).IsRequired();
             e.Property(n => n.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
             e.HasIndex(n => n.CallSessionId);
+        });
+        modelBuilder.Entity<Report>(e =>
+        {
+            e.HasKey(r => r.Id);
+            e.Property(r => r.SubmittedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(r => r.InspectionId).IsUnique();
+        });
+        modelBuilder.Entity<ReportFinding>(e =>
+        {
+            e.HasKey(f => f.Id);
+            e.Property(f => f.Title).HasMaxLength(200).IsRequired();
+            e.Property(f => f.Note).HasMaxLength(500).IsRequired();
+            e.Property(f => f.Status).HasConversion<string>().HasMaxLength(20);
+            e.HasIndex(f => f.ReportId);
+        });
+        modelBuilder.Entity<ReportShare>(e =>
+        {
+            e.HasKey(s => s.Id);
+            e.Property(s => s.Token).HasMaxLength(64).IsRequired();
+            e.Property(s => s.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(s => s.ExpiresAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.Property(s => s.RevokedAt).HasConversion(d => d == null ? (long?)null : d.Value.ToUnixTimeMilliseconds(), v => v == null ? (DateTimeOffset?)null : DateTimeOffset.FromUnixTimeMilliseconds(v.Value));
+            e.HasIndex(s => s.Token).IsUnique();
+            e.HasIndex(s => s.ReportId);
+        });
+        modelBuilder.Entity<ReportIssue>(e =>
+        {
+            e.HasKey(i => i.Id);
+            e.Property(i => i.Reason).HasConversion<string>().HasMaxLength(30);
+            e.Property(i => i.Details).HasMaxLength(1000).IsRequired();
+            e.Property(i => i.CreatedAt).HasConversion(d => d.ToUnixTimeMilliseconds(), v => DateTimeOffset.FromUnixTimeMilliseconds(v));
+            e.HasIndex(i => i.ReportId);
         });
     }
 }

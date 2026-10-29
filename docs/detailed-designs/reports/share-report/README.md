@@ -83,3 +83,7 @@ The handler sets `DisabledAt` so that the link stops working at once.
 The anonymous endpoint returns the report for an active link, or the not-shared result for a link that is off, expired or unknown.
 
 ![Sequence diagram for opening a shared link](diagrams/sequence-open-shared-link.png)
+
+## Implementation notes (J11)
+
+Delivered as `ShareReportDialog` and the public `SharedReportPage` at `/shared/:token` (L2-047, L2-077). Opening the dialog makes (or returns) the buyer's active link; the buyer can leave out the body shop review, copy the link, or email it through the existing `IEmailSender`. An invalid address shows the field message; a failed send offers "Try again" while the link stays copyable. "Turn off link" ends access at once and a new link is a new token. The shared page is an intentional anonymous endpoint: it shows no buyer or seller details and answers "This report isn’t shared with you" for an unknown, expired (14 days) or turned-off link. The sent confirmation says "They" rather than a gendered pronoun.

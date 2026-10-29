@@ -50,7 +50,14 @@ const pad = (n: number) => String(n).padStart(2, '0');
           <p>Not checked: {{ unchecked(c).join(', ') }}</p>
         }
         <div class="actions">
-          <sl-button [routerLink]="'/inspections/' + c.inspectionId">Back to inspection</sl-button>
+          @if (c.you.role === 'Mechanic') {
+            <sl-button [routerLink]="'/inspections/' + c.inspectionId + '/estimate'"
+              >Write the report</sl-button
+            >
+          }
+          <sl-button variant="outline" [routerLink]="'/inspections/' + c.inspectionId"
+            >Back to inspection</sl-button
+          >
         </div>
       </main>
     } @else if (phase() === 'unavailable') {

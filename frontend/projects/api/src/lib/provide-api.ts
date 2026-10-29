@@ -11,6 +11,8 @@ import { PLATFORM_API } from './platform-api';
 import { BOOKINGS_API } from './bookings-api';
 import { CALLS_API } from './calls-api';
 import { HttpCallsApi } from './http-calls-api';
+import { HttpReportsApi } from './http-reports-api';
+import { REPORTS_API } from './reports-api';
 import { HttpBookingsApi } from './http-bookings-api';
 import { HttpPaymentsApi } from './http-payments-api';
 import { HttpVehiclesApi } from './http-vehicles-api';
@@ -37,6 +39,7 @@ export function provideApi(baseUrl: string): EnvironmentProviders {
     { provide: PAYMENTS_API, useClass: HttpPaymentsApi },
     { provide: BOOKINGS_API, useClass: HttpBookingsApi },
     { provide: CALLS_API, useClass: HttpCallsApi },
+    { provide: REPORTS_API, useClass: HttpReportsApi },
     { provide: ADMIN_PROVIDERS_API, useClass: HttpAdminProvidersApi },
   ]);
 }

@@ -198,3 +198,115 @@ export async function signIn(page: Page, email: string) {
   await sign.signIn(email, PASSWORD);
   await page.waitForURL(/\/inspections$/);
 }
+
+/** A booked inspection whose call has already happened: the buyer joined and ended it, through the real API. */
+export async function finishedCall(
+  request: APIRequestContext,
+  options: { withBodyShop?: boolean } = {},
+) {
+  const booked = options.withBodyShop
+    ? await combinedInspection(request)
+    : await bookedInspection(request);
+  const headers = auth(booked.buyer.token);
+  await request.post(`${API}/api/calls/${booked.id}/join`, headers);
+  await request.post(`${API}/api/calls/${booked.id}/end`, headers);
+  return booked;
+}
+
+/** A mechanic and body shop review (a combined call), booked through the API. */
+async function combinedInspection(request: APIRequestContext) {
+  let start = "";
+  for (let attempt = 0; attempt < 40 && !start; attempt++) {
+    const s = randomStart();
+    if (
+      (await openWindow(request, "mechanic", s)) &&
+      (await openWindow(request, "bodyshop", s))
+    )
+      start = s.toISOString();
+  }
+  if (!start) throw new Error("No shared free window for both providers.");
+  const buyer = await newBuyer(request);
+  const vin = `2HGFC2F59GH${String((Date.now() + 17) % 1_000_000).padStart(6, "0")}`;
+  const vehicle = await (
+    await request.post(`${API}/api/vehicles`, {
+      ...auth(buyer.token),
+      data: {
+        vin,
+        odometerKm: 90000,
+        askingPrice: 5000,
+        sellerName: "Sam Whitaker",
+        sellerPhone: "9055550142",
+      },
+    })
+  ).json();
+  const hold = await (
+    await request.post(`${API}/api/bookings/holds`, {
+      ...auth(buyer.token),
+      data: { providerId: MECHANIC_ID, start, bodyShopId: SHOP_ID },
+    })
+  ).json();
+  const checkout = await (
+    await request.post(`${API}/api/checkouts`, {
+      ...auth(buyer.token),
+      data: { review: "Both", idempotencyKey: `k-${vin}`, vehicleId: vehicle.id },
+    })
+  ).json();
+  const card = await (
+    await request.post(`${API}/api/payments/tokens`, {
+      ...auth(buyer.token),
+      data: {
+        cardNumber: "4242 4242 4242 4242",
+        expiry: "12 / 34",
+        securityCode: "123",
+        nameOnCard: "Mo",
+        postalCode: "L8P 1A1",
+      },
+    })
+  ).json();
+  await request.post(`${API}/api/checkouts/${checkout.id}/pay`, {
+    ...auth(buyer.token),
+    data: { paymentToken: card.token },
+  });
+  const inspection = await (
+    await request.post(`${API}/api/bookings`, {
+      ...auth(buyer.token),
+      data: {
+        checkoutId: checkout.id,
+        holdId: hold.holdId,
+        bodyShopHoldId: hold.bodyShopHoldId,
+        vehicleId: vehicle.id,
+      },
+    })
+  ).json();
+  return { buyer, vin, start, second: start, id: inspection.id as string };
+}
+
+export type FindingInput = {
+  title: string;
+  status: "Required" | "Recommended" | "Passes";
+  minCents?: number;
+  maxCents?: number;
+  note?: string;
+};
+
+/** The mechanic submits an estimate through the API, as the estimate page would. */
+export async function submitEstimate(
+  request: APIRequestContext,
+  inspectionId: string,
+  findings: FindingInput[],
+) {
+  const token = await login(request, "mechanic@example.test", "Password-123!");
+  const r = await request.put(`${API}/api/inspections/${inspectionId}/report`, {
+    ...auth(token),
+    data: { findings },
+  });
+  if (!r.ok()) throw new Error(`Estimate was refused: ${r.status()}`);
+}
+
+/** Two required repairs, one recommended and one that passes: $500 to $750 to certify. */
+export const SAMPLE_FINDINGS: FindingInput[] = [
+  { title: "Front brake pads", status: "Required", minCents: 30000, maxCents: 45000, note: "Worn to 2 mm." },
+  { title: "Rear tires", status: "Recommended", minCents: 40000, maxCents: 60000, note: "Cracking on the sidewall." },
+  { title: "Steering", status: "Passes" },
+  { title: "Lower control arm bushing", status: "Required", minCents: 20000, maxCents: 30000 },
+];

@@ -1,3 +1,4 @@
+using SecondLook.Api.Reports;
 using SecondLook.Api.Calls;
 using Microsoft.EntityFrameworkCore;
 using SecondLook.Api.Accounts;
@@ -54,6 +55,7 @@ app.MapVehicleEndpoints();
 app.MapPaymentEndpoints();
 app.MapBookingEndpoints();
 app.MapCallEndpoints();
+app.MapReportEndpoints();
 
 app.MapGet("/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous();
 app.MapGet("/health/ready", async (AppDbContext db, CancellationToken ct) =>
