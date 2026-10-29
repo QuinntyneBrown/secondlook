@@ -18,6 +18,7 @@ public static class ReportEndpoints
 
         report.MapGet("", async (Guid id, IMediator m, CancellationToken ct) => Respond(await m.Send(new GetReportQuery(id), ct)));
         report.MapPut("", async (Guid id, SubmitReportRequest r, IMediator m, CancellationToken ct) => Respond(await m.Send(new SubmitReportCommand(id, r.Findings), ct)));
+        report.MapPut("/body-shop", async (Guid id, SubmitReportRequest r, IMediator m, CancellationToken ct) => Respond(await m.Send(new SubmitBodyShopReviewCommand(id, r.Findings), ct)));
         report.MapGet("/pdf", async (Guid id, IMediator m, CancellationToken ct) =>
             Respond(await m.Send(new GetReportPdfQuery(id), ct), bytes => Results.File(bytes, "application/pdf", "secondlook-report.pdf")));
         report.MapPut("/share", async (Guid id, ShareRequest r, IMediator m, CancellationToken ct) => Respond(await m.Send(new EnsureShareCommand(id, r.IncludeBodyShop), ct)));
@@ -27,6 +28,9 @@ public static class ReportEndpoints
             Respond(await m.Send(new RevokeShareCommand(id), ct), _ => Results.NoContent()));
         report.MapPost("/issues", async (Guid id, ReportIssueRequest r, IMediator m, CancellationToken ct) =>
             Respond(await m.Send(new ReportIssueCommand(id, r.Reason, r.Details), ct), issueId => Results.Created($"/api/inspections/{id}/report/issues/{issueId}", new { id = issueId })));
+
+        // The body shop's queue of its own inspections (L2-058).
+        app.MapGet("/api/reviews/assigned", async (IMediator m, CancellationToken ct) => Results.Ok(await m.Send(new ListAssignedReviewsQuery(), ct))).RequireAuthorization(Policies.BodyShop);
 
         // Intentional anonymous endpoint: anyone with a live share link reads the report without an account (L2-047).
         app.MapGet("/api/shared-reports/{token}", async (string token, IMediator m, CancellationToken ct) =>
@@ -42,7 +46,7 @@ public static class ReportEndpoints
     private static IResult Respond<T>(ReportOutcome<T> result, Func<T, IResult>? ok = null) => result.Failure switch
     {
         null => ok is null ? Results.Ok(result.Value) : ok(result.Value!),
-        ReportFailure.Forbidden => Results.Problem("Only the buyer can do that.", statusCode: 403, title: "Not allowed"),
+        ReportFailure.Forbidden => Results.Problem("That isn’t yours to do on this inspection.", statusCode: 403, title: "Not allowed"),
         ReportFailure.NotReady => Results.Problem(result.Detail ?? "The mechanic is still writing it.", statusCode: 409, title: "Your report isn’t ready yet"),
         ReportFailure.Conflict => Results.Problem(result.Detail, statusCode: 409, title: "That can’t be done yet"),
         ReportFailure.Invalid => Results.ValidationProblem(result.Errors!.ToDictionary(e => e.Key, e => e.Value)),

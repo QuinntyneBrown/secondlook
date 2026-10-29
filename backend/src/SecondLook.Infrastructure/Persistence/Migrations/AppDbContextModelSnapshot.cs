@@ -357,13 +357,19 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BodyShopId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("BodyShopSubmittedAt")
+                        .HasColumnType("bigint");
+
                     b.Property<Guid>("InspectionId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("MechanicId")
+                    b.Property<Guid?>("MechanicId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long>("SubmittedAt")
+                    b.Property<long?>("MechanicSubmittedAt")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -396,6 +402,13 @@ namespace SecondLook.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("ReportId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Mechanic");
 
                     b.Property<string>("Status")
                         .IsRequired()

@@ -19,26 +19,35 @@ internal static class ReportPdf
             "SecondLook - Your report",
             "",
             $"Vehicle {r.Vin} - {r.OdometerKm.ToString("N0", CultureInfo.InvariantCulture)} km - asking {Money(r.AskingPriceCents)}",
-            $"Written by {r.MechanicName}" + (r.CallEndedAt is { } ended ? $" after the call on {ended:ddd d MMM yyyy}" : ""),
-            "",
-            $"Estimated cost to get it safety certified: {Range(r.CostMinCents, r.CostMaxCents)}",
-            $"{r.RequiredCount} required repair{(r.RequiredCount == 1 ? "" : "s")}. All-in with the asking price: {Range(r.AllInMinCents, r.AllInMaxCents)}",
-            "",
-            "Findings",
         };
-        foreach (var f in r.Findings)
+        if (r.MechanicName is { } mechanic)
+            lines.Add($"Estimate written by {mechanic}" + (r.CallEndedAt is { } ended ? $" after the call on {ended:ddd d MMM yyyy}" : ""));
+        lines.Add("");
+        if (r.MechanicReady)
         {
-            lines.AddRange(WrapText($"[{f.Status}] {f.Title} - {(f.MinCents is { } lo && f.MaxCents is { } hi ? Range(lo, hi) : "no cost")}"));
-            if (f.Note.Length > 0) lines.AddRange(WrapText("    " + f.Note));
+            lines.Add($"Estimated cost to get it safety certified: {Range(r.CostMinCents, r.CostMaxCents)}");
+            lines.Add($"{r.RequiredCount} required repair{(r.RequiredCount == 1 ? "" : "s")}. All-in with the asking price: {Range(r.AllInMinCents, r.AllInMaxCents)}");
+            lines.Add("");
+            lines.Add("Findings");
+            AddFindings(lines, r.Findings);
+        }
+        else if (r.Review != "BodyShop")
+        {
+            lines.Add("The mechanic's estimate has not been written yet.");
         }
         lines.Add("");
-        lines.Add("Body shop review: " + r.BodyShop.Status switch
+        lines.Add("Body shop review" + r.BodyShop.Status switch
         {
-            "InProgress" => "in progress",
-            "NotShared" => "not included",
-            "Ready" => "ready",
-            _ => "not requested",
+            "InProgress" => ": in progress",
+            "NotShared" => ": not included",
+            "Ready" => r.BodyShop.ReviewerName is { } shop ? $" by {shop}" : "",
+            _ => ": not requested",
         });
+        if (r.BodyShop.Status == "Ready")
+        {
+            AddFindings(lines, r.BodyShop.Findings);
+            lines.AddRange(WrapText("Body repairs are separate from the safety certification estimate."));
+        }
         lines.Add("");
         lines.AddRange(WrapText(r.Disclaimer));
 
@@ -71,6 +80,15 @@ internal static class ReportPdf
         foreach (var offset in offsets) output.Append($"{offset:D10} 00000 n \n");
         output.Append($"trailer\n<< /Size {objects.Count + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n");
         return Encoding.Latin1.GetBytes(output.ToString());
+    }
+
+    private static void AddFindings(List<string> lines, IEnumerable<FindingDto> findings)
+    {
+        foreach (var f in findings)
+        {
+            lines.AddRange(WrapText($"[{f.Status}] {f.Title} - {(f.MinCents is { } lo && f.MaxCents is { } hi ? Range(lo, hi) : "no cost")}"));
+            if (f.Note.Length > 0) lines.AddRange(WrapText("    " + f.Note));
+        }
     }
 
     private static string Money(int cents) => "$" + (cents / 100m).ToString("N0", CultureInfo.InvariantCulture);
