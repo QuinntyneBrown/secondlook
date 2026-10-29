@@ -98,6 +98,10 @@ export class CheckoutPage {
     await expect(
       this.page.getByLabel("Card number", { exact: true }),
     ).toBeFocused();
+    // The card, expiry and security code are cleared on the next render; fill only once that has happened, or a
+    // slow render can wipe what was just typed.
+    for (const field of ["Card number", "Expiry", "Security code"])
+      await expect(this.page.getByLabel(field, { exact: true })).toHaveValue("");
   }
 
   async expectBankApproval(amount: string) {
