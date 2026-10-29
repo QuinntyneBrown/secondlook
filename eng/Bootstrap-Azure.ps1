@@ -48,19 +48,26 @@ if (-not $clientId) {
     az ad sp create --id $clientId --output none
 }
 
+# This repository issues OIDC subjects by immutable id (owner@id/repo@id), not by name.
+$ids = gh api "repos/$Repo" --jq '[.owner.login, (.owner.id|tostring), .name, (.id|tostring)] | join("|")'
+$o = $ids -split '\|'
+$subject = "repo:$($o[0])@$($o[1])/$($o[2])@$($o[3]):ref:refs/heads/main"
+
 $credential = @{
     name      = 'github-main'
     issuer    = 'https://token.actions.githubusercontent.com'
-    subject   = "repo:${Repo}:ref:refs/heads/main"
+    subject   = $subject
     audiences = @('api://AzureADTokenExchange')
 } | ConvertTo-Json -Compress
-$existing = az ad app federated-credential list --id $clientId --query "[?name=='github-main'] | length(@)" --output tsv
-if ($existing -eq '0') {
-    $file = New-TemporaryFile
-    Set-Content -Path $file -Value $credential
+$existing = az ad app federated-credential list --id $clientId --query "[?name=='github-main'].id | [0]" --output tsv
+$file = New-TemporaryFile
+Set-Content -Path $file -Value $credential
+if ($existing) {
+    az ad app federated-credential update --id $clientId --federated-credential-id $existing --parameters "@$file" --output none
+} else {
     az ad app federated-credential create --id $clientId --parameters "@$file" --output none
-    Remove-Item $file
 }
+Remove-Item $file
 
 $scope = "/subscriptions/$subscriptionId/resourceGroups/$ResourceGroup"
 az role assignment create --assignee $clientId --role Contributor --scope $scope --output none 2>$null

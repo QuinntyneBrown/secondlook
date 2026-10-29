@@ -5,7 +5,7 @@
 //
 //   App Service plan   Linux Free F1 (no Always On, 60 CPU min/day)   US$0
 //   Azure SQL          Basic (5 DTU, 2 GB)                            about US$5/month
-//   Static Web Apps    Free x2 (secondlook, admin)                    US$0
+//   Static Web Apps    Standard x2 (secondlook, admin; no Free slots) about US$18/month
 //
 // F1 sleeps when idle, so the first request after a quiet spell is slow. Move
 // apiSkuName to 'B1' when real traffic arrives (Always On turns on with it).

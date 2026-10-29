@@ -26,7 +26,7 @@ Azure sign-in is OpenID Connect with a federated credential for `refs/heads/main
 `eng/Bootstrap-Azure.ps1` creates it once and sets the repository secrets.
 
 Cheapest tiers: App Service **Linux F1 (free)**, SQL **Basic**, Static Web Apps
-**Free**. F1 has no Always On, so the API sleeps when idle and the first request
+**Standard** (the subscription has no Free slots left, about US$9 each). F1 has no Always On, so the API sleeps when idle and the first request
 is slow; WebSockets stay enabled for live calls.
 
 ## Consequences
