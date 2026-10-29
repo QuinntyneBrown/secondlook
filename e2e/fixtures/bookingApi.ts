@@ -214,7 +214,7 @@ export async function finishedCall(
 }
 
 /** A mechanic and body shop review (a combined call), booked through the API. */
-async function combinedInspection(request: APIRequestContext) {
+export async function combinedInspection(request: APIRequestContext) {
   let start = "";
   for (let attempt = 0; attempt < 40 && !start; attempt++) {
     const s = randomStart();
@@ -309,4 +309,72 @@ export const SAMPLE_FINDINGS: FindingInput[] = [
   { title: "Rear tires", status: "Recommended", minCents: 40000, maxCents: 60000, note: "Cracking on the sidewall." },
   { title: "Steering", status: "Passes" },
   { title: "Lower control arm bushing", status: "Required", minCents: 20000, maxCents: 30000 },
+];
+
+/** A body shop review booked with the shop alone (no mechanic), whose call has been held and ended, through the API. */
+export async function finishedBodyShopOnlyCall(request: APIRequestContext) {
+  let start = "";
+  for (let attempt = 0; attempt < 40 && !start; attempt++) {
+    const s = randomStart();
+    if (await openWindow(request, "bodyshop", s)) start = s.toISOString();
+  }
+  if (!start) throw new Error("No free window for the body shop.");
+  const buyer = await newBuyer(request);
+  const vin = `2HGFC2F59GH${String((Date.now() + 31) % 1_000_000).padStart(6, "0")}`;
+  const vehicle = await (
+    await request.post(`${API}/api/vehicles`, {
+      ...auth(buyer.token),
+      data: { vin, odometerKm: 90000, askingPrice: 5000, sellerName: "Sam Whitaker", sellerPhone: "9055550142" },
+    })
+  ).json();
+  const hold = await (
+    await request.post(`${API}/api/bookings/holds`, {
+      ...auth(buyer.token),
+      data: { providerId: SHOP_ID, start },
+    })
+  ).json();
+  const checkout = await (
+    await request.post(`${API}/api/checkouts`, {
+      ...auth(buyer.token),
+      data: { review: "BodyShop", idempotencyKey: `k-${vin}`, vehicleId: vehicle.id },
+    })
+  ).json();
+  const card = await (
+    await request.post(`${API}/api/payments/tokens`, {
+      ...auth(buyer.token),
+      data: { cardNumber: "4242 4242 4242 4242", expiry: "12 / 34", securityCode: "123", nameOnCard: "Mo", postalCode: "L8P 1A1" },
+    })
+  ).json();
+  await request.post(`${API}/api/checkouts/${checkout.id}/pay`, { ...auth(buyer.token), data: { paymentToken: card.token } });
+  const inspection = await (
+    await request.post(`${API}/api/bookings`, {
+      ...auth(buyer.token),
+      data: { checkoutId: checkout.id, holdId: hold.holdId, vehicleId: vehicle.id },
+    })
+  ).json();
+  const id = inspection.id as string;
+  await request.post(`${API}/api/calls/${id}/join`, auth(buyer.token));
+  await request.post(`${API}/api/calls/${id}/end`, auth(buyer.token));
+  return { buyer, vin, start, second: start, id };
+}
+
+/** The body shop submits its findings through the API, as the body review page would. */
+export async function submitBodyReview(
+  request: APIRequestContext,
+  inspectionId: string,
+  findings: FindingInput[],
+) {
+  const token = await login(request, "bodyshop@example.test", "Password-123!");
+  const r = await request.put(`${API}/api/inspections/${inspectionId}/report/body-shop`, {
+    ...auth(token),
+    data: { findings },
+  });
+  if (!r.ok()) throw new Error(`Body review was refused: ${r.status()}`);
+}
+
+/** A dent to repair, paint to freshen and a hood that passes: separate from the mechanic's findings. */
+export const BODY_FINDINGS: FindingInput[] = [
+  { title: "Rear quarter panel dent", status: "Required", minCents: 80000, maxCents: 120000, note: "Needs filler and paint." },
+  { title: "Front bumper paint", status: "Recommended", minCents: 30000, maxCents: 50000 },
+  { title: "Hood", status: "Passes" },
 ];

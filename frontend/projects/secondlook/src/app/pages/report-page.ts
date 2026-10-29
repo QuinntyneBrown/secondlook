@@ -24,7 +24,7 @@ type Load = 'loading' | 'ready' | 'not-ready' | 'not-found' | 'failed';
         @case ('ready') {
           @let r = report()!;
           <h1>Your report</h1>
-          <p class="sub">Call finished {{ finished(r) }} · written by {{ r.mechanicName }}</p>
+          <p class="sub">Call finished {{ finished(r) }} · {{ author(r) }}</p>
           <p class="sub">VIN {{ r.vin }} · {{ r.odometerKm.toLocaleString('en-CA') }} km</p>
           <div class="actions">
             <sl-button variant="outline" (pressed)="share(r)">Share</sl-button>
@@ -118,6 +118,13 @@ export class ReportPage implements OnInit {
     });
   }
 
+  /** "written by" the mechanic, or "reviewed by" the body shop when it is the only author. */
+  protected author(r: Report) {
+    return r.mechanicName
+      ? `written by ${r.mechanicName}`
+      : `reviewed by ${r.bodyShop.reviewerName ?? 'the body shop'}`;
+  }
+
   protected finished(r: Report) {
     return dayLabel(r.callEndedAt ?? r.submittedAt);
   }
@@ -140,7 +147,12 @@ export class ReportPage implements OnInit {
 
   protected issue(r: Report) {
     this.dialog.open(ReportIssueDialog, {
-      data: { inspectionId: this.id, mechanicFirstName: r.mechanicName.split(' ')[0] },
+      data: {
+        inspectionId: this.id,
+        mechanicFirstName: (r.mechanicName ?? r.bodyShop.reviewerName ?? 'The reviewer').split(
+          ' ',
+        )[0],
+      },
       ariaLabelledBy: 'issue-title',
       backdropClass: 'sl-dialog-backdrop',
     });

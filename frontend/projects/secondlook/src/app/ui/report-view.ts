@@ -11,36 +11,45 @@ import { dollarRange, dollars } from '../util/money';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = report();
-    <section aria-label="Estimate summary" class="summary">
-      <h2>Estimated cost to get it safety certified</h2>
-      <p class="range">{{ range(r.costMinCents, r.costMaxCents) }}</p>
-      <p>{{ r.requiredCount }} {{ r.requiredCount === 1 ? 'repair' : 'repairs' }} required</p>
-    </section>
+    @if (r.review !== 'BodyShop') {
+      @if (r.mechanicReady) {
+        <section aria-label="Estimate summary" class="summary">
+          <h2>Estimated cost to get it safety certified</h2>
+          <p class="range">{{ range(r.costMinCents, r.costMaxCents) }}</p>
+          <p>{{ r.requiredCount }} {{ r.requiredCount === 1 ? 'repair' : 'repairs' }} required</p>
+        </section>
 
-    <section aria-label="Is it worth it?">
-      <h2>Is it worth it?</h2>
-      <p>Asking price {{ money(r.askingPriceCents) }}</p>
-      <p>Certification cost {{ range(r.costMinCents, r.costMaxCents) }}</p>
-      <p class="total">All-in total {{ range(r.allInMinCents, r.allInMaxCents) }}</p>
-    </section>
+        <section aria-label="Is it worth it?">
+          <h2>Is it worth it?</h2>
+          <p>Asking price {{ money(r.askingPriceCents) }}</p>
+          <p>Certification cost {{ range(r.costMinCents, r.costMaxCents) }}</p>
+          <p class="total">All-in total {{ range(r.allInMinCents, r.allInMaxCents) }}</p>
+        </section>
 
-    <section aria-labelledby="findings-title">
-      <h2 id="findings-title">Findings</h2>
-      <ul aria-label="Findings" class="findings">
-        @for (f of r.findings; track f.id) {
-          <li>
-            <div class="head">
-              <span class="title">{{ f.title }}</span>
-              <span class="status" [attr.data-status]="f.status">{{ f.status }}</span>
-              <span class="cost">{{ cost(f) }}</span>
-            </div>
-            @if (f.note) {
-              <p class="note">{{ f.note }}</p>
+        <section aria-labelledby="findings-title">
+          <h2 id="findings-title">Findings</h2>
+          <ul aria-label="Findings" class="findings">
+            @for (f of r.findings; track f.id) {
+              <li>
+                <div class="head">
+                  <span class="title">{{ f.title }}</span>
+                  <span class="status" [attr.data-status]="f.status">{{ f.status }}</span>
+                  <span class="cost">{{ cost(f) }}</span>
+                </div>
+                @if (f.note) {
+                  <p class="note">{{ f.note }}</p>
+                }
+              </li>
             }
-          </li>
-        }
-      </ul>
-    </section>
+          </ul>
+        </section>
+      } @else {
+        <section aria-label="Estimate summary">
+          <h2>Your safety certification estimate</h2>
+          <p class="state">The mechanic’s estimate is still being written.</p>
+        </section>
+      }
+    }
 
     @if (r.bodyShop.status === 'InProgress' || r.bodyShop.status === 'Ready') {
       <section aria-label="Body shop review">
@@ -50,7 +59,8 @@ import { dollarRange, dollars } from '../util/money';
           <p>{{ first(r.bodyShop.reviewerName) }} is finishing the body review</p>
           <p class="note">It’s usually ready 30 minutes after the mechanic’s.</p>
         } @else {
-          <ul aria-label="Body shop findings" class="findings">
+          <p class="state">Reviewed by {{ r.bodyShop.reviewerName }}</p>
+          <ul aria-label="Body shop review items" class="findings">
             @for (f of r.bodyShop.findings; track f.id) {
               <li>
                 <div class="head">

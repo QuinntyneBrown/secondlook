@@ -31,6 +31,9 @@ const SLOT_MS = 30 * 60 * 1000;
     } @else {
       <header class="bar">
         <span>{{ session.displayName() }}</span>
+        @if (session.role() === 'BodyShop') {
+          <sl-button variant="outline" routerLink="/reviews">Assigned reviews</sl-button>
+        }
         <sl-button variant="outline" (pressed)="signOut()">Sign out</sl-button>
       </header>
       <div class="head">

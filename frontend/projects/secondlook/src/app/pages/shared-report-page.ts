@@ -19,8 +19,8 @@ type Load = 'loading' | 'ready' | 'not-shared' | 'failed';
           @let r = report()!;
           <h1>Shared report</h1>
           <p class="sub">
-            A read-only copy of a SecondLook report. Call finished {{ finished(r) }} · written by
-            {{ r.mechanicName }}
+            A read-only copy of a SecondLook report. Call finished {{ finished(r) }} ·
+            {{ author(r) }}
           </p>
           <p class="sub">VIN {{ r.vin }} · {{ r.odometerKm.toLocaleString('en-CA') }} km</p>
           <sl-report-view [report]="r" />
@@ -81,6 +81,13 @@ export class SharedReportPage implements OnInit {
       },
       error: (p: ApiProblem) => this.state.set(p.status === 404 ? 'not-shared' : 'failed'),
     });
+  }
+
+  /** "written by" the mechanic, or "reviewed by" the body shop when it is the only author. */
+  protected author(r: Report) {
+    return r.mechanicName
+      ? `written by ${r.mechanicName}`
+      : `reviewed by ${r.bodyShop.reviewerName ?? 'the body shop'}`;
   }
 
   protected finished(r: Report) {
