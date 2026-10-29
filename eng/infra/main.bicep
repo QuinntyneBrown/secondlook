@@ -36,10 +36,20 @@ param sqlSkuName string = 'Basic'
 param sqlMaxSizeBytes int = 2147483648
 param swaSkuName string = 'Free'
 
-@description('Custom domain for the buyer app, once its DNS TXT validation record exists.')
-param appCustomDomain string = ''
-param adminCustomDomain string = ''
+@description('''
+Custom hostnames for the buyer app, comma-separated (for example "app.secondlook.care,www.secondlook.care").
+Each one needs a CNAME record to the app's default hostname BEFORE the deploy: Static Web Apps validates
+the hostname through that CNAME, and the deployment fails if it is missing. The bare domain cannot carry
+a CNAME, so it redirects to www at the registrar instead of being listed here. Every hostname here is
+also an allowed CORS origin for the API.
+''')
+param appCustomDomains string = ''
+@description('Custom hostnames for the admin app, same rules as appCustomDomains.')
+param adminCustomDomains string = ''
 param extraCorsOrigins array = []
+
+var appDomains = filter(map(split(appCustomDomains, ','), d => trim(d)), d => !empty(d))
+var adminDomains = filter(map(split(adminCustomDomains, ','), d => trim(d)), d => !empty(d))
 
 @secure()
 param sqlAdminLogin string
@@ -59,8 +69,8 @@ var adminOrigin = 'https://${adminSwa.properties.defaultHostname}'
 var corsOrigins = union(
   concat(
     [webOrigin, adminOrigin],
-    empty(appCustomDomain) ? [] : ['https://${appCustomDomain}'],
-    empty(adminCustomDomain) ? [] : ['https://${adminCustomDomain}']
+    map(appDomains, d => 'https://${d}'),
+    map(adminDomains, d => 'https://${d}')
   ),
   extraCorsOrigins
 )
@@ -178,11 +188,14 @@ resource webSwa 'Microsoft.Web/staticSites@2024-04-01' = {
   properties: swaProperties
 }
 
-resource webSwaDomain 'Microsoft.Web/staticSites/customDomains@2024-04-01' = if (!empty(appCustomDomain)) {
-  parent: webSwa
-  name: appCustomDomain
-  properties: { validationMethod: 'dns-txt-token' }
-}
+// Validated through the CNAME that must already point at the app (see appCustomDomains).
+resource webSwaDomains 'Microsoft.Web/staticSites/customDomains@2024-04-01' = [
+  for domain in appDomains: {
+    parent: webSwa
+    name: domain
+    properties: { validationMethod: 'cname-delegation' }
+  }
+]
 
 resource adminSwa 'Microsoft.Web/staticSites@2024-04-01' = {
   name: adminSwaName
@@ -192,11 +205,13 @@ resource adminSwa 'Microsoft.Web/staticSites@2024-04-01' = {
   properties: swaProperties
 }
 
-resource adminSwaDomain 'Microsoft.Web/staticSites/customDomains@2024-04-01' = if (!empty(adminCustomDomain)) {
-  parent: adminSwa
-  name: adminCustomDomain
-  properties: { validationMethod: 'dns-txt-token' }
-}
+resource adminSwaDomains 'Microsoft.Web/staticSites/customDomains@2024-04-01' = [
+  for domain in adminDomains: {
+    parent: adminSwa
+    name: domain
+    properties: { validationMethod: 'cname-delegation' }
+  }
+]
 
 output apiName string = api.name
 output apiOrigin string = 'https://${api.properties.defaultHostName}'
@@ -207,3 +222,5 @@ output adminSwaHostName string = adminSwa.properties.defaultHostname
 output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output sqlDatabaseName string = sqlDatabase.name
 output corsOrigins array = corsOrigins
+output appDomains array = appDomains
+output adminDomains array = adminDomains

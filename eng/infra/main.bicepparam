@@ -11,8 +11,9 @@ param apiSkuName = 'F1'
 param sqlSkuName = 'Basic'
 param swaSkuName = 'Standard'
 
-param appCustomDomain = readEnvironmentVariable('APP_CUSTOM_DOMAIN', '')
-param adminCustomDomain = readEnvironmentVariable('ADMIN_CUSTOM_DOMAIN', '')
+// Comma-separated hostnames; each needs its CNAME in place first (see main.bicep).
+param appCustomDomains = readEnvironmentVariable('APP_CUSTOM_DOMAIN', '')
+param adminCustomDomains = readEnvironmentVariable('ADMIN_CUSTOM_DOMAIN', '')
 
 param sqlAdminLogin = readEnvironmentVariable('SQL_ADMIN_LOGIN')
 param sqlAdminPassword = readEnvironmentVariable('SQL_ADMIN_PASSWORD')
