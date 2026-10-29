@@ -76,3 +76,7 @@ The page marks the report busy, requests the report, and renders the default, pa
 ## Implementation notes (J11)
 
 Delivered as `ReportPage` at `/inspections/:id/report` and the shared `ReportView` (L2-045, L2-046, L2-077). The buyer reaches it from "View report" on the inspection. States: loading (busy), not ready (an info alert; the server answers 409), not found for anyone else (404), failed with "Try again", and the report with totals, findings and the not-a-certificate statement. A body shop assigned to the inspection shows "In progress" until J12 delivers its findings. Not on the page yet: "Compare with another car" (J13) and "Add another car · $25"; the "We’ll notify you" line is left out until notifications exist (J14).
+
+## Implementation notes (J12)
+
+The body shop's part is now delivered (L2-062, L2-079, ADR 0014): a ready "Body shop review" part names the reviewer, lists the shop's findings and says body repairs are separate from the certification estimate; the certification totals never include it. A review with the body shop alone shows only that part and says "reviewed by". While the mechanic's estimate is not written the page says so and shows the part that is delivered. The shared page carries the body shop part only when the buyer included it.

@@ -405,7 +405,8 @@
         "partial",
         "edge",
         "forbidden",
-        "not-ready"
+        "not-ready",
+        "body-only"
       ],
       "route": "/inspections/civic-lx/report",
       "not_applicable": {
@@ -427,6 +428,35 @@
       "not_applicable": {
         "loading": "The editor opens at once; an estimate already sent is filled in if there is one."
       }
+    },
+    {
+      "id": "body-review",
+      "kind": "page",
+      "title": "Body review editor",
+      "states": [
+        "default",
+        "empty",
+        "invalid",
+        "error",
+        "success"
+      ],
+      "route": "/inspections/civic-lx/body-review",
+      "not_applicable": {
+        "loading": "The editor opens at once; a review already sent is filled in if there is one."
+      }
+    },
+    {
+      "id": "review-queue",
+      "kind": "page",
+      "title": "Assigned reviews",
+      "states": [
+        "default",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "route": "/reviews",
+      "not_applicable": {}
     },
     {
       "id": "shared-report",
