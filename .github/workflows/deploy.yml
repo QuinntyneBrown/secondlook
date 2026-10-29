@@ -1,14 +1,21 @@
 name: Deploy to Azure
 
-# Manual only while the platform gate is open (no cloud deployment from setup). Steps: test gates → infrastructure (Bicep, idempotent) → API +
-# ingestion WebJob → EF migrations → the Static Web Apps (ADR-017, L2-041), and
-# the static marketing site at www.secondlook.ca (ADR-018, L2-156).
+# Every push to main: test gates -> infrastructure (Bicep, idempotent) ->
+# EF migrations -> API -> the two Static Web Apps (secondlook, admin) -> smoke.
 #
 # Azure access is OpenID Connect (azure/login with a federated credential), so
 # the only long-lived secrets are the ones the app itself needs. Static Web App
 # deployment tokens are read from Azure at run time, never stored in GitHub.
+#
+# One-time setup, then these repository secrets:
+#   AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID  (federated credential
+#     for ref refs/heads/main with Contributor on the resource group)
+#   SQL_ADMIN_LOGIN, SQL_ADMIN_PASSWORD, SECONDLOOK_JWT_SIGNING_KEY (32+ chars)
+# Optional repository variables: APP_CUSTOM_DOMAIN, ADMIN_CUSTOM_DOMAIN.
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +25,6 @@ permissions:
 env:
   AZURE_RESOURCE_GROUP: secondlook-rg
   AZURE_LOCATION: canadacentral
-  INFRA_DEPLOYMENT_NAME: secondlook-infra
   DOTNET_VERSION: '10.0.101'
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
@@ -26,21 +32,15 @@ env:
   NODE_VERSION: '22'
   API_PROJECT: backend/src/SecondLook.Api/SecondLook.Api.csproj
   CLI_PROJECT: backend/src/SecondLook.Cli/SecondLook.Cli.csproj
-  WEBJOB_SOURCE: backend/deploy/webjobs/ingest
-  ANGULAR_DIST: frontend/dist/secondlook/browser
-  ADMIN_DIST: frontend/dist/admin/browser
-  MARKETING_DIR: marketing
 
 concurrency:
-  group: deploy-${{ github.ref }}
+  group: deploy-main
   cancel-in-progress: false
 
 jobs:
-  # L2-041: nothing reaches Azure unless the backend and frontend suites are green.
+  # Nothing reaches Azure unless the backend and frontend suites are green.
   test-backend:
     name: Backend tests
-    # The API and Infrastructure tests run on in-memory SQLite (ADR-020), so
-    # the job needs no database server and runs on Linux like the others.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -56,14 +56,12 @@ jobs:
           key: nuget-${{ runner.os }}-${{ hashFiles('backend/**/*.csproj', 'backend/Directory.Packages.props', 'backend/global.json') }}
           restore-keys: nuget-${{ runner.os }}-
 
-      # Builds once, then runs the test assemblies side by side instead of
-      # one after another (see the script for why that is safe).
       - name: Build and test
         shell: pwsh
         run: ./eng/Test-Backend.ps1 -Configuration Release
 
   test-frontend:
-    name: Frontend build and unit tests
+    name: Frontend lint and unit tests
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -78,46 +76,26 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Format check
+        working-directory: frontend
+        run: npm run format:check
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
       - name: Build libraries
         working-directory: frontend
         run: |
           npx ng build api
           npx ng build components
 
-      - name: Unit tests (Vitest)
+      - name: Unit tests
         working-directory: frontend
         run: npm test -- --watch=false
 
-      - name: ng build (production)
-        working-directory: frontend
-        run: npx ng build secondlook --configuration production
-
-      - name: Upload Angular bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: angular-dist
-          path: ${{ env.ANGULAR_DIST }}
-          if-no-files-found: error
-          retention-days: 1
-
-      # SecondLook Admin (ADR-014): built from the same workspace, deployed to
-      # its own Static Web App by the admin-web job below.
-      - name: ng build admin (production)
-        working-directory: frontend
-        run: npx ng build admin --configuration production
-
-      - name: Upload admin bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: admin-dist
-          path: ${{ env.ADMIN_DIST }}
-          if-no-files-found: error
-          retention-days: 1
-
-  # Converges secondlook-rg on eng/infra/main.bicep: plan, API, SQL, the three
-  # Static Web Apps, Claude on Foundry, monitoring and the budget. Creating
-  # what is missing and leaving the rest alone, so a torn-down stack comes
-  # back on the next push instead of being skipped.
+  # Converges secondlook-rg on eng/infra/main.bicep: plan, API, SQL and the two
+  # Static Web Apps. A torn-down stack comes back on the next push.
   infra:
     name: Provision Azure (Bicep)
     runs-on: ubuntu-24.04
@@ -129,13 +107,8 @@ jobs:
       web_host: ${{ steps.deploy.outputs.web_host }}
       admin_swa: ${{ steps.deploy.outputs.admin_swa }}
       admin_host: ${{ steps.deploy.outputs.admin_host }}
-      design_swa: ${{ steps.deploy.outputs.design_swa }}
-      marketing_swa: ${{ steps.deploy.outputs.marketing_swa }}
-      marketing_host: ${{ steps.deploy.outputs.marketing_host }}
-      marketing_origin: ${{ steps.deploy.outputs.marketing_origin }}
       sql_fqdn: ${{ steps.deploy.outputs.sql_fqdn }}
       sql_db: ${{ steps.deploy.outputs.sql_db }}
-      foundry_url: ${{ steps.deploy.outputs.foundry_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -161,35 +134,19 @@ jobs:
           SQL_ADMIN_LOGIN: ${{ secrets.SQL_ADMIN_LOGIN }}
           SQL_ADMIN_PASSWORD: ${{ secrets.SQL_ADMIN_PASSWORD }}
           SECONDLOOK_JWT_SIGNING_KEY: ${{ secrets.SECONDLOOK_JWT_SIGNING_KEY }}
-          SECONDLOOK_PHOTOS_SIGNING_KEY: ${{ secrets.SECONDLOOK_PHOTOS_SIGNING_KEY }}
-          FOUNDRY_ORGANIZATION_NAME: ${{ vars.FOUNDRY_ORGANIZATION_NAME }}
-          FOUNDRY_COUNTRY_CODE: ${{ vars.FOUNDRY_COUNTRY_CODE || 'CA' }}
           APP_CUSTOM_DOMAIN: ${{ vars.APP_CUSTOM_DOMAIN }}
           ADMIN_CUSTOM_DOMAIN: ${{ vars.ADMIN_CUSTOM_DOMAIN }}
-          MARKETING_CUSTOM_DOMAIN: ${{ vars.MARKETING_CUSTOM_DOMAIN }}
-          MARKETING_APEX_DOMAIN: ${{ vars.MARKETING_APEX_DOMAIN }}
-          MARKETING_SWA_SKU: ${{ vars.MARKETING_SWA_SKU || 'Free' }}
-          BUDGET_ALERT_EMAIL: ${{ vars.BUDGET_ALERT_EMAIL }}
-          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
-          # Outbound email (ADR-021); eng/Setup-Email.ps1 sets these.
-          EMAIL_DOMAIN: ${{ vars.EMAIL_DOMAIN }}
-          EMAIL_DOMAIN_VERIFIED: ${{ vars.EMAIL_DOMAIN_VERIFIED || 'false' }}
-          EMAIL_SMTP_CLIENT_ID: ${{ vars.EMAIL_SMTP_CLIENT_ID }}
-          EMAIL_SMTP_PRINCIPAL_ID: ${{ vars.EMAIL_SMTP_PRINCIPAL_ID }}
-          EMAIL_SMTP_CLIENT_SECRET: ${{ secrets.EMAIL_SMTP_CLIENT_SECRET }}
-          # Google Calendar sync (ADR-022); optional, blank keeps it off.
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
-          for v in SQL_ADMIN_LOGIN SQL_ADMIN_PASSWORD SECONDLOOK_JWT_SIGNING_KEY SECONDLOOK_PHOTOS_SIGNING_KEY FOUNDRY_ORGANIZATION_NAME; do
+          for v in SQL_ADMIN_LOGIN SQL_ADMIN_PASSWORD SECONDLOOK_JWT_SIGNING_KEY; do
             if [ -z "${!v}" ]; then
-              echo "::error::Missing $v. Run eng/Bootstrap-Azure.ps1 once, or set it under Settings → Secrets and variables → Actions."
+              echo "::error::Missing $v. Set it under Settings > Secrets and variables > Actions."
               exit 1
             fi
           done
 
           outputs="$(az deployment group create \
             --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "$INFRA_DEPLOYMENT_NAME" \
+            --name secondlook-infra \
             --template-file eng/infra/main.bicep \
             --parameters eng/infra/main.bicepparam \
             --query properties.outputs \
@@ -203,13 +160,8 @@ jobs:
             echo "web_host=$(out webSwaHostName)"
             echo "admin_swa=$(out adminSwaName)"
             echo "admin_host=$(out adminSwaHostName)"
-            echo "design_swa=$(out designSwaName)"
-            echo "marketing_swa=$(out marketingSwaName)"
-            echo "marketing_host=$(out marketingSwaHostName)"
-            echo "marketing_origin=$(out marketingOrigin)"
             echo "sql_fqdn=$(out sqlServerFqdn)"
             echo "sql_db=$(out sqlDatabaseName)"
-            echo "foundry_url=$(out foundryBaseUrl)"
           } >> "$GITHUB_OUTPUT"
 
           {
@@ -218,33 +170,16 @@ jobs:
             echo "| Resource | Value |"
             echo "|---|---|"
             echo "| API | $(out apiOrigin) |"
-            echo "| Family app | https://$(out webSwaHostName) |"
+            echo "| Buyer app | https://$(out webSwaHostName) |"
             echo "| Admin app | https://$(out adminSwaHostName) |"
-            echo "| Design system | https://$(out designSwaHostName) |"
-            echo "| Marketing site | $(out marketingOrigin) (https://$(out marketingSwaHostName)) |"
             echo "| SQL | $(out sqlServerFqdn) / $(out sqlDatabaseName) |"
-            echo "| Claude (Foundry) | $(out foundryBaseUrl) → \`$(out claudeDeploymentName)\` |"
             echo "| CORS origins | $(jq -r '.corsOrigins.value | join(", ")' <<<"$outputs") |"
-            if [ -n "$(out emailDomain)" ]; then
-              echo "| Email | no-reply@$(out emailDomain), SMTP $(jq -r '.emailSmtpEnabled.value' <<<"$outputs"), verification $(jq -c '.emailVerificationStatus.value | map_values(.status)' <<<"$outputs") |"
-              echo
-              echo "### DNS records for $(out emailDomain) (ADR-021)"
-              echo
-              echo "| Record | Type | Host | Value |"
-              echo "|---|---|---|---|"
-              jq -r '.emailVerificationRecords.value | to_entries[] | "| \(.key) | \(.value.type) | `\(.value.name)` | `\(.value.value)` |"' <<<"$outputs"
-            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # A verified domain with no relay credentials would deploy an API that
-          # still writes .eml files while everything looks configured (L2-172).
-          if [ "$EMAIL_DOMAIN_VERIFIED" = "true" ] && [ "$(jq -r '.emailSmtpEnabled.value' <<<"$outputs")" != "true" ]; then
-            echo "::error::EMAIL_DOMAIN_VERIFIED is true but the SMTP relay is not configured. Run eng/Setup-Email.ps1 so EMAIL_SMTP_CLIENT_ID, EMAIL_SMTP_PRINCIPAL_ID and EMAIL_SMTP_CLIENT_SECRET are set."
-            exit 1
-          fi
-
-  api:
-    name: Build & deploy API + ingestion WebJob
+  # Schema first: the API never migrates on startup, and additive migrations
+  # keep the previous API build working until the new one lands.
+  migrate:
+    name: Apply EF migrations
     runs-on: ubuntu-24.04
     needs: [infra]
     steps:
@@ -254,25 +189,6 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Publish API
-        run: dotnet publish "$API_PROJECT" -c Release -o ./publish --nologo
-
-      # The catalog-ingestion CLI rides along as a scheduled, triggered WebJob
-      # (backend/deploy/webjobs/ingest/README.md, option 3): same plan, no extra
-      # resource. App Service picks up App_Data/jobs/triggered/<name>/run.sh and
-      # the cron in settings.job; the API's app settings supply the Foundry key
-      # and the connection string.
-      - name: Publish ingestion WebJob
-        run: |
-          job=./publish/App_Data/jobs/triggered/ingest
-          dotnet publish "$CLI_PROJECT" -c Release -o "$job/cli" --nologo
-          cp "$WEBJOB_SOURCE/run.sh" "$WEBJOB_SOURCE/settings.job" "$job/"
-          chmod +x "$job/run.sh"
-          ls -la "$job"
-
-      - name: Zip publish output
-        run: cd publish && zip -qr ../api.zip .
-
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -280,82 +196,8 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # --clean keeps wwwroot identical to the zip; uploads live under /home/data
-      # (see main.bicep) so they survive it.
-      - name: Deploy to Azure Web App
-        run: |
-          az webapp deploy \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "${{ needs.infra.outputs.api_name }}" \
-            --src-path api.zip \
-            --type zip \
-            --clean true \
-            --restart true \
-            --async false \
-            --output none
-
-  # L2-041 AC5: the Web App lists the triggered WebJob. On Linux that needs
-  # WEBSITE_SKIP_RUNNING_KUDUAGENT=false (main.bicep); Kudu registers the job a
-  # little after the restart, so this waits for it. ARM names the child resource
-  # `<site>/ingest`, so the filter matches the suffix. It is its own job so a
-  # WebJob problem fails the deploy without holding back the migrations: the
-  # API is already live by now, and new API code on an old schema is an outage.
-  webjob:
-    name: Ingestion WebJob is registered
-    runs-on: ubuntu-24.04
-    needs: [infra, api]
-    steps:
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Ingestion WebJob is registered
-        run: |
-          for attempt in $(seq 1 12); do
-            if found="$(az webapp webjob triggered list \
-              --resource-group "$AZURE_RESOURCE_GROUP" \
-              --name "${{ needs.infra.outputs.api_name }}" \
-              --query "[?ends_with(name, '/ingest')] | length(@)" --output tsv 2>az.err)"; then
-              if [ "$found" = "1" ]; then
-                echo "WebJob 'ingest' is registered."
-                az webapp webjob triggered list \
-                  --resource-group "$AZURE_RESOURCE_GROUP" \
-                  --name "${{ needs.infra.outputs.api_name }}" \
-                  --query "[?ends_with(name, '/ingest')].{schedule:settings.schedule,lastRun:latestRun.status,at:latestRun.startTime}" --output table
-                exit 0
-              fi
-              echo "WebJob 'ingest' not listed yet (attempt $attempt)"
-            else
-              echo "WebJob list failed (attempt $attempt): $(cat az.err)"
-            fi
-            sleep 10
-          done
-          echo "::error::The API does not list the triggered WebJob 'ingest'. Check WEBSITE_SKIP_RUNNING_KUDUAGENT=false and App_Data/jobs/triggered/ingest in the zip; ARM lists the job as '<site>/ingest'."
-          exit 1
-
-  migrate:
-    name: Apply EF migrations
-    runs-on: ubuntu-24.04
-    needs: [infra, api]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # The server only admits Azure services and this runner, for the length
-      # of this job. The rule is named after the run so a stale one is obvious.
+      # The server admits Azure services and, for the length of this job, this
+      # runner. The rule is named after the run so a stale one is obvious.
       - name: Open the SQL firewall for this runner
         id: firewall
         run: |
@@ -380,7 +222,7 @@ jobs:
         run: |
           conn="Server=tcp:${SQL_FQDN},1433;Initial Catalog=${SQL_DB};User ID=${SQL_ADMIN_LOGIN};Password=${SQL_ADMIN_PASSWORD};Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
           echo "::add-mask::$conn"
-          dotnet run --project "$CLI_PROJECT" -c Release -- migrate --connection "$conn"
+          dotnet run --project "$CLI_PROJECT" -c Release -- migrate --provider SqlServer --connection "$conn"
 
       - name: Close the SQL firewall
         if: always() && steps.firewall.outputs.server != ''
@@ -391,91 +233,82 @@ jobs:
             --name "gha-${{ github.run_id }}" \
             --output none
 
-  web:
-    name: Deploy frontend (SWA)
+  api:
+    name: Build and deploy API
     runs-on: ubuntu-24.04
-    # Spec order (L2-041): API, then migrations, then the SPA that talks to them.
-    needs: [infra, test-frontend, migrate]
-    steps:
-      - name: Download Angular bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: angular-dist
-          path: ${{ env.ANGULAR_DIST }}
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Read the deployment token
-        id: token
-        run: |
-          token="$(az staticwebapp secrets list \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "${{ needs.infra.outputs.web_swa }}" \
-            --query properties.apiKey --output tsv)"
-          echo "::add-mask::$token"
-          echo "value=$token" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
-          action: upload
-          app_location: ${{ env.ANGULAR_DIST }}
-          skip_app_build: true
-          skip_api_build: true
-
-  admin-web:
-    name: Deploy admin (SWA)
-    runs-on: ubuntu-24.04
-    # L2-123 AC4: after the migrations, like the family app, on its own host (ADR-014).
-    needs: [infra, test-frontend, migrate]
-    steps:
-      - name: Download admin bundle
-        uses: actions/download-artifact@v4
-        with:
-          name: admin-dist
-          path: ${{ env.ADMIN_DIST }}
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Read the deployment token
-        id: token
-        run: |
-          token="$(az staticwebapp secrets list \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "${{ needs.infra.outputs.admin_swa }}" \
-            --query properties.apiKey --output tsv)"
-          echo "::add-mask::$token"
-          echo "value=$token" >> "$GITHUB_OUTPUT"
-
-      - name: Deploy to Azure Static Web Apps
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
-          action: upload
-          app_location: ${{ env.ADMIN_DIST }}
-          skip_app_build: true
-          skip_api_build: true
-
-  # The static marketing site (ADR-018, L2-156): marketing/ as committed, no
-  # build. Its staticwebapp.config.json carries the security headers.
-  marketing-web:
-    name: Deploy marketing site (SWA)
-    runs-on: ubuntu-24.04
-    needs: [infra]
+    needs: [infra, migrate]
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Publish API
+        run: dotnet publish "$API_PROJECT" -c Release -o ./publish --nologo
+
+      - name: Zip publish output
+        run: cd publish && zip -qr ../api.zip .
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Web App
+        run: |
+          az webapp deploy \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "${{ needs.infra.outputs.api_name }}" \
+            --src-path api.zip \
+            --type zip \
+            --clean true \
+            --restart true \
+            --async false \
+            --output none
+
+  # Both apps are built here, after Bicep, because the API origin is only known
+  # then: it is written into environment.prod.ts (apiBaseUrl is '' in source).
+  web:
+    name: Build and deploy ${{ matrix.app }} (SWA)
+    runs-on: ubuntu-24.04
+    needs: [infra, test-frontend, migrate]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: secondlook
+            swa: web_swa
+          - app: admin
+            swa: admin_swa
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Angular workspace deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Point the app at the API
+        run: |
+          file="frontend/projects/${{ matrix.app }}/src/environments/environment.prod.ts"
+          sed -i "s|apiBaseUrl: ''|apiBaseUrl: '${{ needs.infra.outputs.api_origin }}'|" "$file"
+          grep apiBaseUrl "$file"
+
+      - name: Build libraries and app
+        working-directory: frontend
+        run: |
+          npx ng build api
+          npx ng build components
+          npx ng build ${{ matrix.app }} --configuration production
+
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -486,9 +319,10 @@ jobs:
       - name: Read the deployment token
         id: token
         run: |
+          swa='${{ matrix.app == 'admin' && needs.infra.outputs.admin_swa || needs.infra.outputs.web_swa }}'
           token="$(az staticwebapp secrets list \
             --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "${{ needs.infra.outputs.marketing_swa }}" \
+            --name "$swa" \
             --query properties.apiKey --output tsv)"
           echo "::add-mask::$token"
           echo "value=$token" >> "$GITHUB_OUTPUT"
@@ -498,63 +332,28 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ steps.token.outputs.value }}
           action: upload
-          app_location: ${{ env.MARKETING_DIR }}
+          app_location: frontend/dist/${{ matrix.app }}/browser
           skip_app_build: true
           skip_api_build: true
 
-  # Proves the stack answers after a deploy: the API is up, the SPA shell
-  # serves a deep route (L2-042) and the marketing site serves its page with
-  # its security headers (L2-156). Custom domains are proven when their
-  # repository variable is set (L2-041).
+  # Proves the stack answers after a deploy. The F1 API sleeps when idle, so
+  # the first request retries while it wakes.
   smoke:
     name: Smoke test
     runs-on: ubuntu-24.04
-    needs: [infra, webjob, web, admin-web, marketing-web]
+    needs: [infra, api, web]
     steps:
-      - name: API answers
+      - name: API is ready
         run: |
-          # Swagger is off in Production and every endpoint needs a bearer, so
-          # a 401 from an authenticated route is the healthy answer here.
-          code="$(curl -s -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 10 --retry-all-errors \
-            "${{ needs.infra.outputs.api_origin }}/api/weekends")"
-          echo "GET /api/weekends → $code"
-          case "$code" in 200|401) ;; *) echo "::error::API returned $code"; exit 1;; esac
+          curl -fsS --retry 10 --retry-delay 15 --retry-all-errors --max-time 60 \
+            "${{ needs.infra.outputs.api_origin }}/health/ready"
 
-      - name: SPA deep route serves the shell
+      - name: SPA deep routes serve their shells
         run: |
-          for host in "${{ needs.infra.outputs.web_host }}" "${{ needs.infra.outputs.admin_host }}"; do
-            body="$(curl -fsS --retry 5 --retry-delay 10 --retry-all-errors "https://$host/sign-in")"
-            grep -qE '<(app-root|sl-admin-root)' <<<"$body" || { echo "::error::https://$host/sign-in did not serve the SPA shell"; exit 1; }
-            echo "https://$host/sign-in → OK"
-          done
-
-      - name: App custom domain serves the shell
-        if: ${{ vars.APP_CUSTOM_DOMAIN != '' }}
-        run: |
-          url="https://${{ vars.APP_CUSTOM_DOMAIN }}/sign-in"
-          body="$(curl -fsS --retry 5 --retry-delay 10 --retry-all-errors "$url")"
-          grep -q '<app-root' <<<"$body" || { echo "::error::$url did not serve the app shell"; exit 1; }
-          echo "$url → OK"
-
-      - name: Admin custom domain serves the shell
-        if: ${{ vars.ADMIN_CUSTOM_DOMAIN != '' }}
-        run: |
-          url="https://${{ vars.ADMIN_CUSTOM_DOMAIN }}/sign-in"
-          body="$(curl -fsS --retry 5 --retry-delay 10 --retry-all-errors "$url")"
-          grep -q '<sl-admin-root' <<<"$body" || { echo "::error::$url did not serve the admin shell"; exit 1; }
-          echo "$url → OK"
-
-      - name: Marketing site serves its page and headers
-        run: |
-          url="https://${{ needs.infra.outputs.marketing_host }}/"
-          body="$(curl -fsS --retry 5 --retry-delay 10 --retry-all-errors "$url")"
-          grep -q 'Two days' <<<"$body" || { echo "::error::$url did not serve the marketing page"; exit 1; }
-          curl -fsSI "$url" | grep -qi '^content-security-policy:' || { echo "::error::$url has no Content-Security-Policy"; exit 1; }
-          echo "$url → OK"
-
-      - name: Bare domain redirects to www
-        if: ${{ vars.MARKETING_APEX_DOMAIN != '' && vars.MARKETING_CUSTOM_DOMAIN != '' }}
-        run: |
-          location="$(curl -sSI --retry 5 --retry-delay 10 "https://${{ vars.MARKETING_APEX_DOMAIN }}/" | tr -d '\r' | awk 'tolower($1) == "location:" { print $2 }')"
-          echo "https://${{ vars.MARKETING_APEX_DOMAIN }}/ → $location"
-          [ "$location" = "https://${{ vars.MARKETING_CUSTOM_DOMAIN }}/" ] || { echo "::error::the apex does not redirect to https://${{ vars.MARKETING_CUSTOM_DOMAIN }}/ (ADR-018: set www as the default domain, or use the registrar's redirect)"; exit 1; }
+          check() {
+            body="$(curl -fsS --retry 5 --retry-delay 10 --retry-all-errors "https://$1/sign-in")"
+            grep -q "<$2" <<<"$body" || { echo "::error::https://$1/sign-in did not serve the SPA shell"; exit 1; }
+            echo "https://$1/sign-in -> OK"
+          }
+          check "${{ needs.infra.outputs.web_host }}" sl-root
+          check "${{ needs.infra.outputs.admin_host }}" sl-admin-root
