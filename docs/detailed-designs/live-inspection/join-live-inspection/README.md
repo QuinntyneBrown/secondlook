@@ -84,3 +84,7 @@ A press on "Mute" or "Camera off" flips the button's pressed state and the match
 A checklist change reaches the page as a call event, and the page re-renders the item states.
 
 ![Sequence diagram for updating the checklist](diagrams/sequence-update-checklist.png)
+
+## Implementation notes (J10)
+
+The `<TO SUPPLY>` items are decided in [ADR 0012](../../../adr/0012-live-video-inspection-transport.md): browser-native WebRTC in a peer-to-peer mesh, signalling over a WebSocket at `GET /api/calls/{inspectionId}/ws` served by the in-memory `CallHub`, and a `CallSession` created by the first idempotent `POST /api/calls/{id}/join`. The Angular side is `CallPage` at `/inspections/:id/call`; it asks the API for the call, opens local media, connects the socket and offers to every participant already present, while later arrivals offer to it. `GET`, `join`, `end`, `checklist/advance` and `notes` all answer 404 to anyone who is not the buyer or an assigned provider (L2-057, L2-058, L2-075). The checklist has six fixed items; the mechanic alone advances it and adds notes, and the others see the change through the `changed` message. Admins have no call access.

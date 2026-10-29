@@ -78,3 +78,7 @@ The buyer opens the dialog, confirms, and the handler ends the session for every
 The buyer dismisses the dialog and the call continues.
 
 ![Sequence diagram for staying on the call](diagrams/sequence-stay-on-call.png)
+
+## Implementation notes (J10)
+
+Delivered as `EndCallDialog` (CDK Dialog, "Stay on the call" focused) and the ended state of `CallPage` (L2-043, L2-075). The dialog names who will be disconnected and the checklist items not yet done. `POST /api/calls/{id}/end` is idempotent, closes every socket with an `ended` message, and both sides then read the call and show "Call ended", "That’s the call.", the call length and the items checked and not checked. Deviations from this design: the inspection's own status is not changed by a call in J10, there is no recording to stop, the report-in-progress promise and the "Add another car" action are not on the summary yet (J11 and J13), and the "couldn’t see" reasons are not captured.

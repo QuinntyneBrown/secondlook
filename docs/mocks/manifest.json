@@ -368,7 +368,9 @@
       "states": [
         "default",
         "loading",
-        "error"
+        "error",
+        "not-open",
+        "not-found"
       ],
       "route": "/inspections/civic-lx/lobby",
       "not_applicable": {
@@ -383,6 +385,7 @@
         "default",
         "loading",
         "offline",
+        "disconnected",
         "ended",
         "error"
       ],

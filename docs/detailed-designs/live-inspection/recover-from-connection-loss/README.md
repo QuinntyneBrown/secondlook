@@ -76,3 +76,7 @@ The client loses the connection, shows the overlay, and either resumes the call 
 The buyer selects "Rejoin the call". The handler returns a fresh credential for the saved session and the page reconnects.
 
 ![Sequence diagram for rejoining the call](diagrams/sequence-rejoin.png)
+
+## Implementation notes (J10)
+
+Delivered in `CallPage` (L2-042, L2-075). A socket that closes without the participant leaving moves the call to "Reconnecting" with the "Your connection dropped" alert, closes the peer connections and retries after 1.2 s, 1.8 s and 2.4 s. A `welcome` message counts as success; a socket that opens and closes again counts as another failed attempt. After the last attempt the call shows "Disconnected", "We couldn’t reconnect" and "Rejoin the call", which joins again and reconnects; the participant's place is kept because a new socket for the same user replaces the old one without announcing a departure. Peers rebuild the media connection when a participant (re)joins. The weak-connection banner is deferred.
